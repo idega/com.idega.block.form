@@ -30,31 +30,35 @@
  <!ELEMENT short-description  (#PCDATA)>
  <!ELEMENT writable  (#PCDATA)> 
 ]
-> 
+>
 <faces-config>
 
-	<!-- TODO: write faces-config.xml -->
+  <component>
+    <component-type>FormViewer</component-type>
+    <component-class>
+      com.idega.block.form.presentation.FormViewer
+    </component-class>
+    <property>
+      <display-name>URI of XForms document</display-name>
+      <property-name>uri</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
 
-	<component>
-		<component-type>FormViewer</component-type>
-		<component-class>com.idega.block.form.component.FormViewer</component-class>
-		<property>
-			<display-name>URI of XForms document</display-name>
-			<property-name>uri</property-name>
-			<property-class>java.lang.String</property-class>
-		</property>
-		<component-extension>
-			<idegaweb-info>
-				<builder-visible>true</builder-visible>
-				<object-type>jsf.uicomponent</object-type>
-			</idegaweb-info>
-		</component-extension>
-	</component>
+  <render-kit>
+    <renderer>
+      <component-family>webface</component-family>
+      <renderer-type>xforms</renderer-type>
+      <renderer-class>
+        com.idega.block.form.presentation.renderkit.XformsRenderer
+      </renderer-class>
+    </renderer>
+  </render-kit>
 
-	<managed-bean>
-		<managed-bean-name>FormBean</managed-bean-name>
-		<managed-bean-class>com.idega.block.form.bean.FormBean</managed-bean-class>
-		<managed-bean-scope>request</managed-bean-scope>
-	</managed-bean>
-	
 </faces-config>
