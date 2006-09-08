@@ -11,13 +11,13 @@
       <value>
         <map>
           <key>
-            <name>com.idega.block.form.component.FormViewer</name>
+            <name>com.idega.block.form.presentation.FormViewer</name>
             <value>
               <map>
                 <key>
                   <name>component_property_file</name>
                   <type>java.lang.String</type>
-                  <value>com.idega.block.form.component.FormViewer.pxml</value>
+                  <value>com.idega.block.form.presentation.FormViewer.pxml</value>
                 </key>
               </map>
             </value>

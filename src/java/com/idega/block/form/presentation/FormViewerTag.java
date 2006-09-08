@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewerTag.java,v 1.1 2006/08/28 16:39:04 gediminas Exp $
+ * $Id: FormViewerTag.java,v 1.1 2006/09/08 14:03:14 gediminas Exp $
  * Created on Aug 17, 2006
  *
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -7,7 +7,7 @@
  * This software is the proprietary information of Idega hf.
  * Use is subject to license terms.
  */
-package com.idega.block.form.component;
+package com.idega.block.form.presentation;
 
 import javax.faces.component.UIComponent;
 import javax.faces.webapp.UIComponentTag;

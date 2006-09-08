@@ -13,7 +13,7 @@
 
 	<tag>
 		<name>FormViewer</name>
-		<tag-class>com.idega.block.form.component.FormViewerTag</tag-class>
+		<tag-class>com.idega.block.form.presentation.FormViewerTag</tag-class>
 		<attribute>
 			<name>uri</name>
 			<required>false</required>
