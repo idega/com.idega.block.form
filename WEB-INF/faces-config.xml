@@ -35,9 +35,7 @@
 
   <component>
     <component-type>FormViewer</component-type>
-    <component-class>
-      com.idega.block.form.presentation.FormViewer
-    </component-class>
+    <component-class>com.idega.block.form.presentation.FormViewer</component-class>
     <property>
       <display-name>URI of XForms document</display-name>
       <property-name>uri</property-name>
@@ -55,9 +53,7 @@
     <renderer>
       <component-family>webface</component-family>
       <renderer-type>xforms</renderer-type>
-      <renderer-class>
-        com.idega.block.form.presentation.renderkit.XformsRenderer
-      </renderer-class>
+      <renderer-class>com.idega.block.form.presentation.renderkit.XformsRenderer</renderer-class>
     </renderer>
   </render-kit>
 
