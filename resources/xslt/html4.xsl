@@ -32,7 +32,6 @@
 
     <xsl:param name="form-id" select="'chibaform'"/>
     <xsl:param name="form-name" select="//xhtml:title"/>
-    <xsl:param name="debug-enabled" select="'true'"/>
 
     <!-- ### specifies the parameter prefix for repeat selectors ### -->
     <xsl:param name="selector-prefix" select="'s_'"/>
@@ -127,9 +126,7 @@
                 <!-- dojo init -->
                 <script type="text/javascript">
                     var djConfig = {
-                    baseRelativePath: "<xsl:value-of select="concat($contextroot,$scriptPath,'dojo-0.3.1')"/>",
-                    debugAtAllCost: true,
-                    isDebug: <xsl:value-of select="$debug-enabled"/> };
+                    baseRelativePath: "<xsl:value-of select="concat($contextroot,$scriptPath,'dojo-0.3.1')"/>" };
                 </script>
 
                 <!-- dojo lib -->
@@ -297,9 +294,6 @@
     <xsl:template match="xhtml:body">
         <body>
             <xsl:copy-of select="@*"/>
-            <div id="loading">
-                <img src="resources/images/indicator.gif" class="disabled" id="indicator" alt="loading" />
-            </div>
 
             <xsl:variable name="outermostNodeset"
                 select=".//xforms:*[not(xforms:model)][not(ancestor::xforms:*)]"/>
@@ -317,31 +311,6 @@
                     <xsl:call-template name="createForm"/>
                 </xsl:otherwise>
             </xsl:choose>
-
-            <span id="legend">
-                <span id="required-msg">
-                <span style="color:#A42322;">*</span> - required</span> |
-                <b>?</b> - help
-            </span>
-            <div id="chiba-logo">
-                <a href="jsp/forms.jsp">
-                    <img src="resources/images/poweredby_sw.gif" style="border:none;" alt="powered by Chiba"/>
-                </a>
-            </div>
-            <div id="copyright">
-                <xsl:text disable-output-escaping="yes">&amp;copy; 2001-2005 Chiba Project</xsl:text>
-            </div>
-            <xsl:if test="$scripted='true' and $debug-enabled='true'">
-                <script type="text/javascript">
-                    dojo.require("dojo.widget.DebugConsole");
-                </script>
-
-                <div dojoType="DebugConsole"
-                     style="position:absolute;right:0px;top:0px;width:600px;height:400px;"
-                     title="DEBUG"
-                     hasShadow="true"
-                     displayCloseAction="true"></div>
-            </xsl:if>
         </body>
     </xsl:template>
 
