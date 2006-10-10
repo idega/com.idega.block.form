@@ -38,7 +38,7 @@
     <component-class>com.idega.block.form.presentation.FormViewer</component-class>
     <property>
       <display-name>URI of XForms document</display-name>
-      <property-name>uri</property-name>
+      <property-name>resourcePath</property-name>
       <property-class>java.lang.String</property-class>
     </property>
     <component-extension>
@@ -49,6 +49,67 @@
     </component-extension>
   </component>
 
+  <component>
+    <component-type>FormItemViewer</component-type>
+    <component-class>com.idega.block.form.presentation.FormItemViewer</component-class>
+    <property>
+      <display-name>Path to XForms document</display-name>
+      <property-name>resourcePath</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <property>
+      <display-name>Form name</display-name>
+      <property-name>name</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <property>
+      <display-name>Form description</display-name>
+      <property-name>Form description</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
+
+  <managed-bean>
+    <managed-bean-name>formBean</managed-bean-name>
+    <managed-bean-class>com.idega.block.form.bean.FormBean</managed-bean-class>
+    <managed-bean-scope>session</managed-bean-scope>
+  </managed-bean>
+ 
+    <component>
+    <component-type>FormListViewer</component-type>
+    <component-class>com.idega.block.form.presentation.FormListViewer</component-class>
+    <property>
+      <display-name>Base Folder Path</display-name>
+      <property-name>baseFolderPath</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <property>
+      <display-name>URI to details viewer page</display-name>
+      <property-name>detailsViewerPath</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
+
+  <managed-bean>
+    <managed-bean-name>formListBean</managed-bean-name>
+    <managed-bean-class>com.idega.block.form.bean.FormListManagedBean</managed-bean-class>
+    <managed-bean-scope>session</managed-bean-scope>
+  </managed-bean>
+
+  <!-- 
+
   <render-kit>
     <renderer>
       <component-family>webface</component-family>
@@ -56,5 +117,6 @@
       <renderer-class>com.idega.block.form.presentation.renderkit.XformsRenderer</renderer-class>
     </renderer>
   </render-kit>
+ -->
 
 </faces-config>
