@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: pom.xml,v 1.3 2006/09/27 10:00:39 gediminas Exp $ -->
+<!-- $Id: pom.xml,v 1.4 2006/10/10 15:50:35 gediminas Exp $ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -41,7 +41,7 @@
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
-      <artifactId>com.idega.slide</artifactId>
+      <artifactId>com.idega.content</artifactId>
       <version>3.5.0</version>
       <type>jar</type>
     </dependency>
