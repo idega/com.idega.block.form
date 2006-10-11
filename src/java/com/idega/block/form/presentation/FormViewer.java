@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.3 2006/10/10 15:47:48 gediminas Exp $ Created on Aug
+ * $Id: FormViewer.java,v 1.4 2006/10/11 09:40:18 valdas Exp $ Created on Aug
  * 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -29,10 +29,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/10/10 15:47:48 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/10/11 09:40:18 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">gediminas</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 
@@ -71,7 +71,7 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 	public void encodeEnd(FacesContext ctx) throws IOException {
 		ResponseWriter out = ctx.getResponseWriter();
 		
-		FormBean form = (FormBean) WFUtil.getBeanInstance(FORM_ITEM_BEAN_ID);
+		FormBean form = (FormBean) WFUtil.getBeanInstance("formBean");
 		
 		if (form.getResourcePath() == null) {
 			log.fine("form.resourcePath is null");
