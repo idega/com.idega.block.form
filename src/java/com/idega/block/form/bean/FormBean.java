@@ -1,5 +1,5 @@
 /*
- * $Id: FormBean.java,v 1.3 2006/10/10 15:29:16 gediminas Exp $ Created on Aug
+ * $Id: FormBean.java,v 1.4 2006/10/12 16:02:37 gediminas Exp $ Created on Aug
  * 22, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -17,7 +17,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import com.idega.content.bean.ContentItemBean;
 import com.idega.slide.util.WebdavExtendedResource;
@@ -80,17 +79,20 @@ public class FormBean extends ContentItemBean {
 			 * TODO split the xml into parts - description, schema, localized strings,
 			 * xf:model, xf:form?
 			 */
+			String name = null;
+
 			Node title = doc.getElementsByTagName("title").item(0);
 			if (title != null) {
-				String name = null;
-				if (title.getNodeType() == Node.TEXT_NODE) {
-					name = title.getNodeValue();
+				Node child = title.getFirstChild();
+				if (child != null && child.getNodeType() == Node.TEXT_NODE) {
+					name = child.getNodeValue().trim();
 				}
-				else {
-					name = title.getFirstChild().getNodeValue();
-				}
-				setName(name);
 			}
+
+			if (name == null || name.equals("")) {
+				name = webdavResource.getDisplayName();
+			}
+			setName(name);
 			setDocument(doc);
 		}
 		else {
