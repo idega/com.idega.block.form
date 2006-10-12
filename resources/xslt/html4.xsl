@@ -337,14 +337,7 @@
                 <xsl:attribute name="enctype">multipart/form-data</xsl:attribute>
             </xsl:if>
             <input type="hidden" id="chibaSessionKey" name="sessionKey" value="{$sessionKey}"/>
-            <xsl:if test="$scripted != 'true'">
-                <input type="submit" value="refresh page" class="refresh-button"/>
-            </xsl:if>
-
             <xsl:apply-templates select="."/>
-            <xsl:if test="$scripted != 'true'">
-                <input type="submit" value="refresh page" class="refresh-button"/>
-            </xsl:if>
         </xsl:element>
     </xsl:template>
 
