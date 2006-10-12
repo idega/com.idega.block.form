@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.4 2006/10/11 09:40:18 valdas Exp $ Created on Aug
+ * $Id: FormViewer.java,v 1.5 2006/10/12 16:03:22 gediminas Exp $ Created on Aug
  * 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -29,10 +29,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/10/11 09:40:18 $ by $Author: valdas $
+ * Last modified: $Date: 2006/10/12 16:03:22 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">gediminas</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 
@@ -73,12 +73,30 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 		
 		FormBean form = (FormBean) WFUtil.getBeanInstance("formBean");
 		
+		// use resourcePath from
+		// 1. existing managed bean
+		// 2. component's property
+		// 3. request parameter
 		if (form.getResourcePath() == null) {
-			log.fine("form.resourcePath is null");
+			if (this.resourcePath == null) {
+				String param = (String) ctx.getExternalContext().getRequestParameterMap().get("resourcePath");
+				if (param == null || param.equals("")) {
+					out.write("resourcePath not provided");
+					super.encodeEnd(ctx);
+					return;
+				}
+				log.info("Using resourcePath from request parameter");
+				setResourcePath(param);
+			}
+			else {
+				log.info("Using resourcePath from component's property");
+			}
 			form.setResourcePath(getResourcePath());			
-			super.encodeEnd(ctx);
-			return;
 		}
+		else {
+			log.info("Using resourcePath from existing bean");
+		}
+		
 		try {
 			form.load();
 			Document doc = form.getDocument();
