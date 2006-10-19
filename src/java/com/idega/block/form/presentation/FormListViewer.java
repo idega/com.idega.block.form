@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.2 2006/10/12 15:59:43 gediminas Exp $ Created on
+ * $Id: FormListViewer.java,v 1.3 2006/10/19 17:02:11 gediminas Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -31,15 +31,17 @@ import com.idega.slide.business.IWSlideSession;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2006/10/12 15:59:43 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/10/19 17:02:11 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class FormListViewer extends IWBaseComponent {
 
 	private static final Logger log = Logger.getLogger(FormListViewer.class.getName());
-	private static final String FORMS_PATH = "/files/forms";
+
+	protected static final String FORMS_PATH = "/files/forms";
+	protected static final String FORMS_FILE_EXTENSION = ".xhtml";
 	
 	private String detailsViewerPath = "#";
 	
@@ -72,7 +74,7 @@ public class FormListViewer extends IWBaseComponent {
 				if (folder.isCollection()) {
 					String formId = folder.getDisplayName();
 					WebdavResources rs = folder.getChildResources();
-					WebdavResource r = rs.getResource(folder.getName() + "/" + formId + ".xforms");
+					WebdavResource r = rs.getResource(folder.getName() + "/" + formId + FORMS_FILE_EXTENSION);
 					if (r == null) {
 						continue;
 					}
