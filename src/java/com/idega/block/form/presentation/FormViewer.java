@@ -1,6 +1,6 @@
 /*
- * $Id: FormViewer.java,v 1.5 2006/10/12 16:03:22 gediminas Exp $ Created on Aug
- * 17, 2006
+ * $Id: FormViewer.java,v 1.6 2006/10/19 17:06:40 gediminas Exp $ 
+ * Created on Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
  * 
@@ -23,18 +23,17 @@ import org.chiba.xml.xslt.TransformerService;
 import org.w3c.dom.Document;
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.FormBean;
-import com.idega.content.bean.ManagedContentBeans;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/10/12 16:03:22 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/10/19 17:06:40 $ by $Author: gediminas $
  * 
- * @author <a href="mailto:gediminas@idega.com">gediminas</a>
- * @version $Revision: 1.5 $
+ * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
+ * @version $Revision: 1.6 $
  */
-public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
+public class FormViewer extends IWBaseComponent {
 
 	private static final Logger log = Logger.getLogger(FormViewer.class.getName());
 
@@ -61,45 +60,35 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
+
 		TransformerService transformerService = (TransformerService) getIWMainApplication(context).getAttribute(IWBundleStarter.TRANSFORMER_SERVICE);
 		uiGenerator = new XSLTGenerator();
 		uiGenerator.setTransformerService(transformerService);
 		uiGenerator.setStylesheetURI(XSLT_URI);
-	}
 
-	@Override
-	public void encodeEnd(FacesContext ctx) throws IOException {
-		ResponseWriter out = ctx.getResponseWriter();
+		FormBean form = getFormBean();
 		
-		FormBean form = (FormBean) WFUtil.getBeanInstance("formBean");
-		
-		// use resourcePath from
-		// 1. existing managed bean
-		// 2. component's property
-		// 3. request parameter
-		if (form.getResourcePath() == null) {
-			if (this.resourcePath == null) {
-				String param = (String) ctx.getExternalContext().getRequestParameterMap().get("resourcePath");
-				if (param == null || param.equals("")) {
-					out.write("resourcePath not provided");
-					super.encodeEnd(ctx);
-					return;
-				}
-				log.info("Using resourcePath from request parameter");
-				setResourcePath(param);
-			}
-			else {
-				log.info("Using resourcePath from component's property");
-			}
-			form.setResourcePath(getResourcePath());			
+		String param = (String) context.getExternalContext().getRequestParameterMap().get("resourcePath");
+		if (param != null && !param.equals("")) {
+			log.info("Setting component's resourcePath from request parameter");
+			setResourcePath(param);
 		}
 		else {
-			log.info("Using resourcePath from existing bean");
+			form.setResourcePath(getResourcePath());	
+		}
+		
+		if (form.getResourcePath() == null) {
+			log.warning("resourcePath not defined");
+			return;
 		}
 		
 		try {
 			form.load();
 			Document doc = form.getDocument();
+			if (doc == null) {
+				log.warning("Could not load the form from " + getResourcePath());
+				return;
+			}
 			
 			chiba = new ChibaBean();
 			chiba.setXMLContainer(doc);
@@ -117,6 +106,17 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 			log.log(Level.WARNING, "Could not set XML container", e);
 			return;
 		}
+	}
+
+	@Override
+	public void encodeEnd(FacesContext ctx) throws IOException {
+		if (chiba == null) {
+			super.encodeEnd(ctx);
+			return;
+		}
+		
+		ResponseWriter out = ctx.getResponseWriter();
+		
 		try {
 			uiGenerator.setInput(chiba.getXMLContainer());
 			uiGenerator.setOutput(out);
@@ -125,6 +125,7 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 		catch (XFormsException e) {
 			log.log(Level.WARNING, "Could not generate HTML from XForms document", e);
 		}
+		
 		super.encodeEnd(ctx);
 	}
 
@@ -134,6 +135,7 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 
 	public void setResourcePath(String resourcePath) {
 		this.resourcePath = resourcePath;
+		getFormBean().setResourcePath(resourcePath);
 	}
 
 	public Object saveState(FacesContext ctx) {
@@ -147,6 +149,14 @@ public class FormViewer extends IWBaseComponent implements ManagedContentBeans {
 		Object values[] = (Object[]) state;
 		super.restoreState(ctx, values[0]);
 		this.resourcePath = (String) values[1];
+	}
+
+	/**
+	 * Get managed form bean
+	 * @return
+	 */
+	protected FormBean getFormBean() {
+		return (FormBean) WFUtil.getBeanInstance("formBean");
 	}
 
 }
