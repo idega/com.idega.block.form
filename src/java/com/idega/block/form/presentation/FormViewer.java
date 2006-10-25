@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.6 2006/10/19 17:06:40 gediminas Exp $ 
+ * $Id: FormViewer.java,v 1.7 2006/10/25 13:31:04 gediminas Exp $ 
  * Created on Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -10,7 +10,6 @@
 package com.idega.block.form.presentation;
 
 import java.io.IOException;
-import java.net.URI;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,19 +27,14 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/10/19 17:06:40 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/10/25 13:31:04 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  */
 public class FormViewer extends IWBaseComponent {
 
 	private static final Logger log = Logger.getLogger(FormViewer.class.getName());
-
-	private static final String BUNDLE_IDENTIFIER = "com.idega.block.form";
-
-	// private static String RENDERER_TYPE = "xforms";
-	private static final URI XSLT_URI = URI.create("bundle://" + BUNDLE_IDENTIFIER + "/resources/xslt/html4.xsl");
 
 	private ChibaBean chiba;
 
@@ -64,7 +58,7 @@ public class FormViewer extends IWBaseComponent {
 		TransformerService transformerService = (TransformerService) getIWMainApplication(context).getAttribute(IWBundleStarter.TRANSFORMER_SERVICE);
 		uiGenerator = new XSLTGenerator();
 		uiGenerator.setTransformerService(transformerService);
-		uiGenerator.setStylesheetURI(XSLT_URI);
+		uiGenerator.setStylesheetURI(IWBundleStarter.XSLT_URI);
 
 		FormBean form = getFormBean();
 		
