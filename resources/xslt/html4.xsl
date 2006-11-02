@@ -27,7 +27,7 @@
     <xsl:param name="sessionKey" select="''"/>
 
     <!-- ### this url will be used to build the form action attribute ### -->
-    <xsl:param name="action-url" select="'http://localhost:8080/chiba-1.0.0/XFormsServlet'"/>
+    <xsl:param name="action-url" select="''"/>
 
 
     <xsl:param name="form-id" select="'chibaform'"/>
@@ -45,9 +45,6 @@
 
     <!--- path to javascript files -->
     <xsl:param name="scriptPath" select="''"/>
-
-    <!-- path to core CSS file -->
-    <xsl:param name="CSSPath" select="''"/>
 
     <!-- ############################################ VARIABLES ################################################ -->
     <!-- ### checks, whether this form uses uploads. Used to set form enctype attribute ### -->
@@ -67,9 +64,6 @@
 
 	<!-- ### checks, whether this form makes use of <textarea xforms:mediatype='text/html'/> ### -->
 	<xsl:variable name="uses-html-textarea" select="boolean(//xforms:textarea[@xforms:mediatype='text/html'])"/>
-
-    <!-- ### the CSS stylesheet to use ### -->
-    <xsl:variable name="default-css" select="concat($contextroot,$CSSPath,'xforms.css')"/>
 
     <xsl:variable name="default-hint-appearance" select="'bubble'"/>
 
@@ -91,13 +85,13 @@
     </xsl:template>
 
     <xsl:template match="xhtml:head">
-        <head>
+        <div id="xforms-head">
             <!-- copy all meta tags except 'contenttype' -->
             <xsl:call-template name="getMeta" />
 
-            <title>
+            <h2>
                 <xsl:value-of select="$form-name"/>
-            </title>
+            </h2>
 
             <!-- copy base if present -->
             <xsl:if test="xhtml:base">
@@ -108,9 +102,6 @@
                 </base>
             </xsl:if>
 
-
-            <!-- include Chiba default stylesheet -->
-            <link rel="stylesheet" type="text/css" href="{$default-css}"/>
 
 			<xsl:if test="$scripted='true'and $uses-html-textarea">
 				<!-- Insert here a custom CSS for textarea mediatype='text/html'-->
@@ -221,7 +212,7 @@
 </xsl:text>
                 </xsl:for-each>
             </xsl:if>
-        </head>
+        </div>
     </xsl:template>
 
     <xsl:template name="getMeta">
