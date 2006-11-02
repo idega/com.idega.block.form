@@ -37,8 +37,8 @@
     <component-type>FormViewer</component-type>
     <component-class>com.idega.block.form.presentation.FormViewer</component-class>
     <property>
-      <display-name>Path of XForms document</display-name>
-      <property-name>resourcePath</property-name>
+      <display-name>Form ID</display-name>
+      <property-name>formId</property-name>
       <property-class>java.lang.String</property-class>
     </property>
     <component-extension>

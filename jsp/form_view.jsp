@@ -12,7 +12,7 @@ version="1.2">
 		<ws:page>
 			<h:form>
 				<wf:wfblock id="form_block" title="XForms View">
-					<form:formViewer uri="http://localhost:8080/chiba-web-2.0.0rc1/forms/controls.xhtml" />
+					<form:formViewer formId="test1" />
 				</wf:wfblock>
 			</h:form>
 		</ws:page>

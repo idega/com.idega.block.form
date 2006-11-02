@@ -48,7 +48,9 @@ public class SubmittedDataReader {
 		if(form_bean == null)
 			form_bean = (FormBean) WFUtil.getBeanInstance(FormReaderUtil.form_bean_name);
 		
-		form_bean.setResourcePath(resource_path);
+//		form_bean.setResourcePath(resource_path);
+		// FIXME: this loads default form
+		form_bean.setFormId(form_identifier);
 		
 		form_bean.load();
 		Document submitted_data = form_bean.getDocument();

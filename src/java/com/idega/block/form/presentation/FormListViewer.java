@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.3 2006/10/19 17:02:11 gediminas Exp $ Created on
+ * $Id: FormListViewer.java,v 1.4 2006/11/02 11:40:42 gediminas Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -31,18 +31,15 @@ import com.idega.slide.business.IWSlideSession;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2006/10/19 17:02:11 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/02 11:40:42 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class FormListViewer extends IWBaseComponent {
 
 	private static final Logger log = Logger.getLogger(FormListViewer.class.getName());
 
-	protected static final String FORMS_PATH = "/files/forms";
-	protected static final String FORMS_FILE_EXTENSION = ".xhtml";
-	
 	private String detailsViewerPath = "#";
 	
 	/* (non-Javadoc)
@@ -56,7 +53,7 @@ public class FormListViewer extends IWBaseComponent {
 			ListItem li = new ListItem();
 			Link a = new Link(f.getName());
 			a.setURL(getDetailsViewerPath());
-			a.addParameter("resourcePath", f.getResourcePath());
+			a.addParameter("formId", f.getFormId());
 			li.add(a);
 			ul.add(li);
 		}
@@ -69,19 +66,19 @@ public class FormListViewer extends IWBaseComponent {
 		try {			
 			IWContext iwc = IWContext.getInstance();
 			IWSlideSession session = (IWSlideSession) IBOLookup.getSessionInstance(iwc, IWSlideSession.class);
-			WebdavResource root = session.getWebdavResource(FORMS_PATH);
+			WebdavResource root = session.getWebdavResource(FormBean.FORMS_PATH);
 			for (WebdavResource folder : root.listWebdavResources()) {
 				if (folder.isCollection()) {
 					String formId = folder.getDisplayName();
 					WebdavResources rs = folder.getChildResources();
-					WebdavResource r = rs.getResource(folder.getName() + "/" + formId + FORMS_FILE_EXTENSION);
+					WebdavResource r = rs.getResource(folder.getName() + "/" + formId + FormBean.FORMS_FILE_EXTENSION);
 					if (r == null) {
 						continue;
 					}
 					
 					// need to load for title
 					FormBean form = new FormBean();
-					form.setResourcePath(r.getPath());
+					form.setFormId(formId);
 					form.load();
 					
 					list.add(form);

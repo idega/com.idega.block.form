@@ -116,7 +116,7 @@ public class FormReaderBlock extends IWBaseComponent {
 		if(form_reader != null) {
 			
 			try {
-				form_reader.setResourcePath(FormReader.getResourcePath(formid_provided));
+				form_reader.setFormId(formid_provided);
 				
 				Document document_output = FormReaderUtil.getDocumentBuilder().newDocument();
 				

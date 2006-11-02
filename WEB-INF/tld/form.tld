@@ -15,7 +15,7 @@
 		<name>FormViewer</name>
 		<tag-class>com.idega.block.form.presentation.FormViewerTag</tag-class>
 		<attribute>
-			<name>uri</name>
+			<name>formId</name>
 			<required>false</required>
 			<rtexprvalue>false</rtexprvalue>
 		</attribute>

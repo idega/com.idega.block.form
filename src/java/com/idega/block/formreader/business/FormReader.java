@@ -21,12 +21,10 @@ public class FormReader {
 	
 	private ChibaBean chiba;
 	private XSLTGenerator ui_generator;
-	private String resource_path;
+	private String formId;
 	private FormBean form_bean;
 	private boolean inited = false;
 	private Object output;
-	
-	private static final String form_path = "/files/forms/";
 	
 	private FormReader() { 	}
 	
@@ -52,13 +50,13 @@ public class FormReader {
 		if(form_bean == null)
 			form_bean = (FormBean) WFUtil.getBeanInstance(FormReaderUtil.form_bean_name);
 		
-		form_bean.setResourcePath(resource_path);
+		form_bean.setFormId(formId);
 		
 		form_bean.load();
 		Document doc = form_bean.getDocument();
 		
 		if (doc == null) {
-			throw new NullPointerException("Document was not found by provided resource path: "+resource_path);
+			throw new NullPointerException("Document was not found by provided resource path: "+formId);
 		}
 		
 		chiba = new ChibaBean();
@@ -66,12 +64,12 @@ public class FormReader {
 		chiba.init();
 	}
 	
-	public void setResourcePath(String resource_path) throws NullPointerException, Exception {
+	public void setFormId(String formId) throws NullPointerException, Exception {
 		
 		if(!inited)
 			throw new NullPointerException("FormParser not initialized");
 		
-		this.resource_path = resource_path;
+		this.formId = formId;
 		loadDynamicResources();
 	}
 	
@@ -94,16 +92,4 @@ public class FormReader {
 		ui_generator.generate();
 	}
 	
-	
-	
-	public static String getResourcePath(String form_identifier) {
-		
-		return new StringBuffer(form_path)
-		.append(FormReaderUtil.slash)
-		.append(form_identifier)
-		.append(FormReaderUtil.slash)
-		.append(form_identifier)
-		.append(FormReaderUtil.dot_xhtml)
-		.toString();
-	}
 }

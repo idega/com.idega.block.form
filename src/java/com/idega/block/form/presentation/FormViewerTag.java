@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewerTag.java,v 1.1 2006/09/08 14:03:14 gediminas Exp $
+ * $Id: FormViewerTag.java,v 1.2 2006/11/02 11:40:42 gediminas Exp $
  * Created on Aug 17, 2006
  *
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -15,7 +15,7 @@ import javax.faces.webapp.UIComponentTag;
 
 public class FormViewerTag extends UIComponentTag {
 	
-	private String uri;
+	private String formId;
 
 	@Override
 	public String getComponentType() {
@@ -31,17 +31,17 @@ public class FormViewerTag extends UIComponentTag {
 	protected void setProperties(UIComponent component) {
 		super.setProperties(component);
 		if (component != null) {
-			component.getAttributes().put("uri", this.uri);     
+			component.getAttributes().put("formId", this.formId);     
 		}
 	}
 	
-	public String getUri() {
-		return uri;
+	public String getFormId() {
+		return formId;
 	}
 
 	
-	public void setUri(String uri) {
-		this.uri = uri;
+	public void setFormId(String uri) {
+		this.formId = uri;
 	}	
 	
 }

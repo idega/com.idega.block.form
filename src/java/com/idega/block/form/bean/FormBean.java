@@ -1,5 +1,5 @@
 /*
- * $Id: FormBean.java,v 1.5 2006/10/19 17:07:20 gediminas Exp $
+ * $Id: FormBean.java,v 1.6 2006/11/02 11:40:42 gediminas Exp $
  * Created on Aug 22, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -33,10 +33,10 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p>
  * A form document which loads itself from slide and parses the XML
  * </p>
- *  Last modified: $Date: 2006/10/19 17:07:20 $ by $Author: gediminas $
+ *  Last modified: $Date: 2006/11/02 11:40:42 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class FormBean implements Serializable {
 
@@ -44,7 +44,10 @@ public class FormBean implements Serializable {
 
 	private static final Logger log = Logger.getLogger(FormBean.class.getName());
 
-	private String resourcePath;
+	public static final String FORMS_PATH = "/files/forms";
+	public static final String FORMS_FILE_EXTENSION = ".xhtml";
+
+	private String formId;
 
 	private String name;
 
@@ -56,8 +59,8 @@ public class FormBean implements Serializable {
 		// nothing
 	}
 
-	public FormBean(String resourcePath) {
-		this.resourcePath = resourcePath;
+	public FormBean(String formId) {
+		this.formId = formId;
 	}
 
 	/**
@@ -65,7 +68,7 @@ public class FormBean implements Serializable {
 	 */
 	public void clear() {
 		this.loaded = false;
-		this.resourcePath = null;
+		this.formId = null;
 		this.name = null;
 		this.document = null;
 	}
@@ -81,10 +84,11 @@ public class FormBean implements Serializable {
 	 */
 	public void load() throws IOException {
 		if (!isLoaded()) {
-			String resourcePath = getResourcePath();
-			if (resourcePath == null) {
-				throw new FileNotFoundException("Error loading content Item. No resourcePath set");
+			if (getFormId() == null) {
+				throw new FileNotFoundException("Error loading content Item. No formId set");
 			}
+			String resourcePath = getResourcePath();
+			log.info("Loading form from " + resourcePath);
 			boolean loaded = load(resourcePath);
 			setLoaded(loaded);
 		}
@@ -114,9 +118,6 @@ public class FormBean implements Serializable {
 			IWSlideSession session = getIWSlideSession(iwuc);
 			WebdavExtendedResource webdavResource = session.getWebdavResource(path);
 			webdavResource.setProperties();
-			// here I don't use the varible 'path' since it can actually be the
-			// URI
-			setResourcePath(webdavResource.getPath());
 			setName(webdavResource.getDisplayName());
 			returner = load(webdavResource);
 		}
@@ -162,7 +163,7 @@ public class FormBean implements Serializable {
 			}
 			if (name == null || name.equals("")) {
 				name = webdavResource.getDisplayName();
-			}
+			}			
 			setName(name);
 			setDocument(doc);
 		}
@@ -252,20 +253,37 @@ public class FormBean implements Serializable {
 	}
 
 	/**
-	 * @return Returns the resourcePath.
+	 * @return Returns the formId.
 	 */
-	public String getResourcePath() {
-		return this.resourcePath;
+	public String getFormId() {
+		return this.formId;
 	}
 
 	/**
-	 * @param resourcePath
-	 *            The resourcePath to set.
+	 * @param formId
+	 *            The formId to set.
 	 */
-	public void setResourcePath(String resourcePath) {
-		if (this.resourcePath != null && !this.resourcePath.equals(resourcePath)) {
+	public void setFormId(String formId) {
+		if (this.formId != null && !this.formId.equals(formId)) {
 			clear();
 		}
-		this.resourcePath = resourcePath;
+		this.formId = formId;
 	}
+	
+	/**
+	 * Constructs a path from bean's formId
+	 * @return
+	 */
+	public String getResourcePath() {
+		return getResourcePath(getFormId());
+	}
+
+	/**
+	 * Constructs a path from given formId
+	 * @return A string like /files/forms/f1/f1.xhtml
+	 */
+	public static String getResourcePath(String formId) {
+		return FORMS_PATH + "/" + formId + "/" + formId + FORMS_FILE_EXTENSION;
+	}
+
 }
