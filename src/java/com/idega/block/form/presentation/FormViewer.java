@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.8 2006/11/02 14:39:43 gediminas Exp $ 
+ * $Id: FormViewer.java,v 1.9 2006/11/03 08:39:29 gediminas Exp $ 
  * Created on Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -44,18 +44,16 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/11/02 14:39:43 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/03 08:39:29 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public class FormViewer extends IWBaseComponent {
 
 	private static final Logger log = Logger.getLogger(FormViewer.class.getName());
 
 	private String formId;
-
-	private XFormsSession xFormsSession;
 
 	public FormViewer() {
 		super();
@@ -81,21 +79,33 @@ public class FormViewer extends IWBaseComponent {
 			form.setFormId(getFormId());	
 		}
 		
-		log.info("formId = " + form.getFormId());
-
 		if (form.getFormId() == null) {
 			log.warning("formId not defined");
 			return;
 		}
 		
-        WebAdapter adapter = null;
+		// load form
+		try {
+			form.load();
+			Document doc = form.getDocument();
+			if (doc == null) {
+				log.warning("Could not load the form from " + getFormId());
+				return;
+			}
+		}
+		catch (IOException e) {
+			log.log(Level.WARNING, "Could not load the form from " + getFormId(), e);
+			return;
+		}
+
+		WebAdapter adapter = null;
         HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
         HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
 
         HttpSession session = request.getSession(true);
 
         XFormsSessionManager sessionManager = getXFormsSessionManager();
-        xFormsSession = sessionManager.createXFormsSession();
+        XFormsSession xFormsSession = sessionManager.createXFormsSession();
         
 		/*
         the XFormsSessionManager is kept in the http-session though it is accessible as singleton. Subsequent
@@ -113,14 +123,6 @@ public class FormViewer extends IWBaseComponent {
 	        
 	        adapter.setXFormsSession(xFormsSession);
 
-			// load form
-			form.load();
-			Document doc = form.getDocument();
-			if (doc == null) {
-				log.warning("Could not load the form from " + getFormId());
-				return;
-			}
-			
 			// setup Adapter
 			adapter = setupAdapter(adapter, xFormsSession.getKey(), form);
 			storeCookies(request, adapter);
@@ -143,8 +145,7 @@ public class FormViewer extends IWBaseComponent {
         
 		}
 		catch (IOException e) {
-			log.log(Level.WARNING, "Error reading document from Slide", e);
-            shutdown(adapter, session, e, response, request, xFormsSession.getKey());
+			log.log(Level.WARNING, "handleExit failed", e);
 			return;
 		}
 		catch (XFormsException e) {
@@ -167,6 +168,8 @@ public class FormViewer extends IWBaseComponent {
 	        WebAdapter webAdapter = null;
 	
 	        try {
+	            XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+	            XFormsSession xFormsSession = manager.getXFormsSession(key);
 	            webAdapter = xFormsSession.getAdapter();
 	            if (webAdapter == null) {
 	                throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
@@ -326,7 +329,7 @@ public class FormViewer extends IWBaseComponent {
 		
 		// todo: unify and extract parameter names
 		generator.setParameter("contextroot", context.getExternalContext().getRequestContextPath());
-		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + "/resources/javascript");
+		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + "/resources/javascript/");
 		generator.setParameter("sessionKey", sessionKey);
 		
 		generator.setParameter("debug-enabled", String.valueOf(log.isLoggable(Level.FINE)));
