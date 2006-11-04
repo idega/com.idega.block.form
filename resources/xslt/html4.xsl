@@ -85,13 +85,13 @@
     </xsl:template>
 
     <xsl:template match="xhtml:head">
-        <div id="xforms-head">
+        <div id="chiba-head">
             <!-- copy all meta tags except 'contenttype' -->
             <xsl:call-template name="getMeta" />
 
-            <h2>
+            <h1 class="title">
                 <xsl:value-of select="$form-name"/>
-            </h2>
+            </h1>
 
             <!-- copy base if present -->
             <xsl:if test="xhtml:base">
@@ -158,15 +158,15 @@
                 <xsl:text>
 </xsl:text>
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,'/Flux/engine.js')}">&#160;</script>
+                <script type="text/javascript" src="{concat($contextroot,'/dwr/engine.js')}">&#160;</script>
                 <xsl:text>
 </xsl:text>
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,'/Flux/interface/Flux.js')}">&#160;</script>
+                <script type="text/javascript" src="{concat($contextroot,'/dwr/interface/Flux.js')}">&#160;</script>
                 <xsl:text>
 </xsl:text>
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,'/Flux/util.js')}">&#160;</script>
+                <script type="text/javascript" src="{concat($contextroot,'/dwr/util.js')}">&#160;</script>
                 <xsl:text>
 </xsl:text>
                 <!-- XForms Client -->
@@ -273,9 +273,7 @@
     </xsl:template>
 
     <xsl:template match="xhtml:html">
-        <html>
             <xsl:apply-templates/>
-        </html>
     </xsl:template>
 
     <xsl:template match="xhtml:link">
@@ -283,7 +281,7 @@
     </xsl:template>
 
     <xsl:template match="xhtml:body">
-        <body>
+        <div id="chiba-body">
             <xsl:copy-of select="@*"/>
 
             <xsl:variable name="outermostNodeset"
@@ -302,7 +300,7 @@
                     <xsl:call-template name="createForm"/>
                 </xsl:otherwise>
             </xsl:choose>
-        </body>
+        </div>
     </xsl:template>
 
     <!--
@@ -319,7 +317,9 @@
                     <xsl:when test="$uses-upload">
                         <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
                     </xsl:when>
-                    <xsl:otherwise>javascript:return false;</xsl:otherwise>
+                    <xsl:otherwise>
+                        <xsl:text>javascript:return false;</xsl:text>
+                    </xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>
             <xsl:attribute name="method">POST</xsl:attribute>
