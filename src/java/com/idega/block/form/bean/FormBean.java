@@ -1,5 +1,5 @@
 /*
- * $Id: FormBean.java,v 1.6 2006/11/02 11:40:42 gediminas Exp $
+ * $Id: FormBean.java,v 1.7 2006/11/04 14:00:00 gediminas Exp $
  * Created on Aug 22, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -33,10 +33,10 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p>
  * A form document which loads itself from slide and parses the XML
  * </p>
- *  Last modified: $Date: 2006/11/02 11:40:42 $ by $Author: gediminas $
+ *  Last modified: $Date: 2006/11/04 14:00:00 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  */
 public class FormBean implements Serializable {
 
@@ -109,9 +109,6 @@ public class FormBean implements Serializable {
 	 * @throws IOException
 	 */
 	protected boolean load(String path) throws IOException {
-		// System.out.print("["+this.toString()+"]:");
-		// System.out.println("Attempting to load path "+path);
-		clear();
 		IWUserContext iwuc = IWContext.getInstance();
 		boolean returner = true;
 		try {
