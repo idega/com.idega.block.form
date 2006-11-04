@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.9 2006/11/03 08:39:29 gediminas Exp $ 
+ * $Id: FormViewer.java,v 1.10 2006/11/04 14:04:54 gediminas Exp $ 
  * Created on Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -16,11 +16,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.fileupload.FileUpload;
 import org.apache.commons.httpclient.Cookie;
 import org.chiba.adapter.ChibaAdapter;
+import org.chiba.adapter.ChibaEvent;
+import org.chiba.adapter.DefaultChibaEventImpl;
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.adapter.ui.XSLTGenerator;
 import org.chiba.web.WebAdapter;
@@ -44,16 +48,18 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/11/03 08:39:29 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/04 14:04:54 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  */
 public class FormViewer extends IWBaseComponent {
 
 	private static final Logger log = Logger.getLogger(FormViewer.class.getName());
 
 	private String formId;
+
+	private String sessionKey;
 
 	public FormViewer() {
 		super();
@@ -141,6 +147,8 @@ public class FormViewer extends IWBaseComponent {
 				xFormsSession.setProperty(XFormsSession.REFERER, request.getQueryString());
 				// actually add the XFormsSession ot the manager
 				sessionManager.addXFormsSession(xFormsSession);
+				
+				setSessionKey(xFormsSession.getKey());
 			}
         
 		}
@@ -150,7 +158,7 @@ public class FormViewer extends IWBaseComponent {
 		}
 		catch (XFormsException e) {
 			log.log(Level.WARNING, "Could not set XML container", e);
-            shutdown(adapter, session, e, response, request, xFormsSession.getKey());
+            shutdown(adapter, response, request);
 			return;
 		}
 	}
@@ -158,25 +166,21 @@ public class FormViewer extends IWBaseComponent {
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
         HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-        String key = request.getParameter("sessionKey");
-		
-		log.info("sessionKey = " + key + ", initialized = " + isInitialized());
 
-		if (isInitialized()/* && key != null*/) {
+		if (isInitialized()) {
 	        HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
 	        HttpSession session = request.getSession(true);
 	        WebAdapter webAdapter = null;
 	
 	        try {
 	            XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
-	            XFormsSession xFormsSession = manager.getXFormsSession(key);
+	            XFormsSession xFormsSession = manager.getXFormsSession(sessionKey);
 	            webAdapter = xFormsSession.getAdapter();
 	            if (webAdapter == null) {
 	                throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
 	            }
-
+/* these belong in decode()
 	            // POST (from FluxHelperServlet)
-	            /*
 	            ChibaEvent chibaEvent = new DefaultChibaEventImpl();
 	            chibaEvent.initEvent("http-request", null, request);
 	            webAdapter.dispatch(chibaEvent);
@@ -188,8 +192,7 @@ public class FormViewer extends IWBaseComponent {
 	                out.println("<html><head><title>status</title></head><body></body></html>");
 	                out.close();
 	            }
-	            */
-	            
+*/	            
 	            // GET (from ViewServlet)
                 UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
 				uiGenerator.setInput(webAdapter.getXForms());
@@ -197,7 +200,7 @@ public class FormViewer extends IWBaseComponent {
 				uiGenerator.generate();
 	            
 	        } catch (Exception e) {
-	            shutdown(webAdapter, session, e, response, request, key);
+	            shutdown(webAdapter, response, request);
 	        }
 		}
 		
@@ -213,10 +216,19 @@ public class FormViewer extends IWBaseComponent {
 		getFormBean().setFormId(formId);
 	}
 
+	public String getSessionKey() {
+		return this.sessionKey;
+	}
+
+	public void setSessionKey(String sessionKey) {
+		this.sessionKey = sessionKey;
+	}
+
 	public Object saveState(FacesContext ctx) {
-		Object values[] = new Object[2];
+		Object values[] = new Object[3];
 		values[0] = super.saveState(ctx);
 		values[1] = this.formId;
+		values[2] = this.sessionKey;
 		return values;
 	}
 
@@ -224,6 +236,7 @@ public class FormViewer extends IWBaseComponent {
 		Object values[] = (Object[]) state;
 		super.restoreState(ctx, values[0]);
 		this.formId = (String) values[1];
+		this.sessionKey = (String) values[2];
 	}
 
 	/**
@@ -254,6 +267,7 @@ public class FormViewer extends IWBaseComponent {
 				String loadURI = (String) exitEvent.getContextInfo("uri");
 				// kill XFormsSession
 				xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
+				setSessionKey(null);
 //				response.sendRedirect(response.encodeRedirectURL(loadURI));
 			}
 		}
@@ -331,6 +345,7 @@ public class FormViewer extends IWBaseComponent {
 		generator.setParameter("contextroot", context.getExternalContext().getRequestContextPath());
 		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + "/resources/javascript/");
 		generator.setParameter("sessionKey", sessionKey);
+        generator.setParameter("action-url", "");
 		
 		generator.setParameter("debug-enabled", String.valueOf(log.isLoggable(Level.FINE)));
 		String selectorPrefix = Config.getInstance().getProperty(HttpRequestHandler.SELECTOR_PREFIX_PROPERTY,
@@ -350,8 +365,7 @@ public class FormViewer extends IWBaseComponent {
 		return generator;
 	}
 
-    protected void shutdown(WebAdapter webAdapter, HttpSession session, Exception e, HttpServletResponse response,
-			HttpServletRequest request, String key) {
+    protected void shutdown(WebAdapter webAdapter, HttpServletResponse response, HttpServletRequest request) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
 			try {
@@ -362,7 +376,7 @@ public class FormViewer extends IWBaseComponent {
 			}
 		}
 
-		session.removeAttribute(key);
+		setSessionKey(null);
 		// redirect to error page (after encoding session id if required)
 		//response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
 		//		+ request.getSession().getServletContext().getInitParameter("error.page")));
