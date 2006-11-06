@@ -1,8 +1,15 @@
 package com.idega.block.formreader.business.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
@@ -30,4 +37,48 @@ public class FormReaderUtil {
 		
 		return factory.newDocumentBuilder();
 	}
+	
+	public static List<Element> getElementsByAttributeValue(Node start, String tag_name, String attr_name, String attr_value) {
+        NodeList nl = ((Element)start).getElementsByTagName(tag_name);
+        int l = nl.getLength();
+        if(l == 0)
+            return null;
+        Element e = null;
+        String compareValue = null;
+        
+        List<Element> elements = new ArrayList<Element>();
+        
+        for(int i = 0; i < l; i++) {
+            e = (Element)nl.item(i);
+            if(e.getNodeType() != 1)
+                continue;
+            compareValue = e.getAttribute(attr_name);
+            if(compareValue.equals(attr_value))
+            	elements.add(e);
+        }
+
+        return elements;
+    }
+	
+	public static List<Element> getElementsByAttributeValueContained(Node start, String tag_name, String attr_name, String attr_value) {
+        NodeList nl = ((Element)start).getElementsByTagName(tag_name);
+        int l = nl.getLength();
+        if(l == 0)
+            return null;
+        Element e = null;
+        String compareValue = null;
+        
+        List<Element> elements = new ArrayList<Element>();
+        
+        for(int i = 0; i < l; i++) {
+            e = (Element)nl.item(i);
+            if(e.getNodeType() != 1)
+                continue;
+            compareValue = e.getAttribute(attr_name);
+            if(compareValue.contains(attr_value))
+            	elements.add(e);
+        }
+
+        return elements;
+    }
 }

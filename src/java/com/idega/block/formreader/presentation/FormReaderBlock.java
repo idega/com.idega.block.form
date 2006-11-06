@@ -124,10 +124,8 @@ public class FormReaderBlock extends IWBaseComponent {
 				form_reader.generate();
 				
 				SubmittedDataReader submitted_data_reader = SubmittedDataReader.getInstance();
-				
-				submitted_data_reader.setResourcePath(
-						SubmittedDataReader.getResourcePath(formid_provided, submitted_data_id_provided)
-				);
+				submitted_data_reader.setFormIdentifier(formid_provided);
+				submitted_data_reader.setSubmittedDataId(submitted_data_id_provided);
 				
 				FormParser form_parser = FormParser.getInstance();
 				form_parser.setHtmlForm(document_output);

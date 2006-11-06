@@ -273,7 +273,9 @@
     </xsl:template>
 
     <xsl:template match="xhtml:html">
+	    <div>
             <xsl:apply-templates/>
+      </div>
     </xsl:template>
 
     <xsl:template match="xhtml:link">

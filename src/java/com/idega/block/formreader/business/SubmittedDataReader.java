@@ -1,6 +1,5 @@
 package com.idega.block.formreader.business;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -13,13 +12,11 @@ import org.apache.webdav.lib.WebdavResources;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.idega.block.form.bean.FormBean;
 import com.idega.block.formreader.business.beans.SubmittedDataBean;
 import com.idega.block.formreader.business.util.FormReaderUtil;
 import com.idega.business.IBOLookup;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideSession;
-import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
@@ -27,9 +24,8 @@ import com.idega.webface.WFUtil;
  */
 public class SubmittedDataReader {
 	
-	private String resource_path;
-	private FormBean form_bean;
 	private String form_identifier;
+	private String submitted_data_id;
 	
 	private static final String submitted_data_path = "/files/forms/submitted_data_fake/"; 
 	
@@ -40,30 +36,22 @@ public class SubmittedDataReader {
 		return new SubmittedDataReader();
 	}
 	
-	public Element getSubmittedData() throws IOException {
+	public Element getSubmittedData() throws Exception {
 		
-		if(resource_path == null)
-			throw new NullPointerException("Resourse path is not set");
+		if(submitted_data_id == null || form_identifier == null)
+			throw new NullPointerException("submitted_data_id or form_identifier is not provided");
+
+		String resource_path = getResourcePath(form_identifier, submitted_data_id);
+		WebdavResource webdav_resource = getWebdavResource(resource_path);
 		
-		if(form_bean == null)
-			form_bean = (FormBean) WFUtil.getBeanInstance(FormReaderUtil.form_bean_name);
-		
-//		form_bean.setResourcePath(resource_path);
-		// FIXME: this loads default form
-		form_bean.setFormId(form_identifier);
-		
-		form_bean.load();
-		Document submitted_data = form_bean.getDocument();
-		
-		if(submitted_data == null)
+		if(webdav_resource == null)
 			throw new NullPointerException("Submitted data document was not found by provided resource path: "+resource_path);
 		
-		return submitted_data.getDocumentElement();
-	}
-	
-	public void setResourcePath(String resource_path) {
+		InputStream is = webdav_resource.getMethodData();
 		
-		this.resource_path = resource_path;
+		Document submitted_data = FormReaderUtil.getDocumentBuilder().parse(is);
+		
+		return submitted_data.getDocumentElement();
 	}
 	
 	public void setFormIdentifier(String form_identifier) {
@@ -71,14 +59,17 @@ public class SubmittedDataReader {
 		this.form_identifier = form_identifier;
 	}
 	
+	public void setSubmittedDataId(String submitted_data_id) {
+		
+		this.submitted_data_id = submitted_data_id;
+	}
+	
 	public List<SubmittedDataBean> getFormAllSubmittedData() throws Exception {
 		
 		if(form_identifier == null)
 			throw new NullPointerException("Form identifier is not set");
 		
-		IWContext iwc = IWContext.getInstance();
-		IWSlideSession session = (IWSlideSession) IBOLookup.getSessionInstance(iwc, IWSlideSession.class);
-		WebdavResource form_folder = session.getWebdavResource(submitted_data_path+form_identifier);
+		WebdavResource form_folder = getWebdavResource(submitted_data_path+form_identifier);
 		
 		if(form_folder == null)
 			throw new NullPointerException("Form submitted data not found");
@@ -105,7 +96,14 @@ public class SubmittedDataReader {
 		return submitted_data;
 	}
 	
-	public static String getResourcePath(String form_identifier, String submitted_data_file_name) {
+	private WebdavResource getWebdavResource(String path) throws Exception {
+		
+		IWContext iwc = IWContext.getInstance();
+		IWSlideSession session = (IWSlideSession) IBOLookup.getSessionInstance(iwc, IWSlideSession.class);
+		return session.getWebdavResource(path);
+	}
+	
+	private String getResourcePath(String form_identifier, String submitted_data_file_name) {
 		
 		return new StringBuffer(submitted_data_path)
 		.append(form_identifier)

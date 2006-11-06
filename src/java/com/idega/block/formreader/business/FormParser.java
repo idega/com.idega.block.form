@@ -13,6 +13,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.idega.block.formreader.business.util.FormReaderUtil;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
  * @version 1.0
@@ -24,7 +26,6 @@ public class FormParser {
 	private Writer output_writer;
 	private Element xml_to_fetch;
 	
-	private static final String body_tag = "body";
 	private static final String form_tag = "form";
 	private static final String input_tag = "input";
 	private static final String type_att = "type";
@@ -35,6 +36,12 @@ public class FormParser {
 	private static final String value_att = "value";
 	private static final String disabled_att = "disabled";
 	private static final String bind_ending = "bind";
+	private static final String span_tag = "span";
+	private static final String class_att = "class";
+	private static final String alert_val = "alert";
+	private static final String invalid_val = "invalid";
+	private static final String div_tag = "div";
+	private static final String empty_str = "";
 	
 	private FormParser() { 	}
 	
@@ -92,9 +99,7 @@ public class FormParser {
 		if(xml_to_fetch == null)
 			throw new NullPointerException("Submitted XML document is not set");
 		
-		Element body_element = (Element)form_document.getElementsByTagName(body_tag).item(0);
-		
-		Element form_element = (Element)DOMUtil.getFirstChildByTagName(body_element, form_tag);
+		Element form_element = (Element)form_document.getElementsByTagName(form_tag).item(0);
 		
 //		remove submit button
 		
@@ -113,8 +118,8 @@ public class FormParser {
 				break;
 			}
 		}
-		
 		fetchData(form_element);
+		removeErrorMessages(form_element);
 		
 		OutputFormat output_format = new OutputFormat();
 		XMLSerializer serializer;
@@ -125,6 +130,31 @@ public class FormParser {
 			serializer = new XMLSerializer(output_writer, output_format);
 		
 		serializer.serialize(form_element);
+	}
+	
+	private void removeErrorMessages(Element form_element) {
+		
+		List<Element> err_messages = FormReaderUtil.getElementsByAttributeValue(form_element, span_tag, class_att, alert_val);
+		
+		if(err_messages != null) {
+			
+			for (Iterator<Element> iter = err_messages.iterator(); iter.hasNext();) {
+				Element element = iter.next();
+				element.getParentNode().removeChild(element);
+			}
+		}
+		
+		err_messages = FormReaderUtil.getElementsByAttributeValueContained(form_element, div_tag, class_att, invalid_val);
+		
+		if(err_messages != null) {
+			
+			for (Iterator<Element> iter = err_messages.iterator(); iter.hasNext();) {
+				Element element = iter.next();
+				String class_attribute = element.getAttribute(class_att);
+				
+				element.setAttribute(class_att, class_attribute.replace(invalid_val, empty_str));
+			}
+		}
 	}
 	
 	/**

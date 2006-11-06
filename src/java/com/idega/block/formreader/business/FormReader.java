@@ -88,7 +88,6 @@ public class FormReader {
 		
 		ui_generator.setOutput(output);
 		ui_generator.setInput(chiba.getXMLContainer());
-		
 		ui_generator.generate();
 	}
 	
