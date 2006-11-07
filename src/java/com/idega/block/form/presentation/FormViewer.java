@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.10 2006/11/04 14:04:54 gediminas Exp $ 
+ * $Id: FormViewer.java,v 1.11 2006/11/07 14:12:03 gediminas Exp $ 
  * Created on Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -14,12 +14,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.faces.component.UIForm;
+import javax.faces.component.html.HtmlForm;
 import javax.faces.context.FacesContext;
+import javax.faces.context.ResponseWriter;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 import org.apache.commons.fileupload.FileUpload;
 import org.apache.commons.httpclient.Cookie;
 import org.chiba.adapter.ChibaAdapter;
@@ -48,10 +54,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/11/04 14:04:54 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/07 14:12:03 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -158,18 +164,18 @@ public class FormViewer extends IWBaseComponent {
 		}
 		catch (XFormsException e) {
 			log.log(Level.WARNING, "Could not set XML container", e);
-            shutdown(adapter, response, request);
+            shutdown(adapter);
 			return;
 		}
 	}
 
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
-        HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-
 		if (isInitialized()) {
-	        HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
-	        HttpSession session = request.getSession(true);
+//	        HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
+//	        HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
+//	        HttpSession session = request.getSession(true);
+	        HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 	        WebAdapter webAdapter = null;
 	
 	        try {
@@ -194,17 +200,43 @@ public class FormViewer extends IWBaseComponent {
 	            }
 */	            
 	            // GET (from ViewServlet)
-                UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
+	            XPath xpath = XPathFactory.newInstance().newXPath();
+	            XPathExpression exp = xpath.compile("boolean(//*/xforms:upload)");
+	            String result = exp.evaluate(webAdapter.getXForms());
+	            boolean usesUpload = Boolean.parseBoolean(result);
+	            
+	            HtmlForm f = new HtmlForm();
+	            f.setId("chibaform");
+	            if (usesUpload) {
+	            	f.setEnctype("multipart/form-data");
+	            }
+	            else {
+		            f.setEnctype("application/x-www-form-urlencoded");
+	            }
+
+	            f.encodeBegin(context);
+//	            f.getChildren().add(out);
+	            
+	            UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
 				uiGenerator.setInput(webAdapter.getXForms());
 				uiGenerator.setOutput(context.getResponseWriter());
 				uiGenerator.generate();
 	            
+				f.encodeEnd(context);
 	        } catch (Exception e) {
-	            shutdown(webAdapter, response, request);
+	            shutdown(webAdapter);
 	        }
 		}
 		
 		super.encodeEnd(context);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.idega.presentation.IWBaseComponent#decode(javax.faces.context.FacesContext)
+	 */
+	public void decode(FacesContext context) {
+		log.info("decode!");
+		super.decode(context);
 	}
 
 	public String getFormId() {
@@ -343,7 +375,7 @@ public class FormViewer extends IWBaseComponent {
 		
 		// todo: unify and extract parameter names
 		generator.setParameter("contextroot", context.getExternalContext().getRequestContextPath());
-		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + "/resources/javascript/");
+		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/javascript/");
 		generator.setParameter("sessionKey", sessionKey);
         generator.setParameter("action-url", "");
 		
@@ -365,7 +397,7 @@ public class FormViewer extends IWBaseComponent {
 		return generator;
 	}
 
-    protected void shutdown(WebAdapter webAdapter, HttpServletResponse response, HttpServletRequest request) {
+    protected void shutdown(WebAdapter webAdapter) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
 			try {

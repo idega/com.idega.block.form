@@ -310,6 +310,7 @@
     to coexist with XForms markup and still produce non-nested form tags in the output.
     -->
     <xsl:template match="xforms:group[not(ancestor::xforms:*)][1] | xforms:repeat[not(ancestor::xforms:*)][1] | xforms:switch[not(ancestor::xforms:*)][1]" mode="inline">
+        <!--
         <xsl:element name="form">
             <xsl:attribute name="name">
                 <xsl:value-of select="$form-id"/>
@@ -329,9 +330,12 @@
             <xsl:if test="$uses-upload">
                 <xsl:attribute name="enctype">multipart/form-data</xsl:attribute>
             </xsl:if>
+        -->
             <input type="hidden" id="chibaSessionKey" name="sessionKey" value="{$sessionKey}"/>
             <xsl:apply-templates select="."/>
+        <!--
         </xsl:element>
+        -->
     </xsl:template>
 
     <!-- this template is called when there's no single outermost XForms element meaning there are
