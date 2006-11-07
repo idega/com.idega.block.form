@@ -16,6 +16,16 @@ function useLoadingMessage() {
     });
 }
 
+function pulse(pulseInterval){
+    while(true){
+        setInterval("Flux.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
+    }
+}
+
+function sessionRefreshed(){
+//    alert("got pulse");
+    dojo.debug("got pulse");
+}
 /*
 just a starter.
 */
@@ -55,8 +65,7 @@ function activate(target) {
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
     DWREngine.setOrdered(true);
-    var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.fireAction(updateUI, id, sessionKey);
+    Flux.fireAction(updateUI, id, chibaSessionKey);
 }
 
 // call processor to update a controls' value
@@ -130,8 +139,7 @@ function setXFormsValue(control) {
 
     DWREngine.setOrdered(true);
     DWREngine.setErrorHandler(handleExceptions);
-    var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setXFormsValue(updateUI, id, value,sessionKey);
+    Flux.setXFormsValue(updateUI, id, value,chibaSessionKey);
 }
 
 /******************************************************************************
@@ -176,8 +184,7 @@ function setRange(id,value){
 //    newValue.setAttribute("name", id + "-value");
 
     DWREngine.setErrorHandler(handleExceptions);
-    var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(updateUI, id, value, chibaSessionKey);
 }
 
 
@@ -231,8 +238,7 @@ function setRepeatIndex(e) {
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
     DWREngine.setOrdered(true);
-    var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setRepeatIndex(updateUI, repeatId, targetPosition,sessionKey);
+    Flux.setRepeatIndex(updateUI, repeatId, targetPosition,chibaSessionKey);
 }
 
 function _getEventTarget(event) {
@@ -471,8 +477,7 @@ function calendarOnClose (calendar) {
 
     // cut off '-value'
     id = id.substring(0, id.length - 6);
-    var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setXFormsValue(updateUI, id, value,sessionKey);
+    Flux.setXFormsValue(updateUI, id, value,chibaSessionKey);
 }
 
 /**

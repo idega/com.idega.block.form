@@ -46,8 +46,7 @@ PresentationContext.prototype.handleRenderMessage = function(message, level) {
  */
 PresentationContext.prototype.handleReplaceAll = function() {
     dojo.debug("PresentationContext.handleReplaceAll: ?");
-    var sessionKey = document.getElementById("chibaSessionKey").value;
-    window.open("SubmissionResponse?sessionKey="+sessionKey, "_self");
+    window.open("SubmissionResponse?sessionKey="+chibaSessionKey, "_self");
 };
 
 /**
@@ -102,8 +101,8 @@ PresentationContext.prototype.handleStateChanged = function(targetId, valid, rea
             }
             if(type =="dateTime") {
                 var timeWidget = dojo.widget.createWidget("XFDropdownDatePicker", {id:targetId+"-value", widgetId:targetId+"-value", name:"d_"+targetId, value:value, type:type}, dojo.byId(targetId + "-value"));
-            }
         }
+    }
     }
 };
 
