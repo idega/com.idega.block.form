@@ -27,11 +27,12 @@
     <xsl:param name="sessionKey" select="''"/>
 
     <!-- ### this url will be used to build the form action attribute ### -->
-    <xsl:param name="action-url" select="''"/>
+    <xsl:param name="action-url" select="'http://localhost:8080/chiba-1.0.0/XFormsServlet'"/>
 
 
     <xsl:param name="form-id" select="'chibaform'"/>
     <xsl:param name="form-name" select="//xhtml:title"/>
+    <xsl:param name="debug-enabled" select="'true'"/>
 
     <!-- ### specifies the parameter prefix for repeat selectors ### -->
     <xsl:param name="selector-prefix" select="'s_'"/>
@@ -45,6 +46,8 @@
 
     <!--- path to javascript files -->
     <xsl:param name="scriptPath" select="''"/>
+
+    <xsl:param name="keepalive-pulse" select="'0'"/>
 
     <!-- ############################################ VARIABLES ################################################ -->
     <!-- ### checks, whether this form uses uploads. Used to set form enctype attribute ### -->
@@ -117,7 +120,8 @@
                 <!-- dojo init -->
                 <script type="text/javascript">
                     var djConfig = {
-                    baseRelativePath: "<xsl:value-of select="concat($contextroot,$scriptPath,'dojo-0.3.1')"/>" };
+                    baseRelativePath: "<xsl:value-of select="concat($contextroot,$scriptPath,'dojo-0.3.1')"/>",
+                    isDebug: <xsl:value-of select="$debug-enabled"/> };
                 </script>
 
                 <!-- dojo lib -->
@@ -127,6 +131,8 @@
                 <script type="text/javascript">
                     dojo.setModulePrefix("chiba","chiba/");
                     dojo.require("dojo.event.*");
+
+                    var chibaSessionKey;
 
                     var calendarInstance = false;
                     var calendarActiveInstance = null;
@@ -147,6 +153,13 @@
                             }
                         }
                     }
+                    dojo.addOnLoad(function(){
+                           chibaSessionKey = <xsl:value-of select="$sessionKey"/>;
+                           <xsl:if test="$keepalive-pulse != 0">
+                               pulse(<xsl:value-of select="$keepalive-pulse"/>);
+                           </xsl:if>
+                        }
+                    );
                 </script>
 
                 <script type="text/javascript" src="{concat($contextroot,$scriptPath,'prototype.js')}">&#160;</script>
@@ -275,7 +288,7 @@
     <xsl:template match="xhtml:html">
 	    <div>
             <xsl:apply-templates/>
-      </div>
+		</div>
     </xsl:template>
 
     <xsl:template match="xhtml:link">
@@ -285,6 +298,9 @@
     <xsl:template match="xhtml:body">
         <div id="chiba-body">
             <xsl:copy-of select="@*"/>
+            <div id="loading">
+                <img src="resources/images/indicator.gif" class="disabled" id="indicator" alt="loading" />
+            </div>
 
             <xsl:variable name="outermostNodeset"
                 select=".//xforms:*[not(xforms:model)][not(ancestor::xforms:*)]"/>
@@ -302,6 +318,18 @@
                     <xsl:call-template name="createForm"/>
                 </xsl:otherwise>
             </xsl:choose>
+            <xsl:if test="$scripted='true' and $debug-enabled='true'">
+                <script type="text/javascript">
+                    dojo.require("dojo.widget.DebugConsole");
+                </script>
+
+                <div dojoType="DebugConsole"
+                     style="position:absolute;right:10px;bottom:10px;width:600px;height:400px;"
+                     title="DEBUG"
+                     hasShadow="true"
+                     displayCloseAction="true"></div>
+            </xsl:if>
+            <div id="messagePane" style="display:none;">message</div>
         </div>
     </xsl:template>
 
@@ -310,18 +338,15 @@
     to coexist with XForms markup and still produce non-nested form tags in the output.
     -->
     <xsl:template match="xforms:group[not(ancestor::xforms:*)][1] | xforms:repeat[not(ancestor::xforms:*)][1] | xforms:switch[not(ancestor::xforms:*)][1]" mode="inline">
-        <!--
         <xsl:element name="form">
             <xsl:attribute name="name">
                 <xsl:value-of select="$form-id"/>
             </xsl:attribute>
             <xsl:attribute name="action">
                 <xsl:choose>
-                    <xsl:when test="$uses-upload">
-                        <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
-                    </xsl:when>
+                    <xsl:when test="not($uses-upload) and $scripted='true'">javascript:return false;</xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>javascript:return false;</xsl:text>
+                        <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>
@@ -330,12 +355,16 @@
             <xsl:if test="$uses-upload">
                 <xsl:attribute name="enctype">multipart/form-data</xsl:attribute>
             </xsl:if>
-        -->
             <input type="hidden" id="chibaSessionKey" name="sessionKey" value="{$sessionKey}"/>
+            <xsl:if test="$scripted != 'true'">
+                <input type="submit" value="refresh page" class="refresh-button"/>
+            </xsl:if>
+
             <xsl:apply-templates select="."/>
-        <!--
+            <xsl:if test="$scripted != 'true'">
+                <input type="submit" value="refresh page" class="refresh-button"/>
+            </xsl:if>
         </xsl:element>
-        -->
     </xsl:template>
 
     <!-- this template is called when there's no single outermost XForms element meaning there are
@@ -347,11 +376,9 @@
             </xsl:attribute>
             <xsl:attribute name="action">
                 <xsl:choose>
-                    <xsl:when test="$uses-upload">
-                        <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
-                    </xsl:when>
+                    <xsl:when test="not($uses-upload) and $scripted='true'">javascript:return false;</xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="$action-url"/>
+                        <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>
