@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.11 2006/11/07 14:12:03 gediminas Exp $ 
+ * $Id: FormViewer.java,v 1.12 2006/11/07 22:47:13 gediminas Exp $ 
  * Created on Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/11/07 14:12:03 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/07 22:47:13 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -114,7 +114,7 @@ public class FormViewer extends IWBaseComponent {
         HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
         HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
 
-        HttpSession session = request.getSession(true);
+        HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 
         XFormsSessionManager sessionManager = getXFormsSessionManager();
         XFormsSession xFormsSession = sessionManager.createXFormsSession();
@@ -125,10 +125,6 @@ public class FormViewer extends IWBaseComponent {
         is refreshed.
         */
         session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER,sessionManager);
-
-        response.setHeader("Cache-Control","private, no-store,  no-cache, must-revalidate");
-        response.setHeader("Pragma","no-cache");
-        response.setDateHeader("Expires",-1);
 
 		try {
 	        adapter = new FluxAdapter();
@@ -144,7 +140,7 @@ public class FormViewer extends IWBaseComponent {
 				handleExit(exitEvent, xFormsSession, session, request, response);
 			}
 			else {
-				UIGenerator uiGenerator = createUIGenerator(context, request, xFormsSession.getKey());
+				UIGenerator uiGenerator = createUIGenerator(context, request, xFormsSession);
 				// store WebAdapter in XFormsSession
 				xFormsSession.setAdapter(adapter);
 				// store UIGenerator in XFormsSession as property
@@ -164,7 +160,7 @@ public class FormViewer extends IWBaseComponent {
 		}
 		catch (XFormsException e) {
 			log.log(Level.WARNING, "Could not set XML container", e);
-            shutdown(adapter);
+            shutdown(adapter, session, xFormsSession.getKey());
 			return;
 		}
 	}
@@ -185,46 +181,13 @@ public class FormViewer extends IWBaseComponent {
 	            if (webAdapter == null) {
 	                throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
 	            }
-/* these belong in decode()
-	            // POST (from FluxHelperServlet)
-	            ChibaEvent chibaEvent = new DefaultChibaEventImpl();
-	            chibaEvent.initEvent("http-request", null, request);
-	            webAdapter.dispatch(chibaEvent);
-	
-	            boolean isUpload = FileUpload.isMultipartContent(request);
-	
-	            if (isUpload) {
-	                ServletOutputStream out = response.getOutputStream();
-	                out.println("<html><head><title>status</title></head><body></body></html>");
-	                out.close();
-	            }
-*/	            
-	            // GET (from ViewServlet)
-	            XPath xpath = XPathFactory.newInstance().newXPath();
-	            XPathExpression exp = xpath.compile("boolean(//*/xforms:upload)");
-	            String result = exp.evaluate(webAdapter.getXForms());
-	            boolean usesUpload = Boolean.parseBoolean(result);
-	            
-	            HtmlForm f = new HtmlForm();
-	            f.setId("chibaform");
-	            if (usesUpload) {
-	            	f.setEnctype("multipart/form-data");
-	            }
-	            else {
-		            f.setEnctype("application/x-www-form-urlencoded");
-	            }
-
-	            f.encodeBegin(context);
-//	            f.getChildren().add(out);
 	            
 	            UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
 				uiGenerator.setInput(webAdapter.getXForms());
 				uiGenerator.setOutput(context.getResponseWriter());
 				uiGenerator.generate();
-	            
-				f.encodeEnd(context);
 	        } catch (Exception e) {
-	            shutdown(webAdapter);
+	            shutdown(webAdapter, session, sessionKey);
 	        }
 		}
 		
@@ -291,16 +254,14 @@ public class FormViewer extends IWBaseComponent {
     protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session,
 			HttpServletRequest request, HttpServletResponse response) throws IOException {
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
-//			response.sendRedirect(response.encodeRedirectURL(request.getContextPath()
-//					+ "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
-		}
-		else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
+            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
+        } else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
 			if (exitEvent.getContextInfo("show") != null) {
 				String loadURI = (String) exitEvent.getContextInfo("uri");
 				// kill XFormsSession
 				xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
 				setSessionKey(null);
-//				response.sendRedirect(response.encodeRedirectURL(loadURI));
+				response.sendRedirect(response.encodeRedirectURL(loadURI));
 			}
 		}
 		log.fine("Exited during XForms model init");
@@ -338,14 +299,12 @@ public class FormViewer extends IWBaseComponent {
 	}
 
     /**
-	 * stores cookies that may exist in request and passes them on to processor
-	 * for usage in HTTPConnectors. Instance loading and submission then uses
-	 * these cookies. Important for applications using auth.
+     * stores cookies that may exist in request and passes them on to processor for usage in
+     * HTTPConnectors. Instance loading and submission then uses these cookies. Important for
+     * applications using auth.
 	 * 
-	 * @param request
-	 *            the servlet request
-	 * @param adapter
-	 *            the WebAdapter instance
+     * @param request the servlet request
+     * @param adapter the WebAdapter instance
 	 */
     protected void storeCookies(HttpServletRequest request, WebAdapter adapter) {
         javax.servlet.http.Cookie[] cookiesIn = request.getCookies();
@@ -364,7 +323,7 @@ public class FormViewer extends IWBaseComponent {
         }
     }
 
-	protected UIGenerator createUIGenerator(FacesContext context, HttpServletRequest request, String sessionKey)
+	protected UIGenerator createUIGenerator(FacesContext context, HttpServletRequest request, XFormsSession session)
 			throws XFormsConfigException {
 		TransformerService transformerService = (TransformerService) getIWMainApplication(context).getAttribute(
 				IWBundleStarter.TRANSFORMER_SERVICE);
@@ -375,10 +334,11 @@ public class FormViewer extends IWBaseComponent {
 		
 		// todo: unify and extract parameter names
 		generator.setParameter("contextroot", context.getExternalContext().getRequestContextPath());
-		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/javascript/");
-		generator.setParameter("sessionKey", sessionKey);
-        generator.setParameter("action-url", "");
-		
+		generator.setParameter("sessionKey", session.getKey());
+        if(session.getProperty(XFormsSession.KEEPALIVE_PULSE) != null){
+            generator.setParameter("keepalive-pulse",session.getProperty(XFormsSession.KEEPALIVE_PULSE));
+        }
+        generator.setParameter("action-url", context.getExternalContext().encodeActionURL(context.getExternalContext().getRequestContextPath() + "/FluxHelper"));
 		generator.setParameter("debug-enabled", String.valueOf(log.isLoggable(Level.FINE)));
 		String selectorPrefix = Config.getInstance().getProperty(HttpRequestHandler.SELECTOR_PREFIX_PROPERTY,
 				HttpRequestHandler.SELECTOR_PREFIX_DEFAULT);
@@ -393,11 +353,12 @@ public class FormViewer extends IWBaseComponent {
 		
 		generator.setParameter("user-agent", request.getHeader("User-Agent"));
 		generator.setParameter("scripted", true);
+		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/javascript/");
 		
 		return generator;
 	}
 
-    protected void shutdown(WebAdapter webAdapter) {
+    protected void shutdown(WebAdapter webAdapter, HttpSession session, String key) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
 			try {
@@ -408,11 +369,12 @@ public class FormViewer extends IWBaseComponent {
 			}
 		}
 
+        //remove xformssession from httpsession
+        session.removeAttribute(key);
 		setSessionKey(null);
 		// redirect to error page (after encoding session id if required)
 		//response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
 		//		+ request.getSession().getServletContext().getInitParameter("error.page")));
 	}
-
 
 }
