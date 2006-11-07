@@ -311,21 +311,6 @@ fieldset > fieldset > fieldset {
 */
 
 
-.textarea > .value{
-    width:380px;
-    height:100px;
-    }
-
-.refresh-button{
-    display:block;
-    float:right;
-    background:rgb(188, 216, 132);
-    border:thin solid gray;
-    padding:2px;
-    margin-left:10px;
-}
-
-
 /*********** Range specific styles ***********/
 .rangelabel td{
     background:transparent;
