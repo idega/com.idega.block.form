@@ -122,6 +122,15 @@ public class FormParser {
 		removeErrorMessages(form_element);
 		
 		OutputFormat output_format = new OutputFormat();
+		
+		System.out.println("xx1 "+output_format.getEncoding());
+		System.out.println("xx2 "+output_format.getMethod());
+		System.out.println("xx3 "+output_format.getNonEscapingElements());
+		System.out.println("xx4 "+output_format.getOmitXMLDeclaration());
+		output_format.setOmitXMLDeclaration(true);
+		
+		DOMUtil.prettyPrintDOM(form_element);
+		
 		XMLSerializer serializer;
 		
 		if(output_stream != null)
