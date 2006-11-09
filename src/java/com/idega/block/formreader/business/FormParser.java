@@ -123,15 +123,12 @@ public class FormParser {
 		
 		OutputFormat output_format = new OutputFormat();
 		
-		System.out.println("xx1 "+output_format.getEncoding());
-		System.out.println("xx2 "+output_format.getMethod());
-		System.out.println("xx3 "+output_format.getNonEscapingElements());
-		System.out.println("xx4 "+output_format.getOmitXMLDeclaration());
+		System.out.println("xx1 encoding "+output_format.getEncoding());
+		System.out.println("xx2 amethod "+output_format.getMethod());
+		System.out.println("xx2 media type "+output_format.getMediaType());
+		
+		System.out.println("xx3 non esc "+output_format.getNonEscapingElements());
 		output_format.setOmitXMLDeclaration(true);
-		
-		DOMUtil.prettyPrintDOM(form_element);
-		
-		output_format.setNonEscapingElements(null);
 		
 		XMLSerializer serializer;
 		
