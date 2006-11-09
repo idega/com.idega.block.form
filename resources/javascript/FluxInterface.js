@@ -2,7 +2,7 @@
 // todo: make configurable
 var DATE_DISPLAY_FORMAT = "%d.%m.%Y";
 var DATETIME_DISPLAY_FORMAT = "%d.%m.%Y %H:%M";
-
+var keepAliveTimer;
 /******************************************************************************
 GENERAL STUFF
 ******************************************************************************/
@@ -16,15 +16,12 @@ function useLoadingMessage() {
     });
 }
 
-function pulse(pulseInterval){
-    while(true){
-        setInterval("Flux.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
-    }
+function pulse(){
+    setTimeout("Flux.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
 }
 
 function sessionRefreshed(){
-//    alert("got pulse");
-    dojo.debug("got pulse");
+    pulse();
 }
 /*
 just a starter.

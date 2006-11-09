@@ -133,6 +133,7 @@
                     dojo.require("dojo.event.*");
 
                     var chibaSessionKey;
+					var pulseInterval;
 
                     var calendarInstance = false;
                     var calendarActiveInstance = null;
@@ -156,7 +157,8 @@
                     dojo.addOnLoad(function(){
                            chibaSessionKey = <xsl:value-of select="$sessionKey"/>;
                            <xsl:if test="$keepalive-pulse != 0">
-                               pulse(<xsl:value-of select="$keepalive-pulse"/>);
+							   pulseInterval= <xsl:value-of select="$keepalive-pulse"/>;
+                               pulse();
                            </xsl:if>
                         }
                     );
