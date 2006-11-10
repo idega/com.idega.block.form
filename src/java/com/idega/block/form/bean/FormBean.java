@@ -1,5 +1,5 @@
 /*
- * $Id: FormBean.java,v 1.7 2006/11/04 14:00:00 gediminas Exp $
+ * $Id: FormBean.java,v 1.8 2006/11/10 09:29:58 civilis Exp $
  * Created on Aug 22, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,10 +21,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.webdav.lib.util.WebdavStatus;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.formbuilder.business.form.beans.LocalizedStringBean;
+import com.idega.formbuilder.business.form.manager.util.FormManagerUtil;
 import com.idega.idegaweb.IWUserContext;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideSession;
@@ -33,10 +35,10 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p>
  * A form document which loads itself from slide and parses the XML
  * </p>
- *  Last modified: $Date: 2006/11/04 14:00:00 $ by $Author: gediminas $
+ *  Last modified: $Date: 2006/11/10 09:29:58 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 public class FormBean implements Serializable {
 
@@ -51,7 +53,7 @@ public class FormBean implements Serializable {
 
 	private String name;
 
-	private Document document;
+	private Document form_xforms;
 
 	private boolean loaded = false;
 
@@ -70,7 +72,7 @@ public class FormBean implements Serializable {
 		this.loaded = false;
 		this.formId = null;
 		this.name = null;
-		this.document = null;
+		this.form_xforms = null;
 	}
 
 	/**
@@ -115,7 +117,6 @@ public class FormBean implements Serializable {
 			IWSlideSession session = getIWSlideSession(iwuc);
 			WebdavExtendedResource webdavResource = session.getWebdavResource(path);
 			webdavResource.setProperties();
-			setName(webdavResource.getDisplayName());
 			returner = load(webdavResource);
 		}
 		catch (HttpException e) {
@@ -146,23 +147,9 @@ public class FormBean implements Serializable {
 			log.config("Could not create Xerces document builder");
 		}
 		if (doc != null) {
-			/*
-			 * TODO split the xml into parts - description, schema, localized
-			 * strings, xf:model, xf:form?
-			 */
-			String name = null;
-			Node title = doc.getElementsByTagName("title").item(0);
-			if (title != null) {
-				Node child = title.getFirstChild();
-				if (child != null && child.getNodeType() == Node.TEXT_NODE) {
-					name = child.getNodeValue().trim();
-				}
-			}
-			if (name == null || name.equals("")) {
-				name = webdavResource.getDisplayName();
-			}			
-			setName(name);
+			
 			setDocument(doc);
+			loadName();
 		}
 		else {
 			// article not found
@@ -170,6 +157,44 @@ public class FormBean implements Serializable {
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * load form title from form document using default form locale
+	 * 
+	 * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
+	 * @version 1.0
+	 */
+	protected void loadName() {
+
+		Document form_xforms = getDocument();
+		
+		if(form_xforms == null)
+			throw new NullPointerException("Form document is not loaded");
+		
+		LocalizedStringBean title = FormManagerUtil.getTitleLocalizedStrings(form_xforms);
+		
+		if(title == null) {
+
+			log.warning("Could not find form title. Setting empty string.");
+			setName("");
+			return;
+		}
+		
+		Locale default_form_locale = FormManagerUtil.getDefaultFormLocale(form_xforms);
+		
+		if(default_form_locale == null)
+			default_form_locale = new Locale("en");
+		
+		String default_title = title.getString(default_form_locale);
+		
+		if(default_title == null) {
+
+			log.warning("Could not find form title by default locale: "+default_form_locale.getLanguage()+". Setting empty string.");
+			default_title = "";
+		}
+		
+		setName(default_title);
 	}
 
 	/*
@@ -201,7 +226,7 @@ public class FormBean implements Serializable {
 	 * @return Returns the document.
 	 */
 	public Document getDocument() {
-		return this.document;
+		return this.form_xforms;
 	}
 
 	/**
@@ -209,7 +234,7 @@ public class FormBean implements Serializable {
 	 *            The document to set.
 	 */
 	public void setDocument(Document document) {
-		this.document = document;
+		this.form_xforms = document;
 	}
 
 	private DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
