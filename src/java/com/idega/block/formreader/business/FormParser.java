@@ -176,7 +176,6 @@ public class FormParser {
 				String class_attribute = element.getAttribute(class_att);
 				
 				element.setAttribute(class_att, class_attribute.replace(invalid_val, empty_str));
-				element.setAttribute(class_att, "wazaaaa");
 			}
 		}
 	}
