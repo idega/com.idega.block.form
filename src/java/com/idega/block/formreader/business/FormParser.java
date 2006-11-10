@@ -42,6 +42,8 @@ public class FormParser {
 	private static final String invalid_val = "invalid";
 	private static final String div_tag = "div";
 	private static final String empty_str = "";
+	private static final String refresh_butt_att_val = "refresh-button";
+	
 	
 	private FormParser() { 	}
 	
@@ -141,11 +143,19 @@ public class FormParser {
 		serializer.asDOMSerializer();
 		
 		serializer.serialize(form_element);
-		
-		System.out.println("sss   "+output_writer.toString());
 	}
 	
 	private void removeErrorMessages(Element form_element) {
+		
+		List<Element> refresh_buttons = FormReaderUtil.getElementsByAttributeValue(form_element, input_tag, class_att, refresh_butt_att_val);
+		
+		if(refresh_buttons != null) {
+			
+			for (Iterator<Element> iter = refresh_buttons.iterator(); iter.hasNext();) {
+				Element refresh_button = iter.next();
+				refresh_button.getParentNode().removeChild(refresh_button);
+			}
+		}
 		
 		List<Element> err_messages = FormReaderUtil.getElementsByAttributeValue(form_element, span_tag, class_att, alert_val);
 		
