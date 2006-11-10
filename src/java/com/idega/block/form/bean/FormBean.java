@@ -1,5 +1,5 @@
 /*
- * $Id: FormBean.java,v 1.8 2006/11/10 09:29:58 civilis Exp $
+ * $Id: FormBean.java,v 1.9 2006/11/10 11:42:02 civilis Exp $
  * Created on Aug 22, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -22,10 +22,10 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.webdav.lib.util.WebdavStatus;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+
+import com.idega.block.formreader.business.util.FormReaderUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.formbuilder.business.form.beans.LocalizedStringBean;
-import com.idega.formbuilder.business.form.manager.util.FormManagerUtil;
 import com.idega.idegaweb.IWUserContext;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideSession;
@@ -35,10 +35,10 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p>
  * A form document which loads itself from slide and parses the XML
  * </p>
- *  Last modified: $Date: 2006/11/10 09:29:58 $ by $Author: civilis $
+ *  Last modified: $Date: 2006/11/10 11:42:02 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public class FormBean implements Serializable {
 
@@ -172,7 +172,7 @@ public class FormBean implements Serializable {
 		if(form_xforms == null)
 			throw new NullPointerException("Form document is not loaded");
 		
-		LocalizedStringBean title = FormManagerUtil.getTitleLocalizedStrings(form_xforms);
+		LocalizedStringBean title = FormReaderUtil.getTitleLocalizedStrings(form_xforms);
 		
 		if(title == null) {
 
@@ -181,7 +181,7 @@ public class FormBean implements Serializable {
 			return;
 		}
 		
-		Locale default_form_locale = FormManagerUtil.getDefaultFormLocale(form_xforms);
+		Locale default_form_locale = FormReaderUtil.getDefaultFormLocale(form_xforms);
 		
 		if(default_form_locale == null)
 			default_form_locale = new Locale("en");
