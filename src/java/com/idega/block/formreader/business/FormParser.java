@@ -124,13 +124,6 @@ public class FormParser {
 		removeErrorMessages(form_element);
 		
 		OutputFormat output_format = new OutputFormat();
-		
-		System.out.println("xx1 encoding "+output_format.getEncoding());
-		System.out.println("xx2 amethod "+output_format.getMethod());
-		System.out.println("xx2 media type "+output_format.getMediaType());
-		System.out.println("xxddddd "+output_format.getCDataElements());
-		
-		System.out.println("xx3 non esc "+output_format.getNonEscapingElements());
 		output_format.setOmitXMLDeclaration(true);
 		
 		XMLSerializer serializer;
@@ -141,7 +134,6 @@ public class FormParser {
 			serializer = new XMLSerializer(output_writer, output_format);
 		
 		serializer.asDOMSerializer();
-		
 		serializer.serialize(form_element);
 	}
 	

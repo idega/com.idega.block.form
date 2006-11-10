@@ -131,9 +131,6 @@ public class FormReaderBlock extends IWBaseComponent {
 				FormParser form_parser = FormParser.getInstance();
 				form_parser.setHtmlForm(document_output);
 				
-				
-				System.out.println("responsae writer char enc: "+ctx.getResponseWriter().getCharacterEncoding());
-				System.out.println("response writer content type: "+ctx.getResponseWriter().getContentType());
 				form_parser.setOutput(ctx.getResponseWriter());
 				form_parser.setXmlToFetch(submitted_data_reader.getSubmittedData());
 				form_parser.parse();
