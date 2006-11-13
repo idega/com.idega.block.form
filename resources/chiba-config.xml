@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: chiba-config.xml,v 1.2 2006/11/09 13:09:29 gediminas Exp $ -->
+<!-- $Id: chiba-config.xml,v 1.3 2006/11/13 22:44:17 gediminas Exp $ -->
 <!-- Copyright 2005 Chibacon -->
 <chiba-config>
     <!-- PLEASE COMMENT YOUR ENTRIES -->
@@ -25,7 +25,15 @@
         <submission-handler scheme="mailto" class="org.chiba.connectors.smtp.SMTPSubmissionHandler"/>
         <submission-handler scheme="xmlrpc" class="org.chiba.connectors.xmlrpc.XMLRPCSubmissionHandler"/>
         <submission-handler scheme="echo" class="org.chiba.xml.xforms.connector.echo.EchoSubmissionHandler"/>
+        <submission-handler scheme="webdav" class="com.idega.block.form.business.WebdavSubmissionHandler"/>
     </connectors>
+    
+    <register-serializer>
+      <instance-serializer scheme="webdav" method="put" class="org.chiba.xml.xforms.connector.serializer.XMLSerializer" />
+      <instance-serializer scheme="webdav" method="post" class="org.chiba.xml.xforms.connector.serializer.XMLSerializer" />
+      <instance-serializer scheme="webdav" method="get" class="org.chiba.xml.xforms.connector.serializer.UrlEncodedSerializer" />
+    </register-serializer>
+    
     <extension-functions>
         <!--
             Specifies external functions to be used in the XForms' XPath expressions. If the 'java-name' attribute
