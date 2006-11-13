@@ -164,10 +164,6 @@
                     );
                 </script>
 
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'prototype.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
-
                 <!-- for DWR AJAX -->
                 <script type="text/javascript" src="{concat($contextroot,$scriptPath,'FluxInterface.js')}">&#160;</script>
                 <xsl:text>
@@ -190,13 +186,6 @@
 </xsl:text>
                 <!-- general xforms utils -->
                 <script type="text/javascript" src="{concat($contextroot,$scriptPath,'xforms-util.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
-                <!-- scriptaculous lib -->
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'scriptaculous/src/scriptaculous.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'scriptaculous/src/effects.js')}">&#160;</script>
                 <xsl:text>
 </xsl:text>
 
@@ -301,7 +290,7 @@
         <div id="chiba-body">
             <xsl:copy-of select="@*"/>
             <div id="loading">
-                <img src="resources/images/indicator.gif" class="disabled" id="indicator" alt="loading" />
+                <img src="{concat($contextroot,'/idegaweb/bundles/com.idega.block.form.bundle/resources/images/indicator.gif')}" class="disabled" id="indicator" alt="loading" />
             </div>
 
             <xsl:variable name="outermostNodeset"
