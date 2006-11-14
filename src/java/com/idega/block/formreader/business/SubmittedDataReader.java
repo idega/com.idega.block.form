@@ -19,7 +19,7 @@ import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideSession;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ï¿½ivilis</a>
  * @version 1.0
  */
 public class SubmittedDataReader {
@@ -27,7 +27,7 @@ public class SubmittedDataReader {
 	private String form_identifier;
 	private String submitted_data_id;
 	
-	private static final String submitted_data_path = "/files/forms/submitted_data_fake/"; 
+	private static final String submitted_data_path = "/files/forms/submissions/"; 
 	
 	private SubmittedDataReader() { }
 	
