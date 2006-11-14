@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.chiba.adapter.ChibaAdapter;
 import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.xforms.connector.AbstractConnector;
 import org.chiba.xml.xforms.connector.SubmissionHandler;
@@ -34,7 +35,7 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.2 2006/11/14 15:10:39 gediminas Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.3 2006/11/14 16:51:10 gediminas Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -51,9 +52,11 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
      */
     public Map submit(Submission submission, Node instance) throws XFormsException {
         if (submission.getMethod().equalsIgnoreCase("put")) {
-            if (!submission.getReplace().equals("none")) {
+            if (!submission.getReplace().equals("none") && !submission.getReplace().equals("all")) {
                 throw new XFormsException("submission mode '" + submission.getReplace() + "' not supported");
             }
+
+            Map response = new HashMap();
 
             try {
                 // create uri
@@ -82,13 +85,21 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
 				if(resource.exists())
 					resource.setProperties();
 				
-				InputStream is = null;
+				ByteArrayInputStream is = null;
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				
 				try {
+					DOMUtil.prettyPrintDOM(instance, System.out);
+					
 					serialize(submission, instance, out);
 					is = new ByteArrayInputStream(out.toByteArray());
 					resource.putMethod(is);
+					
+		            if (submission.getReplace().equals("all")) {
+		            	is.reset();
+		                response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, is);
+		            }
+
 				}
 				catch (Exception e) {
 					LOGGER.log(Level.WARNING, "Error while saving instance to webdav", e);
@@ -109,7 +120,7 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
                 throw new XFormsException(e);
             }
 
-            return new HashMap();
+            return response;
         }
 
         throw new XFormsException("submission method '" + submission.getMethod() + "' not supported");
