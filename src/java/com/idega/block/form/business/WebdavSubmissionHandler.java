@@ -4,14 +4,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.xforms.connector.AbstractConnector;
 import org.chiba.xml.xforms.connector.SubmissionHandler;
 import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -30,7 +34,7 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.1 2006/11/13 22:33:04 gediminas Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.2 2006/11/14 15:10:39 gediminas Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -56,13 +60,24 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
                 URI uri = new URI(getURI());
 
                 String path = uri.getPath();
+                if (!path.endsWith("/")) {
+                	path = path + "/";
+                }
                 
-                LOGGER.info("Trying to save instance to webdav path: " + path);
+                Node formElement = DOMUtil.getFirstChildByTagName(instance, "formId");
+                if (formElement != null) {
+                	String formId = DOMUtil.getElementValue((Element) formElement);
+                	path = path + formId + "/";
+                }
                 
         		IWUserContext iwuc = IWContext.getInstance();
                 IWSlideSession session = getIWSlideSession(iwuc);
                 
-                WebdavExtendedResource resource = session.getWebdavResource(path);
+                session.createAllFoldersInPath(path);
+
+                String fileName = path + System.currentTimeMillis() + ".xml";
+                LOGGER.info("Saving submitted instance to webdav path: " + fileName);
+                WebdavExtendedResource resource = session.getWebdavResource(fileName);
 				
 				if(resource.exists())
 					resource.setProperties();
