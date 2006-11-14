@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.13 2006/11/13 22:38:48 gediminas Exp $ Created on
+ * $Id: FormViewer.java,v 1.14 2006/11/14 16:50:17 gediminas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -30,6 +30,7 @@ import org.chiba.web.session.XFormsSession;
 import org.chiba.web.session.XFormsSessionManager;
 import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.events.ChibaEventNames;
+import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
 import org.chiba.xml.xforms.config.Config;
 import org.chiba.xml.xforms.config.XFormsConfigException;
@@ -37,10 +38,15 @@ import org.chiba.xml.xforms.connector.http.AbstractHTTPConnector;
 import org.chiba.xml.xforms.exception.XFormsException;
 import org.chiba.xml.xslt.TransformerService;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.events.Event;
+import org.w3c.dom.events.EventListener;
+import org.w3c.dom.events.EventTarget;
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.FormBean;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.business.IBOLookup;
+import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -49,10 +55,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/11/13 22:38:48 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/14 16:50:17 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -114,13 +120,26 @@ public class FormViewer extends IWBaseComponent {
 		session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, sessionManager);
 		try {
 			adapter = new FluxAdapter();
-			adapter.setXFormsSession(xFormsSession);
-			// setup Adapter
-			adapter = setupAdapter(adapter, xFormsSession.getKey(), form);
-			IWMainApplication app = IWMainApplication.getIWMainApplication(context);
-			adapter.setBaseURI(app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER).getResourcesVirtualPath());
-			// storeCookies(request, adapter);
+			setupAdapter(adapter, form, xFormsSession, context);
 			adapter.init();
+			
+			EventTarget eventTarget = (EventTarget) ((Document)adapter.getXForms()).getDocumentElement();
+			
+			EventListener eventListener = new EventListener() {
+
+				public void handleEvent(Event event) {
+					String id = "";
+			        if (event.getTarget() instanceof Element) {
+			            id = ((Element) event.getTarget()).getAttribute("id");
+			        }
+
+					log.info("Got event, type=" + event.getType() + ", id=" + id);
+					
+				}};
+			
+			eventTarget.addEventListener(XFormsEventNames.SUBMIT_DONE, eventListener, true);
+	        eventTarget.addEventListener(XFormsEventNames.SUBMIT_ERROR, eventListener, true);
+			
 			XMLEvent exitEvent = adapter.checkForExitEvent();
 			if (exitEvent != null) {
 				handleExit(exitEvent, xFormsSession, session, request, response);
@@ -262,33 +281,29 @@ public class FormViewer extends IWBaseComponent {
 	}
 
 	/**
-	 * configures the an Adapter for interacting with the XForms processor (ChibaBean). The Adapter itself
-	 * will create the XFormsProcessor (ChibaBean) and configure it for processing.
-	 * <p/>
-	 * If you'd like to use a different source of XForms documents e.g. DOM you should extend this class and
-	 * overwrite this method. Please take care to also set the baseURI of the processor to a reasonable value
-	 * cause this will be the fundament for all URI resolutions taking place.
-	 * 
-	 * @param adapter  the WebAdapter implementation to setup
-	 * @param formPath - the relative location where forms are stored
-	 * @return ServletAdapter
+	 * <p>
+	 * TODO menesis describe method setupAdapter
+	 * </p>
+	 * @param adapter
+	 * @param form
+	 * @param xFormsSession
+	 * @param context
+	 * @return
+	 * @throws XFormsException
 	 */
-	protected WebAdapter setupAdapter(WebAdapter adapter, String sessionKey, FormBean form) throws XFormsException {
+	protected void setupAdapter(WebAdapter adapter, FormBean form, XFormsSession xFormsSession, FacesContext context) throws XFormsException {
+		adapter.setXFormsSession(xFormsSession);
 		adapter.setXForms(form.getDocument());
-
-// if (processorBase == null || processorBase.equalsIgnoreCase("remote") ) {
-		// adapter.setBaseURI(formPath);
-		// }
-		// else {
-//	        adapter.setBaseURI(new File(contextRoot, formsDir).toURI().toString());
-		// }
-
-//	    adapter.setUploadDestination(new File(contextRoot, uploadDir).getAbsolutePath());
-	
+		
 		Map servletMap = new HashMap();
-		servletMap.put(WebAdapter.SESSION_ID, sessionKey);
+		servletMap.put(WebAdapter.SESSION_ID, xFormsSession.getKey());
 		adapter.setContextParam(ChibaAdapter.SUBMISSION_RESPONSE, servletMap);
-		return adapter;
+
+		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
+		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
+		adapter.setBaseURI(bundle.getResourcesVirtualPath());
+		adapter.setUploadDestination(bundle.getBundleBaseRealPath() + "/upload");
+		// storeCookies(request, adapter);
 	}
 
 	/**
