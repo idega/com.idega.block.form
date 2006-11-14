@@ -73,6 +73,16 @@ public class FormReader {
 		loadDynamicResources();
 	}
 	
+	public void setFormDocument(Document form_document) throws NullPointerException, Exception {
+		
+		if(!inited)
+			throw new NullPointerException("FormParser not initialized");
+		
+		chiba = new ChibaBean();
+		chiba.setXMLContainer(form_document);
+		chiba.init();
+	}
+	
 	public void setOutput(Object output) {
 		
 		this.output = output;

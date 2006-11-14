@@ -102,13 +102,6 @@ public class FormReaderBlock extends IWBaseComponent {
 	private String submitted_data_id_provided;
 	
 	@Override
-	public void encodeBegin(FacesContext ctx) throws IOException {
-
-		
-		super.encodeBegin(ctx);
-	}
-	
-	@Override
 	public void encodeEnd(FacesContext ctx) throws IOException {
 		
 		Map session_map = ctx.getExternalContext().getSessionMap();
