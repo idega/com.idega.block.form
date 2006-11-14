@@ -46,7 +46,7 @@ PresentationContext.prototype.handleRenderMessage = function(message, level) {
  */
 PresentationContext.prototype.handleReplaceAll = function() {
     dojo.debug("PresentationContext.handleReplaceAll: ?");
-    window.open("SubmissionResponse?sessionKey="+chibaSessionKey, "_self");
+    window.open("/SubmissionResponse?sessionKey="+chibaSessionKey, "_self");
 };
 
 /**
