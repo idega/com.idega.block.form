@@ -61,12 +61,12 @@ public class SubmittedDataBean {
 		
 		int child_count = child_elements.size(); 
 		
-		if(child_count > 0) {
+		if(child_count > 1) {
 			
-			label1 = DOMUtil.getTextNodeAsString(child_elements.get(0));
+			label1 = DOMUtil.getTextNodeAsString(child_elements.get(1));
 			
-			if(child_count > 1) {
-				label2 = DOMUtil.getTextNodeAsString(child_elements.get(1));
+			if(child_count > 2) {
+				label2 = DOMUtil.getTextNodeAsString(child_elements.get(2));
 			} else {
 				label2 = "";
 			}

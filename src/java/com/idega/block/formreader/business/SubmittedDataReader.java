@@ -19,7 +19,7 @@ import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideSession;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas ï¿½ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
  * @version 1.0
  */
 public class SubmittedDataReader {

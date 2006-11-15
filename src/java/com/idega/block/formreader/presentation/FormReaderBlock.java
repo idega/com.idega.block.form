@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import javax.faces.context.FacesContext;
-import javax.faces.context.ResponseWriter;
 import javax.faces.el.ValueBinding;
 
 import org.apache.commons.logging.Log;
