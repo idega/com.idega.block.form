@@ -132,7 +132,6 @@
                     dojo.setModulePrefix("chiba","chiba/");
                     dojo.require("dojo.event.*");
 
-                    var chibaSessionKey;
 					var pulseInterval;
 
                     var calendarInstance = false;
@@ -154,14 +153,16 @@
                             }
                         }
                     }
+<!--
+todo: clarify if this makes sense - maybe allowing to set the session timeout makes more sense while allowing infinite session (-1) in conjunction with persistent sessions
                     dojo.addOnLoad(function(){
-                           chibaSessionKey = <xsl:value-of select="$sessionKey"/>;
                            <xsl:if test="$keepalive-pulse != 0">
 							   pulseInterval= <xsl:value-of select="$keepalive-pulse"/>;
                                pulse();
                            </xsl:if>
                         }
                     );
+-->
                 </script>
 
                 <!-- for DWR AJAX -->
@@ -290,7 +291,7 @@
         <div id="chiba-body">
             <xsl:copy-of select="@*"/>
             <div id="loading">
-                <img src="{concat($contextroot,'/idegaweb/bundles/com.idega.block.form.bundle/resources/images/indicator.gif')}" class="disabled" id="indicator" alt="loading" />
+                <img src="../resources/images/indicator.gif" class="disabled" id="indicator" alt="loading" />
             </div>
 
             <xsl:variable name="outermostNodeset"
@@ -487,7 +488,7 @@
                     <xsl:attribute name="onblur">javascript:document.getElementById('<xsl:value-of select="../@id"/>' + '-helptext').style.display='none';</xsl:attribute>
                     <xsl:attribute name="href">javascript:void(0);</xsl:attribute>
                     <xsl:attribute name="style">text-decoration:none;</xsl:attribute>
-                    <img src="resources/images/help_icon.gif" class="help-symbol" alt="?" border="0"/>
+                    <img src="../resources/images/help_icon.gif" class="help-symbol" alt="?" border="0"/>
                 </xsl:element>
                 <!--<span id="{../@id}-helptext" class="help-text" style="position:absolute;display:none;width:250px;border:thin solid gray 1px;background:lightgrey;padding:5px;">-->
                 <span id="{../@id}-helptext" class="help-text">

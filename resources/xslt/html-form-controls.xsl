@@ -13,7 +13,7 @@
 
     <!-- change this to your ShowAttachmentServlet -->
     <xsl:variable name="show-attachment-action" select="'http://localhost:8080/chiba-1.0.0/ShowAttachmentServlet'"/>
-    
+
     <!-- This stylesheet contains a collection of templates which map XForms controls to HTML controls. -->
     <xsl:output method="html" version="4.01" indent="yes"/>
 
@@ -41,7 +41,7 @@
         <xsl:choose>
             <!-- input bound to 'date' or 'dateTime' type -->
             <!--<xsl:when test="chiba:data[@chiba:type='date' or @chiba:type='dateTime']">-->
-            <xsl:when test="($type='date' or $type='dateTime') and $scripted='true'">
+            <xsl:when test="($type='date' or $type='dateTime' or $type='time') and $scripted='true'">
                 <script type="text/javascript">
                     dojo.require("dojo.widget.DropdownDatePicker");
                     dojo.require("dojo.widget.Button");
@@ -58,19 +58,34 @@
                     <xsl:apply-templates select="xforms:hint"/>
                 </input>
             </xsl:when>
-            <xsl:when test="$type='dateTime'">
+<!--            <xsl:when test="$type='dateTime' and $scripted='true'">
+                <script type="text/javascript">
+                    dojo.require("dojo.widget.DropdownDatePicker");
+                    dojo.require("dojo.widget.Button");
+                    dojo.require("chiba.DropdownDateTimePicker");
+                </script>
+                <input id="{concat($id,'-value')}" type="text" name="{$name}" value="" readonly="" class="value">
+                    <xsl:if test="$scripted='true'">
+                        <xsl:attribute name="dojoType">XFDropdownDateTimePicker</xsl:attribute>
+                        <xsl:attribute name="value"><xsl:value-of select="chiba:data/text()"/></xsl:attribute>
+                    </xsl:if>
+                    <xsl:apply-templates select="xforms:hint"/>
+                </input>
+
+            </xsl:when>
+            <xsl:when test="$type='time' and $scripted='true'">
                 <script type="text/javascript">
                     dojo.require("chiba.Time");
                 </script>
                 <input id="{concat($id,'-value')}" type="text" name="{$name}" value="" readonly="" class="value">
                     <xsl:if test="$scripted='true'">
                         <xsl:attribute name="dojoType">XFTime</xsl:attribute>
-                        <xsl:attribute name="value">21</xsl:attribute>
+                        <xsl:attribute name="value"><xsl:value-of select="chiba:data/text()"/></xsl:attribute>
                     </xsl:if>
                     <xsl:apply-templates select="xforms:hint"/>
                 </input>
 
-            </xsl:when>
+            </xsl:when>-->
             <xsl:when test="$type='boolean'">
                 <xsl:if test="$scripted='true'">
                     <script type="text/javascript">
@@ -838,7 +853,7 @@
             <xsl:if test="$scripted='true'">
                 <!--<xsl:attribute name="onchange">submitFile(this);</xsl:attribute>-->
                 <xsl:attribute name="dojoType">XFUpload</xsl:attribute>
-                <xsl:attribute name="xfreadonly"><xsl:value-of select="chiba:data/@chiba:readonly"/></xsl:attribute>                
+                <xsl:attribute name="xfreadonly"><xsl:value-of select="chiba:data/@chiba:readonly"/></xsl:attribute>
             </xsl:if>
             <!--<xsl:apply-templates select="xforms:hint"/>-->
         </xsl:element>
@@ -962,14 +977,16 @@
         </xsl:variable>
         <span id="{$itemset-id}-prototype" class="selector-prototype">
             <input id="{$item-id}-value" class="value" type="checkbox" name="{$name}" value="{xforms:value}">
-                <xsl:choose>
-                    <xsl:when test="xforms:hint">
-                        <xsl:value-of select="xforms:hint"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$parent/xforms:hint"/>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:attribute name="title">
+                    <xsl:choose>
+                        <xsl:when test="xforms:hint">
+                            <xsl:value-of select="xforms:hint"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$parent/xforms:hint"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:attribute>
                 <xsl:if test="$parent/chiba:data/@chiba:readonly='true'">
                     <xsl:attribute name="disabled">disabled</xsl:attribute>
                 </xsl:if>
