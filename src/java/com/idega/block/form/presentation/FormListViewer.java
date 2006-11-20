@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.4 2006/11/02 11:40:42 gediminas Exp $ Created on
+ * $Id: FormListViewer.java,v 1.5 2006/11/20 10:43:02 gediminas Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -9,32 +9,25 @@
  */
 package com.idega.block.form.presentation;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
-import org.apache.webdav.lib.WebdavResource;
-import org.apache.webdav.lib.WebdavResources;
-import com.idega.block.form.bean.FormBean;
-import com.idega.business.IBOLookup;
+import com.idega.block.form.business.AvailableFormBean;
+import com.idega.block.form.business.AvailableFormsLister;
 import com.idega.presentation.IWBaseComponent;
-import com.idega.presentation.IWContext;
 import com.idega.presentation.text.Link;
 import com.idega.presentation.text.ListItem;
 import com.idega.presentation.text.Lists;
-import com.idega.slide.business.IWSlideSession;
 
 /**
  * <p>
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2006/11/02 11:40:42 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/20 10:43:02 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -48,12 +41,12 @@ public class FormListViewer extends IWBaseComponent {
 	protected void initializeComponent(FacesContext context) {
 		Lists ul = new Lists();
 		
-		List<FormBean> forms = getForms();
-		for (FormBean f : forms) {
+		List<AvailableFormBean> forms = AvailableFormsLister.getInstance().getAvailableForms();
+		for (AvailableFormBean f : forms) {
 			ListItem li = new ListItem();
-			Link a = new Link(f.getName());
+			Link a = new Link(f.getFormTitle());
 			a.setURL(getDetailsViewerPath());
-			a.addParameter("formId", f.getFormId());
+			a.addParameter("formId", f.getId());
 			li.add(a);
 			ul.add(li);
 		}
@@ -61,37 +54,6 @@ public class FormListViewer extends IWBaseComponent {
 		getChildren().add(ul);
 	}
 
-	public List<FormBean> getForms() {
-		List<FormBean> list = new ArrayList();
-		try {			
-			IWContext iwc = IWContext.getInstance();
-			IWSlideSession session = (IWSlideSession) IBOLookup.getSessionInstance(iwc, IWSlideSession.class);
-			WebdavResource root = session.getWebdavResource(FormBean.FORMS_PATH);
-			for (WebdavResource folder : root.listWebdavResources()) {
-				if (folder.isCollection()) {
-					String formId = folder.getDisplayName();
-					WebdavResources rs = folder.getChildResources();
-					WebdavResource r = rs.getResource(folder.getName() + "/" + formId + FormBean.FORMS_FILE_EXTENSION);
-					if (r == null) {
-						continue;
-					}
-					
-					// need to load for title
-					FormBean form = new FormBean();
-					form.setFormId(formId);
-					form.load();
-					
-					list.add(form);
-				}
-			}
-		}
-		catch (IOException e) {
-			log.log(Level.WARNING, "Error listing forms", e);
-		}
-		return list;
-	}
-
-	
 	public String getDetailsViewerPath() {
 		return this.detailsViewerPath;
 	}
