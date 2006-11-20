@@ -16,6 +16,7 @@ import org.apache.webdav.lib.PropertyName;
 import org.apache.webdav.lib.WebdavResource;
 import org.apache.webdav.lib.WebdavResources;
 
+import com.idega.block.form.bean.FormBean;
 import com.idega.business.IBOLookup;
 import com.idega.core.cache.IWCacheManager2;
 import com.idega.idegaweb.IWMainApplication;
@@ -100,15 +101,11 @@ public class AvailableFormsLister implements Singleton {
 				
 				if(form_names_select == null) {
 					
-					List<AvailableFormBean> form_names = iw_cache.get(form_names_key);
-					
-					if(form_names == null)
-						form_names = getAvailableForms();
-					
 					form_names_select = new ArrayList<SelectItem>();
+
+					List<AvailableFormBean> form_names = getAvailableForms();
 					
 					for (Iterator<AvailableFormBean> iter = form_names.iterator(); iter.hasNext();) {
-						
 						AvailableFormBean available_form = iter.next();
 						form_names_select.add(new SelectItem(available_form.getId(), available_form.getFormTitle()));
 					}
@@ -147,10 +144,18 @@ public class AvailableFormsLister implements Singleton {
 			props.add(getFormPropertyName());
 			
 			while (folders.hasMoreElements()) {
-				WebdavResource webdav_resource = folders.nextElement();
+				WebdavResource folder = folders.nextElement();
+				
+				String form_id = folder.getDisplayName();
+				
+				WebdavResources rs = folder.getChildResources();
+				WebdavResource r = rs.getResource(folder.getName() + "/" + form_id + FormBean.FORMS_FILE_EXTENSION);
+				if (r == null) {
+					continue;
+				}
 				
 				Enumeration prop_values = 
-					webdav_resource.propfindMethod(webdav_resource.getPath(), props);
+					folder.propfindMethod(folder.getPath(), props);
 				
 				String form_title = null;
 				
@@ -163,9 +168,6 @@ public class AvailableFormsLister implements Singleton {
 				}
 				
 				if(form_title != null) {
-					
-					String form_id = webdav_resource.getDisplayName();
-					
 					AvailableFormBean available_form = new AvailableFormBean();
 					available_form.setId(form_id);
 					available_form.setFormTitle(form_title);
@@ -186,13 +188,11 @@ public class AvailableFormsLister implements Singleton {
 		iw_cache.remove(form_names_select_key);
 	}
 	
-	protected static final String FORMS_PATH = "/files/forms";
-	
 	protected WebdavExtendedResource getFormsFolderWebdavResource() {
 	
 		try {
 			IWSlideSession session = (IWSlideSession) IBOLookup.getSessionInstance(IWContext.getInstance(), IWSlideSession.class);
-			WebdavExtendedResource webdav_resource = session.getWebdavResource(FORMS_PATH);
+			WebdavExtendedResource webdav_resource = session.getWebdavResource(FormBean.FORMS_PATH);
 			
 			return webdav_resource;
 			
