@@ -91,7 +91,7 @@ dojo.widget.defineWidget(
        var newDate = dojo.widget.DatePicker.util.toRfcDate(this.datePicker.date);
         if (dojo.widget.DatePicker.util.toRfcDate(this.currentDate) != newDate) {
             var sessionKey = document.getElementById("chibaSessionKey").value;
-            Flux.setXFormsValue(updateUI, this.id.substring(0, this.id.length - 6), newDate,sessionKey);
+            XForms.setXFormsValue(updateUI, this.id.substring(0, this.id.length - 6), newDate,sessionKey);
         }
     }
 

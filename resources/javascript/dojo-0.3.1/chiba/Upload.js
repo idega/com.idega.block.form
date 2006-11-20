@@ -120,7 +120,7 @@ dojo.widget.defineWidget(
 
             //polling Chiba for update information and submit the form
             var sessionKey = dojo.byId("chibaSessionKey").value;
-            progressUpdate = setInterval("Flux.fetchProgress(updateUI,'" + this.xformsId + "','" + filename + "','" + sessionKey + "')", 500);
+            progressUpdate = setInterval("XForms.fetchProgress(updateUI,'" + this.xformsId + "','" + filename + "','" + sessionKey + "')", 500);
             document.forms["chibaform"].target = "UploadTarget";
             document.forms["chibaform"].submit();
             return true;

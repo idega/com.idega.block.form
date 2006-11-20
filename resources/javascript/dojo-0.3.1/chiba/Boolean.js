@@ -57,7 +57,7 @@ dojo.widget.defineWidget(
                 DWREngine.setOrdered(true);
                 DWREngine.setErrorHandler(handleExceptions);
                 var sessionKey = document.getElementById("chibaSessionKey").value;
-                Flux.setXFormsValue(updateUI,  this.widgetId.substring(0,this.widgetId.length - 6), this.checked,sessionKey);
+                XForms.setXFormsValue(updateUI,  this.widgetId.substring(0,this.widgetId.length - 6), this.checked,sessionKey);
             }else{
                this.inputNode.disabled = true;
            }

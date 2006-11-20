@@ -1,11 +1,58 @@
-
+/******************************************************************************
+ GENERAL STUFF
+ ******************************************************************************/
 // todo: make configurable
 var DATE_DISPLAY_FORMAT = "%d.%m.%Y";
 var DATETIME_DISPLAY_FORMAT = "%d.%m.%Y %H:%M";
 var keepAliveTimer;
+
+// global isDirty flag signals that data have changed through user input
+var isDirty = false;
+// skip shutdown for load and submission actions (these do it themselves)
+var skipShutdown = false;
+
+// ***** Messages to the user - you may overwrite these in your forms with inline script blocks
+var confirmMsg = "There are changed data. Really exit?";
+
+
 /******************************************************************************
-GENERAL STUFF
-******************************************************************************/
+ PAGE UNLOAD
+ ******************************************************************************/
+window.onbeforeunload = function(e) {
+    if (!e) e = event;
+    return unload(e);
+}
+
+function unload(e) {
+    if (isDirty) {
+        msg = confirmMsg;
+        if (!e && window.event) {
+            e = window.event;
+        }
+        e.returnValue = msg;
+        return msg;
+    }
+}
+
+window.onunload = function() {
+    dojo.debug("unloading page");
+    if (!skipShutdown) closeSession();
+}
+
+function closeSession() {
+    dojo.debug("closing XForms session");
+    var sessionKey = document.getElementById("chibaSessionKey").value;
+    DWREngine.setErrorHandler(ignoreExceptions);
+    XForms.close(null,sessionKey);
+}
+function ignoreExceptions(msg){
+    alert("ignoring exception: " + msg);
+}
+
+/******************************************************************************
+ END OF PAGE UNLOAD ROUTINES
+ ******************************************************************************/
+
 function useLoadingMessage() {
     DWREngine.setPreHook(function() {
         document.getElementById('indicator').className = 'enabled';
@@ -16,22 +63,22 @@ function useLoadingMessage() {
     });
 }
 
-function pulse(){
-    setTimeout("Flux.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
-}
+//function pulse(){
+//    setTimeout("XForms.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
+//}
 
-function sessionRefreshed(){
-    pulse();
-}
+//function sessionRefreshed(){
+//    pulse();
+//}
 /*
 just a starter.
 */
-function handleExceptions(msg){
-//    if(msg.indexOf(":") != -1){
-//        alert(msg.substring(msg.lastIndexOf(":") +1 ));
-//    }else{
-        alert(msg);
-//    }
+function handleExceptions(msg) {
+    //    if(msg.indexOf(":") != -1){
+    //        alert(msg.substring(msg.lastIndexOf(":") +1 ));
+    //    }else{
+    alert(msg);
+    //    }
 }
 /*
 This function is called whenever the user presses ENTER in an input or secret
@@ -40,7 +87,7 @@ in an AJAX environment. The current function simply does nothing. If something i
 expected to happen on an ENTER it has to be handled here.
 */
 
-function submitFunction(control){
+function submitFunction(control) {
     return false;
 }
 
@@ -58,11 +105,12 @@ function activate(target) {
     }
 
     _clear();
-    dojo.debug("Flux.activate: " + id);
+    dojo.debug("XForms.activate: " + id);
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
     DWREngine.setOrdered(true);
-    Flux.fireAction(updateUI, id, chibaSessionKey);
+    var sessionKey = document.getElementById("chibaSessionKey").value;
+    XForms.fireAction(updateUI, id, sessionKey);
 }
 
 // call processor to update a controls' value
@@ -87,25 +135,25 @@ function setXFormsValue(control) {
         value = target.value;
     }
 
-    switch (target.type){
+    switch (target.type) {
         case "radio":
-            // get target id from parent control, since the id passed in is the item's id
-            while(! _hasClass(target, "select1")) {
+        // get target id from parent control, since the id passed in is the item's id
+            while (! _hasClass(target, "select1")) {
                 target = target.parentNode;
             }
             id = target.id;
             break;
         case "checkbox":
-            // keep name
+        // keep name
             var name = target.name;
 
-            // get target id from parent control, since the id passed in is the item's id
-            while(! _hasClass(target, "select")) {
+        // get target id from parent control, since the id passed in is the item's id
+            while (! _hasClass(target, "select")) {
                 target = target.parentNode;
             }
             id = target.id;
 
-            // assemble value from selected checkboxes
+        // assemble value from selected checkboxes
             var elements = eval("document.chibaform.elements");
             var checkboxes = new Array();
             for (i = 0; i < elements.length; i++) {
@@ -116,11 +164,11 @@ function setXFormsValue(control) {
             value = checkboxes.join(" ");
             break;
         case "select-multiple":
-            // assemble value from selected options
+        // assemble value from selected options
             var options = target.options;
             var multiple = new Array();
-            for (i = 0 ; i < options.length; i++){
-                if (options[i].selected){
+            for (i = 0; i < options.length; i++) {
+                if (options[i].selected) {
                     multiple.push(options[i].value);
                 }
             }
@@ -131,23 +179,25 @@ function setXFormsValue(control) {
     }
 
     _clear();
-    dojo.debug("Flux.setXFormsValue: " + id + "='" + value + "'");
+    dojo.debug("XForms.setXFormsValue: " + id + "='" + value + "'");
     useLoadingMessage();
 
     DWREngine.setOrdered(true);
     DWREngine.setErrorHandler(handleExceptions);
-    Flux.setXFormsValue(updateUI, id, value,chibaSessionKey);
+    var sessionKey = document.getElementById("chibaSessionKey").value;
+    XForms.setXFormsValue(updateUI, id, value, sessionKey);
+    isDirty = true;                                    
 }
 
 /******************************************************************************
-CONTROL SPECIFIC FUNCTIONS
-******************************************************************************/
+ CONTROL SPECIFIC FUNCTIONS
+ ******************************************************************************/
 
 //function setBoolean(control){
 //    DWREngine.setErrorHandler(handleExceptions);
 //
 //    var id = control.id.substring(0, control.id.length - 6);
-//    dojo.debug("Flux.setBoolean control id: " + id);
+//    dojo.debug("XForms.setBoolean control id: " + id);
 //
 //    var checked="";
 //    if(control.checked==true){
@@ -156,32 +206,33 @@ CONTROL SPECIFIC FUNCTIONS
 //        checked=false;
 //    }
 //
-//    dojo.debug("Flux.setBoolean: id " + id + "=" + checked);
+//    dojo.debug("XForms.setBoolean: id " + id + "=" + checked);
 //
 //    DWREngine.setOrdered(true);
 //    DWREngine.setErrorHandler(handleExceptions);
 //    var sessionKey = document.getElementById("chibaSessionKey").value;
-//    Flux.setXFormsValue(updateUI, id, checked,sessionKey);
+//    XForms.setXFormsValue(updateUI, id, checked,sessionKey);
 //
 //}
 
-function setRange(id,value){
-    dojo.debug("Flux.setRangeValue: " + id + "='" + value + "'");
+function setRange(id, value) {
+    dojo.debug("XForms.setRangeValue: " + id + "='" + value + "'");
 
     //todo: fix for IE
-//    var oldValue = document.getElementsByName(id + '-value')[0];
+    //    var oldValue = document.getElementsByName(id + '-value')[0];
     var oldValue = document.getElementsByClassName('rangevalue', document.getElementById(id))[0];
-    if(oldValue){
+    if (oldValue) {
         oldValue.className = "step";
-//        oldValue.removeAttribute("name");
+        //        oldValue.removeAttribute("name");
     }
 
     var newValue = document.getElementById(id + value);
     newValue.className = newValue.className + " rangevalue";
-//    newValue.setAttribute("name", id + "-value");
+    //    newValue.setAttribute("name", id + "-value");
 
     DWREngine.setErrorHandler(handleExceptions);
-    Flux.setXFormsValue(updateUI, id, value, chibaSessionKey);
+    var sessionKey = document.getElementById("chibaSessionKey").value;
+    XForms.setXFormsValue(updateUI, id, value, sessionKey);
 }
 
 
@@ -231,11 +282,12 @@ function setRepeatIndex(e) {
     var repeatId = target.id;
 
     _clear();
-    dojo.debug("Flux.setRepeatIndex: " + repeatId + "='" + targetPosition + "'");
+    dojo.debug("XForms.setRepeatIndex: " + repeatId + "='" + targetPosition + "'");
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
     DWREngine.setOrdered(true);
-    Flux.setRepeatIndex(updateUI, repeatId, targetPosition,chibaSessionKey);
+    var sessionKey = document.getElementById("chibaSessionKey").value;
+    XForms.setRepeatIndex(updateUI, repeatId, targetPosition, sessionKey);
 }
 
 function _getEventTarget(event) {
@@ -251,11 +303,11 @@ function _getEventTarget(event) {
 }
 
 // callback for updating any control
-function updateUI(data){
-//    dojo.debug("updateUI: " + data);
+function updateUI(data) {
+    //    dojo.debug("updateUI: " + data);
 
     var eventLog = data.documentElement.childNodes;
-//    dojo.debug("EventLog length: " + eventLog.length);
+    //    dojo.debug("EventLog length: " + eventLog.length);
 
     for (var i = 0; i < eventLog.length; i++) {
         var type = eventLog[i].getAttribute("type");
@@ -282,24 +334,33 @@ function updateUI(data){
 
 
 function _handleServerEvent(context, type, targetId, targetName, properties) {
-//    dojo.debug("handleServerEvent: type=" + type + " targetId=" + targetId);
-    switch(type){
+    //    dojo.debug("handleServerEvent: type=" + type + " targetId=" + targetId);
+    switch (type) {
         case "chiba-load-uri":
+            isDirty = false;
+            if (properties["show"] == "replace") {
+              skipShutdown = true;
+            }
             context.handleLoadURI(properties["uri"], properties["show"]);
             break;
         case "chiba-render-message":
             context.handleRenderMessage(properties["message"], properties["level"]);
             break;
         case "chiba-replace-all":
+            isDirty = false;
+            skipShutdown = true;
             context.handleReplaceAll();
             break;
         case "chiba-state-changed":
+            if (properties["value"] != "") {
+                isDirty = true;                                
+            }
             // this is a bit clumsy but needed to distinguish between controls and helper elements
             if (properties["parentId"]) {
                 context.handleHelperChanged(properties["parentId"], targetName, properties["value"]);
             }
             else {
-                context.handleStateChanged(targetId, properties["valid"], properties["readonly"], properties["required"], properties["enabled"], properties["value"],properties["type"]);
+                context.handleStateChanged(targetId, properties["valid"], properties["readonly"], properties["required"], properties["enabled"], properties["value"], properties["type"]);
             }
             break;
         case "chiba-prototype-cloned":
@@ -321,7 +382,7 @@ function _handleServerEvent(context, type, targetId, targetName, properties) {
             context.handleSwitchToggled(properties["deselected"], properties["selected"]);
             break;
         case "upload-progress-event":
-//            _updateProgress(targetId,properties["progress"])
+        //            _updateProgress(targetId,properties["progress"])
             var currentUpload = dojo.widget.byId(targetId + "-value");
             currentUpload.updateProgress(properties["progress"])
             break;
@@ -339,22 +400,22 @@ function _handleServerEvent(context, type, targetId, targetName, properties) {
 }
 
 
-var submissionErrors=0;
-function _highlightFailedRequired(){
+var submissionErrors = 0;
+function _highlightFailedRequired() {
 
     // show an alert if the user repeatedly sends incomplete data
-    if(submissionErrors >= 1){
+    if (submissionErrors >= 1) {
         alert("Please provide values for all required fields.")
         submissionErrors = 0;
     }
 
     //lookup all required fields and check if they contain a value
-    var foo = document.getElementsByClassName("required","chibaform");
-    for(var i=0,j=foo.length; i<j; i++){
+    var foo = document.getElementsByClassName("required", "chibaform");
+    for (var i = 0,j = foo.length; i < j; i++) {
         var control = $(foo[i].id);
 
         var value = getXFormsControlValue(control);
-        if(value == null || value==""){
+        if (value == null || value == "") {
             new Effect.Pulsate($(foo[i].id + "-label"));
         }
 
@@ -365,9 +426,9 @@ function _highlightFailedRequired(){
 
 
 /* help function - still not ready */
-function showHelp(helptext){
+function showHelp(helptext) {
     alert(helptext);
-    var helpwnd = window.open('','','scrollbars=no,menubar=no,height=400,width=400,resizable=yes,toolbar=no,location=no,status=no');
+    var helpwnd = window.open('', '', 'scrollbars=no,menubar=no,height=400,width=400,resizable=yes,toolbar=no,location=no,status=no');
     helpwnd.document.getElementsByTagName("body")[0].innerHTML = helptext;
 
 }
@@ -377,7 +438,7 @@ function showHelp(helptext){
 /**
  * Initializes the calendar component according to the underlying datatype.
  */
-function calendarSetup (id, value, type) {
+function calendarSetup(id, value, type) {
     // initialize hidden calendar
     // todo: jsCalendar has problems with time part
     var dateTime = type == 'dateTime';
@@ -403,7 +464,7 @@ function calendarSetup (id, value, type) {
 /**
  * Updates the calendar component, namely the display area.
  */
-function calendarUpdate (id, value, type) {
+function calendarUpdate(id, value, type) {
     var element = document.getElementById(id + '-' + type + '-display');
     if (element) {
         var date = _parseISODate(value);
@@ -429,7 +490,7 @@ function calendarUpdate (id, value, type) {
  *
  * Allows jsCalendar to use form controls as display area too.
  */
-function calendarOnSelect (calendar) {
+function calendarOnSelect(calendar) {
     // copied from calendar-setup.js
     var p = calendar.params;
     var update = (calendar.dateClicked || p.electric);
@@ -446,15 +507,15 @@ function calendarOnSelect (calendar) {
             p.inputField.onchange();
     }
     if (update && p.displayArea)
-        // start patch by unl
-        // check for 'innerHTML' property, otherwise try 'value' property
+    // start patch by unl
+    // check for 'innerHTML' property, otherwise try 'value' property
         if (p.displayArea.innerHTML) {
             p.displayArea.innerHTML = calendar.date.print(p.daFormat);
         }
         else {
             p.displayArea.value = calendar.date.print(p.daFormat);
         }
-        // end patch by unl
+    // end patch by unl
     if (update && p.singleClick && calendar.dateClicked)
         calendar.callCloseHandler();
     if (update && typeof p.onUpdate == "function")
@@ -466,7 +527,7 @@ function calendarOnSelect (calendar) {
  *
  * Hides the calendar and updates the processor.
  */
-function calendarOnClose (calendar) {
+function calendarOnClose(calendar) {
     calendar.hide();
 
     var id = calendar.params.inputField.id;
@@ -474,13 +535,14 @@ function calendarOnClose (calendar) {
 
     // cut off '-value'
     id = id.substring(0, id.length - 6);
-    Flux.setXFormsValue(updateUI, id, value,chibaSessionKey);
+    var sessionKey = document.getElementById("chibaSessionKey").value;
+    XForms.setXFormsValue(updateUI, id, value, sessionKey);
 }
 
 /**
  * Parses an ISO date/datetime string. Timezones not supported yet.
  */
-function _parseISODate (iso) {
+function _parseISODate(iso) {
     if (!iso || iso.length == 0) {
         return null;
     }

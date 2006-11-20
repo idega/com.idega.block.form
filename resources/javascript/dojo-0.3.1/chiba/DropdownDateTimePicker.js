@@ -135,7 +135,7 @@ dojo.widget.defineWidget(
                 dojo.debug("DateTime: " +"onAfterSetDate: dif. date " + newDate);
                 dojo.debug("");
                 var sessionKey = document.getElementById("chibaSessionKey").value;
-                Flux.setXFormsValue(updateUI, this.id.substring(0, this.id.length - 6), newDate,sessionKey);
+                XForms.setXFormsValue(updateUI, this.id.substring(0, this.id.length - 6), newDate,sessionKey);
         }
     }
 
