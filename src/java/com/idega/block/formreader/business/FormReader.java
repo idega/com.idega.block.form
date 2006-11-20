@@ -25,6 +25,7 @@ public class FormReader {
 	private FormBean form_bean;
 	private boolean inited = false;
 	private Object output;
+	private String base_uri; 
 	
 	private FormReader() { 	}
 	
@@ -67,7 +68,7 @@ public class FormReader {
 	public void setFormId(String formId) throws NullPointerException, Exception {
 		
 		if(!inited)
-			throw new NullPointerException("FormParser not initialized");
+			throw new NullPointerException("FormReader not initialized");
 		
 		this.formId = formId;
 		loadDynamicResources();
@@ -76,11 +77,16 @@ public class FormReader {
 	public void setFormDocument(Document form_document) throws NullPointerException, Exception {
 		
 		if(!inited)
-			throw new NullPointerException("FormParser not initialized");
+			throw new NullPointerException("FormReader not initialized");
 		
 		chiba = new ChibaBean();
 		chiba.setXMLContainer(form_document);
+		chiba.setBaseURI(base_uri == null ? "http://localhost:8080/content/files/forms/" : base_uri);
 		chiba.init();
+	}
+	
+	public void setBaseFormURI(String base_uri) {
+		this.base_uri = base_uri;
 	}
 	
 	public void setOutput(Object output) {
@@ -91,7 +97,7 @@ public class FormReader {
 	public void generate() throws NullPointerException, Exception {
 		
 		if(!inited)
-			throw new NullPointerException("FormParser not initialized");
+			throw new NullPointerException("FormReader not initialized");
 		
 		if(output == null)
 			throw new NullPointerException("Output not set");
