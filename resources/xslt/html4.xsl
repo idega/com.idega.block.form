@@ -32,7 +32,7 @@
 
     <xsl:param name="form-id" select="'chibaform'"/>
     <xsl:param name="form-name" select="//xhtml:title"/>
-    <xsl:param name="debug-enabled" select="'true'"/>
+    <xsl:param name="debug-enabled" select="'false'"/>
 
     <!-- ### specifies the parameter prefix for repeat selectors ### -->
     <xsl:param name="selector-prefix" select="'s_'"/>
@@ -69,6 +69,13 @@
 	<xsl:variable name="uses-html-textarea" select="boolean(//xforms:textarea[@xforms:mediatype='text/html'])"/>
 
     <xsl:variable name="default-hint-appearance" select="'bubble'"/>
+
+    <xsl:variable name="querystring-appender">
+        <xsl:choose>
+            <xsl:when test="contains($action-url, '?')">&amp;</xsl:when>
+            <xsl:otherwise>?</xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
 
     <xsl:output method="html" version="4.01" encoding="UTF-8" indent="yes"
                 doctype-public="-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -120,12 +127,12 @@
                 <!-- dojo init -->
                 <script type="text/javascript">
                     var djConfig = {
-                    baseRelativePath: "<xsl:value-of select="concat($contextroot,$scriptPath,'dojo-0.3.1')"/>",
+                    baseRelativePath: "<xsl:value-of select="concat($contextroot,'/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/libs/dojo/version.3.1')"/>",
                     isDebug: <xsl:value-of select="$debug-enabled"/> };
                 </script>
 
                 <!-- dojo lib -->
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'dojo-0.3.1/dojo.js')}">&#160;</script>
+                <script type="text/javascript" src="{concat($contextroot,'/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/libs/dojo/version.3.1/dojo.js')}">&#160;</script>
                 <xsl:text>
 </xsl:text>
                 <script type="text/javascript">
@@ -338,7 +345,7 @@ todo: clarify if this makes sense - maybe allowing to set the session timeout ma
                 <xsl:choose>
                     <xsl:when test="not($uses-upload) and $scripted='true'">javascript:return false;</xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
+                        <xsl:value-of select="concat($action-url,$querystring-appender,'sessionKey=',$sessionKey)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>
@@ -346,6 +353,9 @@ todo: clarify if this makes sense - maybe allowing to set the session timeout ma
             <xsl:attribute name="enctype">application/x-www-form-urlencoded</xsl:attribute>
             <xsl:if test="$uses-upload">
                 <xsl:attribute name="enctype">multipart/form-data</xsl:attribute>
+                <xsl:if test="$scripted = 'true'">
+                    <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0px;height:0px;border:0"></iframe>
+                </xsl:if>
             </xsl:if>
             <input type="hidden" id="chibaSessionKey" name="sessionKey" value="{$sessionKey}"/>
             <xsl:if test="$scripted != 'true'">
@@ -370,7 +380,7 @@ todo: clarify if this makes sense - maybe allowing to set the session timeout ma
                 <xsl:choose>
                     <xsl:when test="not($uses-upload) and $scripted='true'">javascript:return false;</xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="concat($action-url,'?sessionKey=',$sessionKey)"/>
+                        <xsl:value-of select="concat($action-url,$querystring-appender,'sessionKey=',$sessionKey)"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:attribute>

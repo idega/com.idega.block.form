@@ -862,8 +862,6 @@
             <script type="text/javascript">
                 dojo.require("chiba.Upload");
             </script>
-
-            <iframe id="UploadTarget" name="UploadTarget" src="" style="width:0px;height:0px;border:0"></iframe>
             <div class="progressbar" style="display:none;" id="{$id}-progress"><div class="border"><div id="{$id}-progress-bg" class="background"></div></div></div>
         </xsl:if>
         <xsl:if test="xforms:filename">
