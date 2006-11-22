@@ -26,7 +26,7 @@ import com.idega.slide.business.IWSlideSession;
 import com.idega.slide.util.WebdavExtendedResource;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas ï¿½ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
  * @version 1.0
  */
 public class AvailableFormsLister implements Singleton {
@@ -131,6 +131,8 @@ public class AvailableFormsLister implements Singleton {
 	
 	protected List<AvailableFormBean> loadAvailableForms() {
 		
+		long start = System.currentTimeMillis();
+		
 		List<AvailableFormBean> available_forms = new ArrayList<AvailableFormBean>();
 		
 		try {
@@ -178,6 +180,9 @@ public class AvailableFormsLister implements Singleton {
 		} catch (Exception e) {
 			logger.error("Error during loading available forms", e);
 		}
+		
+		long end = System.currentTimeMillis();
+		logger.info("Available forms list loaded in: "+(end-start));
 		
 		return available_forms;
 	}
