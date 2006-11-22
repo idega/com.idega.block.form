@@ -43,7 +43,7 @@ function closeSession() {
     dojo.debug("closing XForms session");
     var sessionKey = document.getElementById("chibaSessionKey").value;
     DWREngine.setErrorHandler(ignoreExceptions);
-    XForms.close(null,sessionKey);
+    Flux.close(null,sessionKey);
 }
 function ignoreExceptions(msg){
     alert("ignoring exception: " + msg);
@@ -64,7 +64,7 @@ function useLoadingMessage() {
 }
 
 //function pulse(){
-//    setTimeout("XForms.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
+//    setTimeout("Flux.keepAlive(sessionRefreshed, " + chibaSessionKey + ")",pulseInterval);
 //}
 
 //function sessionRefreshed(){
@@ -105,12 +105,12 @@ function activate(target) {
     }
 
     _clear();
-    dojo.debug("XForms.activate: " + id);
+    dojo.debug("Flux.activate: " + id);
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
     DWREngine.setOrdered(true);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    XForms.fireAction(updateUI, id, sessionKey);
+    Flux.fireAction(updateUI, id, sessionKey);
 }
 
 // call processor to update a controls' value
@@ -179,13 +179,13 @@ function setXFormsValue(control) {
     }
 
     _clear();
-    dojo.debug("XForms.setXFormsValue: " + id + "='" + value + "'");
+    dojo.debug("Flux.setXFormsValue: " + id + "='" + value + "'");
     useLoadingMessage();
 
     DWREngine.setOrdered(true);
     DWREngine.setErrorHandler(handleExceptions);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    XForms.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(updateUI, id, value, sessionKey);
     isDirty = true;                                    
 }
 
@@ -197,7 +197,7 @@ function setXFormsValue(control) {
 //    DWREngine.setErrorHandler(handleExceptions);
 //
 //    var id = control.id.substring(0, control.id.length - 6);
-//    dojo.debug("XForms.setBoolean control id: " + id);
+//    dojo.debug("Flux.setBoolean control id: " + id);
 //
 //    var checked="";
 //    if(control.checked==true){
@@ -206,17 +206,17 @@ function setXFormsValue(control) {
 //        checked=false;
 //    }
 //
-//    dojo.debug("XForms.setBoolean: id " + id + "=" + checked);
+//    dojo.debug("Flux.setBoolean: id " + id + "=" + checked);
 //
 //    DWREngine.setOrdered(true);
 //    DWREngine.setErrorHandler(handleExceptions);
 //    var sessionKey = document.getElementById("chibaSessionKey").value;
-//    XForms.setXFormsValue(updateUI, id, checked,sessionKey);
+//    Flux.setXFormsValue(updateUI, id, checked,sessionKey);
 //
 //}
 
 function setRange(id, value) {
-    dojo.debug("XForms.setRangeValue: " + id + "='" + value + "'");
+    dojo.debug("Flux.setRangeValue: " + id + "='" + value + "'");
 
     //todo: fix for IE
     //    var oldValue = document.getElementsByName(id + '-value')[0];
@@ -232,7 +232,7 @@ function setRange(id, value) {
 
     DWREngine.setErrorHandler(handleExceptions);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    XForms.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(updateUI, id, value, sessionKey);
 }
 
 
@@ -282,12 +282,12 @@ function setRepeatIndex(e) {
     var repeatId = target.id;
 
     _clear();
-    dojo.debug("XForms.setRepeatIndex: " + repeatId + "='" + targetPosition + "'");
+    dojo.debug("Flux.setRepeatIndex: " + repeatId + "='" + targetPosition + "'");
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
     DWREngine.setOrdered(true);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    XForms.setRepeatIndex(updateUI, repeatId, targetPosition, sessionKey);
+    Flux.setRepeatIndex(updateUI, repeatId, targetPosition, sessionKey);
 }
 
 function _getEventTarget(event) {
@@ -536,7 +536,7 @@ function calendarOnClose(calendar) {
     // cut off '-value'
     id = id.substring(0, id.length - 6);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    XForms.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(updateUI, id, value, sessionKey);
 }
 
 /**
