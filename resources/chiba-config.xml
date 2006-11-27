@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: chiba-config.xml,v 1.3 2006/11/13 22:44:17 gediminas Exp $ -->
+<!-- $Id: chiba-config.xml,v 1.4 2006/11/27 14:32:22 gediminas Exp $ -->
 <!-- Copyright 2005 Chibacon -->
 <chiba-config>
     <!-- PLEASE COMMENT YOUR ENTRIES -->
@@ -19,6 +19,7 @@
         <uri-resolver scheme="class" class="org.chiba.util.ClassResourceLoader"/>
         <uri-resolver scheme="xmlrpc" class="org.chiba.connectors.xmlrpc.XMLRPCURIResolver"/>
         <uri-resolver scheme="context" class="org.chiba.xml.xforms.connector.context.ContextResolver"/>
+        <uri-resolver scheme="webdav" class="com.idega.block.form.business.WebdavURIResolver"/>
 
         <submission-handler scheme="file" class="org.chiba.xml.xforms.connector.file.FileSubmissionHandler"/>
         <submission-handler scheme="http" class="org.chiba.xml.xforms.connector.http.HTTPSubmissionHandler"/>
