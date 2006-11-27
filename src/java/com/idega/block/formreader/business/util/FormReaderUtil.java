@@ -17,7 +17,7 @@ import org.w3c.dom.NodeList;
 import com.idega.block.form.bean.LocalizedStringBean;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ï¿½ivilis</a>
  * @version 1.0
  */
 public class FormReaderUtil {
@@ -191,14 +191,22 @@ public class FormReaderUtil {
 		Element loc_strings = (Element)loc_model.getElementsByTagName(loc_tag).item(0);
 		NodeList default_language_node_list = loc_strings.getElementsByTagName(default_language_tag);
 		
-		if(default_language_node_list == null || default_language_node_list.getLength() == 0)
-			return null;
-		
-		String lang = getElementsTextNodeValue((Element)default_language_node_list.item(0));
-		
+		String lang = null;
+		if(default_language_node_list != null && default_language_node_list.getLength() != 0) {
+			lang = getElementsTextNodeValue((Element)default_language_node_list.item(0));
+		}		
 		if(lang == null)
-			return null;
+			lang = "en";			
 		
 		return new Locale(lang);
 	}
+
+	public static String getDefaultFormTitle(Document document) {
+		LocalizedStringBean strings = getTitleLocalizedStrings(document);
+		Locale default_form_locale = getDefaultFormLocale(document);
+		
+		String title = strings.getString(default_form_locale);
+		return title == null ? "" : title;
+	}
+
 }
