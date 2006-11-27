@@ -168,7 +168,7 @@
 
         <table id="{$repeat-id}" class="{$repeat-classes}">
             <!-- build table header -->
-            <xsl:for-each select="xforms:group[@appearance='repeated'][1]">
+            <xsl:for-each select="chiba:data/xforms:group[@appearance='repeated'][1]">
                 <tr class="repeat-header">
                     <xsl:if test="not($scripted ='true')">
                         <td class="repeat-selector"><xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text></td>
