@@ -17,7 +17,7 @@ import org.w3c.dom.NodeList;
 import com.idega.block.form.bean.LocalizedStringBean;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas ï¿½ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
  * @version 1.0
  */
 public class FormReaderUtil {
