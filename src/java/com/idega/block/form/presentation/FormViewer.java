@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.14 2006/11/14 16:50:17 gediminas Exp $ Created on
+ * $Id: FormViewer.java,v 1.15 2006/11/28 18:27:42 laddi Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -55,14 +55,14 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2006/11/14 16:50:17 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/28 18:27:42 $ by $Author: laddi $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  */
 public class FormViewer extends IWBaseComponent {
 
-	private static final Logger log = Logger.getLogger(FormViewer.class.getName());
+	protected static final Logger log = Logger.getLogger(FormViewer.class.getName());
 
 	private String formId;
 

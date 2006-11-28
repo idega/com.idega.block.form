@@ -91,7 +91,7 @@ public class AvailableFormsLister implements Singleton {
 	
 	public List<SelectItem> getAvailableFormsAsSelectItems() {
 		
-		List<SelectItem> form_names_select = (List<SelectItem>)iw_cache.get(form_names_select_key);
+		List<SelectItem> form_names_select = iw_cache.get(form_names_select_key);
 		
 		if(form_names_select == null) {
 			

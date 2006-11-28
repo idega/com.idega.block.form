@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.5 2006/11/20 10:43:02 gediminas Exp $ Created on
+ * $Id: FormListViewer.java,v 1.6 2006/11/28 18:27:42 laddi Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -10,8 +10,9 @@
 package com.idega.block.form.presentation;
 
 import java.util.List;
-import java.util.logging.Logger;
+
 import javax.faces.context.FacesContext;
+
 import com.idega.block.form.business.AvailableFormBean;
 import com.idega.block.form.business.AvailableFormsLister;
 import com.idega.presentation.IWBaseComponent;
@@ -24,14 +25,14 @@ import com.idega.presentation.text.Lists;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2006/11/20 10:43:02 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/11/28 18:27:42 $ by $Author: laddi $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class FormListViewer extends IWBaseComponent {
 
-	private static final Logger log = Logger.getLogger(FormListViewer.class.getName());
+	//private static final Logger log = Logger.getLogger(FormListViewer.class.getName());
 
 	private String detailsViewerPath = "#";
 	

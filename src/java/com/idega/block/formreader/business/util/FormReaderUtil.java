@@ -193,7 +193,7 @@ public class FormReaderUtil {
 		
 		String lang = null;
 		if(default_language_node_list != null && default_language_node_list.getLength() != 0) {
-			lang = getElementsTextNodeValue((Element)default_language_node_list.item(0));
+			lang = getElementsTextNodeValue(default_language_node_list.item(0));
 		}		
 		if(lang == null)
 			lang = "en";			
