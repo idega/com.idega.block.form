@@ -49,12 +49,6 @@
     </component-extension>
   </component>
 
-  <managed-bean>
-    <managed-bean-name>formBean</managed-bean-name>
-    <managed-bean-class>com.idega.block.form.bean.FormBean</managed-bean-class>
-    <managed-bean-scope>session</managed-bean-scope>
-  </managed-bean>
- 
   <component>
     <component-type>FormListViewer</component-type>
     <component-class>com.idega.block.form.presentation.FormListViewer</component-class>
@@ -71,15 +65,10 @@
     </component-extension>
   </component>
 
-  <!-- 
-
-  <render-kit>
-    <renderer>
-      <component-family>webface</component-family>
-      <renderer-type>xforms</renderer-type>
-      <renderer-class>com.idega.block.form.presentation.renderkit.XformsRenderer</renderer-class>
-    </renderer>
-  </render-kit>
- -->
+  <managed-bean>
+    <managed-bean-name>formList</managed-bean-name>
+    <managed-bean-class>com.idega.block.form.bean.FormList</managed-bean-class>
+    <managed-bean-scope>application</managed-bean-scope>
+  </managed-bean>
 
 </faces-config>
