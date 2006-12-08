@@ -1,5 +1,5 @@
 /**
- * $Id: IWBundleStarter.java,v 1.3 2006/11/02 14:40:41 gediminas Exp $
+ * $Id: IWBundleStarter.java,v 1.4 2006/12/08 15:45:33 gediminas Exp $
  * Created in 2006 by gediminas
  * 
  * Copyright (C) 2000-2006 Idega Software hf. All Rights Reserved.
@@ -12,6 +12,7 @@ package com.idega.block.form;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
@@ -22,19 +23,24 @@ import org.chiba.xml.xslt.TransformerService;
 import org.chiba.xml.xslt.impl.CachingTransformerService;
 import org.chiba.xml.xslt.impl.ResourceResolver;
 import com.idega.block.form.business.BundleResourceResolver;
+import com.idega.block.form.business.FormsService;
+import com.idega.business.IBOLookup;
+import com.idega.business.IBOLookupException;
+import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWBundleStartable;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.include.GlobalIncludeManager;
+import com.idega.slide.business.IWSlideService;
 
 /**
  * <p>
  * TODO gediminas Describe Type IWBundleStarter
  * </p>
- * Last modified: $Date: 2006/11/02 14:40:41 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/12/08 15:45:33 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class IWBundleStarter implements IWBundleStartable {
 	
@@ -58,30 +64,48 @@ public class IWBundleStarter implements IWBundleStartable {
 		GlobalIncludeManager.getInstance().addBundleStyleSheet(BUNDLE_IDENTIFIER, STYLE_SHEET_URL);
 		
 		IWMainApplication application = starterBundle.getApplication();
+
+		// create transformer service
 		ResourceResolver resolver = new BundleResourceResolver(application);
 		TransformerService transformerService = new CachingTransformerService(resolver);
 		application.setAttribute(TRANSFORMER_SERVICE, transformerService);
 
+    	// cache default stylesheet
         try {
-        	// cache default stylesheet
 			transformerService.getTransformer(XSLT_URI);
 		}
 		catch (TransformerException e) {
 			log.log(Level.SEVERE, "Cannot load XForms transformer stylesheet", e);
 		}
 		
+		// start managing xforms sessions
 		createXFormsSessionManager(0, 0);
 		
+		// read chiba config
 		try {
 			InputStream inputStream = resolver.resolve(CHIBA_CONFIG_URI).getInputStream();
 			Config.getInstance(inputStream);
 		}
 		catch (IOException e) {
-			log.warning(e.getMessage());
+			log.log(Level.SEVERE, "Error reading chiba config", e);
 		}
 		catch (XFormsConfigException e) {
 			log.log(Level.SEVERE, "Error initializing chiba config", e);
 		}
+		
+		// add forms service as slide listener
+		IWApplicationContext iwac = application.getIWApplicationContext();
+	    try {
+	    	IWSlideService service = (IWSlideService) IBOLookup.getServiceInstance(iwac,IWSlideService.class);
+	           
+	        FormsService formsService = (FormsService) IBOLookup.getServiceInstance(iwac, FormsService.class);
+	        service.addIWSlideChangeListeners(formsService);
+	    } catch (IBOLookupException e) {
+			log.log(Level.WARNING, "Could not get FormsService", e);
+	    } catch (RemoteException e) {
+			log.log(Level.WARNING, "Error adding FormsService as slide change listener", e);
+	    }
+
 	}
 
 	/*
