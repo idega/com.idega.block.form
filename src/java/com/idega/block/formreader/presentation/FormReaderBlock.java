@@ -9,12 +9,17 @@ import javax.faces.el.ValueBinding;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.idega.block.form.business.FormsService;
 import com.idega.block.formreader.business.FormParser;
 import com.idega.block.formreader.business.FormReader;
-import com.idega.block.formreader.business.SubmittedDataReader;
 import com.idega.block.formreader.business.util.FormReaderUtil;
+import com.idega.business.IBOLookup;
+import com.idega.business.IBOLookupException;
+import com.idega.idegaweb.IWApplicationContext;
 import com.idega.presentation.IWBaseComponent;
+import com.idega.presentation.IWContext;
 
 /**
  * Component's responsibility is to provide view form's of submitted data in readonly format.<br /><br /> 
@@ -34,7 +39,12 @@ public class FormReaderBlock extends IWBaseComponent {
 	private static Log logger = LogFactory.getLog(FormReaderBlock.class);
 	
 	private static final String FORM_READER = "com.idega.block.formreader.presentation.FormReaderBlock.FORM_READER";
+	public static final String form_identifier = "form_identifier";
+	public static final String submitted_data_identifier = "submitted_data_identifier";
 	
+	private String formid_provided;
+	private String submitted_data_id_provided;
+		
 	@Override
 	public void initializeComponent(FacesContext ctx) {
 		
@@ -55,9 +65,6 @@ public class FormReaderBlock extends IWBaseComponent {
 			}
 		}
 	}
-	
-	public static final String form_identifier = "form_identifier";
-	public static final String submitted_data_identifier = "submitted_data_identifier";
 	
 	@Override
 	public boolean isRendered() {
@@ -97,9 +104,6 @@ public class FormReaderBlock extends IWBaseComponent {
 		return true;
 	}
 	
-	private String formid_provided;
-	private String submitted_data_id_provided;
-	
 	@Override
 	public void encodeEnd(FacesContext ctx) throws IOException {
 		
@@ -116,15 +120,14 @@ public class FormReaderBlock extends IWBaseComponent {
 				form_reader.setOutput(document_output);
 				form_reader.generate();
 				
-				SubmittedDataReader submitted_data_reader = SubmittedDataReader.getInstance();
-				submitted_data_reader.setFormIdentifier(formid_provided);
-				submitted_data_reader.setSubmittedDataId(submitted_data_id_provided);
-				
-				FormParser form_parser = FormParser.getInstance();
+				FormParser form_parser = new FormParser();
 				form_parser.setHtmlForm(document_output);
 				
+				Document submitted_data_doc = getFormsService(ctx).getSubmittedData(formid_provided, submitted_data_id_provided);
+				Element submittedData = submitted_data_doc.getDocumentElement();
+				
 				form_parser.setOutput(ctx.getResponseWriter());
-				form_parser.setXmlToFetch(submitted_data_reader.getSubmittedData());
+				form_parser.setXmlToFetch(submittedData);
 				form_parser.parse();
 				
 			} catch (Exception e) {
@@ -133,4 +136,17 @@ public class FormReaderBlock extends IWBaseComponent {
 		}
 		super.encodeEnd(ctx);
 	}
+
+	private FormsService getFormsService(FacesContext context) {
+		FormsService service = null;
+		try {
+			IWApplicationContext iwc = IWContext.getIWContext(context);
+			service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
+		}
+		catch (IBOLookupException e) {
+			logger.error("Could not find FormsService");
+		}
+		return service;
+	}
+
 }
