@@ -45,7 +45,7 @@ public class FormParser {
 	private static final String refresh_butt_att_val = "refresh-button";
 	
 	
-	private FormParser() { 	}
+	public FormParser() { 	}
 	
 	/**
 	 * <i>WARNING!</i> This document will be modified during parse phase.
@@ -212,10 +212,5 @@ public class FormParser {
 			
 			input_element.setAttribute(disabled_att, disabled_att);
 		}
-	}
-	
-	public static FormParser getInstance() {
-		
-		return new FormParser();
 	}
 }
