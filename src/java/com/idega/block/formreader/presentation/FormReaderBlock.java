@@ -47,22 +47,11 @@ public class FormReaderBlock extends IWBaseComponent {
 		
 	@Override
 	public void initializeComponent(FacesContext ctx) {
-		
 		Map session_map = ctx.getExternalContext().getSessionMap();
 		FormReader form_reader = (FormReader)session_map.get(FORM_READER);
-		
 		if(form_reader == null) {
-			
-			form_reader = FormReader.getInstance();
-			
-			try {
-				
-				form_reader.init();
-				session_map.put(FORM_READER, form_reader);
-				
-			} catch (Exception e) {
-				logger.error(e);
-			}
+			form_reader = new FormReader();
+			session_map.put(FORM_READER, form_reader);
 		}
 	}
 	
@@ -74,7 +63,7 @@ public class FormReaderBlock extends IWBaseComponent {
 		if(!is_rendered)
 			return false;
 		
-		FacesContext ctx = FacesContext.getCurrentInstance();
+		FacesContext ctx = getFacesContext();
 		
 		ValueBinding vb = getValueBinding(form_identifier);
 		
@@ -113,7 +102,13 @@ public class FormReaderBlock extends IWBaseComponent {
 		if(form_reader != null) {
 			
 			try {
-				form_reader.setFormId(formid_provided);
+				Document doc = getFormsService(ctx).loadForm(formid_provided);
+				
+				if (doc == null) {
+					throw new NullPointerException("Document was not found by provided resource path: "+formid_provided);
+				}
+				
+				form_reader.setFormDocument(doc);
 				
 				Document document_output = FormReaderUtil.getDocumentBuilder().newDocument();
 				
