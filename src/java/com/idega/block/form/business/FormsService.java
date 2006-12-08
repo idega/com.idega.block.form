@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 import java.util.List;
 import javax.faces.model.SelectItem;
 import org.w3c.dom.Document;
-import com.idega.block.formreader.business.beans.SubmittedDataBean;
+import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.business.IBOService;
 import com.idega.slide.business.IWContentEvent;
 import com.idega.slide.business.IWSlideChangeListener;

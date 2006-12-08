@@ -24,7 +24,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import com.idega.block.form.bean.AvailableFormBean;
-import com.idega.block.formreader.business.beans.SubmittedDataBean;
+import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.block.formreader.business.util.FormReaderUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
