@@ -206,7 +206,7 @@ public class FormReaderUtil {
 		Locale default_form_locale = getDefaultFormLocale(document);
 		
 		String title = strings.getString(default_form_locale);
-		return title == null ? "" : title;
+		return title;
 	}
 
 }
