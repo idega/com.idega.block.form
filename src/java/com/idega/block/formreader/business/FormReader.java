@@ -1,17 +1,16 @@
 package com.idega.block.formreader.business;
 
 import javax.faces.context.FacesContext;
-
 import org.chiba.adapter.ui.XSLTGenerator;
 import org.chiba.xml.xforms.ChibaBean;
 import org.chiba.xml.xslt.TransformerService;
 import org.w3c.dom.Document;
-
 import com.idega.block.form.IWBundleStarter;
-import com.idega.block.form.bean.FormBean;
-import com.idega.block.formreader.business.util.FormReaderUtil;
+import com.idega.block.form.business.FormsService;
+import com.idega.business.IBOLookup;
+import com.idega.business.IBOLookupException;
+import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
@@ -22,7 +21,6 @@ public class FormReader {
 	private ChibaBean chiba;
 	private XSLTGenerator ui_generator;
 	private String formId;
-	private FormBean form_bean;
 	private boolean inited = false;
 	private Object output;
 	private String base_uri; 
@@ -47,14 +45,7 @@ public class FormReader {
 	}
 	
 	protected void loadDynamicResources() throws Exception {
-		
-		if(form_bean == null)
-			form_bean = (FormBean) WFUtil.getBeanInstance(FormReaderUtil.form_bean_name);
-		
-		form_bean.setFormId(formId);
-		
-		form_bean.load();
-		Document doc = form_bean.getDocument();
+		Document doc = getFormsService().loadForm(formId);
 		
 		if (doc == null) {
 			throw new NullPointerException("Document was not found by provided resource path: "+formId);
@@ -107,4 +98,17 @@ public class FormReader {
 		ui_generator.generate();
 	}
 	
+	private FormsService getFormsService() {
+		FormsService service = null;
+		try {
+			IWApplicationContext iwc = IWMainApplication.getDefaultIWApplicationContext();
+			service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
+		}
+		catch (IBOLookupException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return service;
+	}
+
 }
