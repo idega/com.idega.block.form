@@ -3,7 +3,6 @@ package com.idega.block.form.business;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ import com.idega.idegaweb.IWMainApplication;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.5 2006/12/14 13:47:58 gediminas Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.6 2006/12/14 13:58:00 gediminas Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -55,18 +54,10 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
             Map response = new HashMap();
 
             try {
-                // create uri
-                URI uri = new URI(getURI());
-
-                String path = uri.getPath();
-                if (!path.endsWith("/")) {
-                	path = path + "/";
-                }
-                
+                String formId = null;
                 Node formElement = DOMUtil.getFirstChildByTagName(instance, "formId");
                 if (formElement != null) {
-                	String formId = DOMUtil.getElementValue((Element) formElement);
-                	path = path + formId + "/";
+                	formId = DOMUtil.getElementValue((Element) formElement);
                 }
                 
                 // debug
@@ -77,7 +68,7 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
 				
 				InputStream is = new ByteArrayInputStream(out.toByteArray());
 
-				getFormsService().saveSubmittedData(path, is);
+				getFormsService().saveSubmittedData(formId, is);
 
 				// TODO: redirect to result page
 	            if (submission.getReplace().equals("all")) {

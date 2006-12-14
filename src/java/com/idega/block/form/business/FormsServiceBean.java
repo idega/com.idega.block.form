@@ -21,6 +21,7 @@ import org.apache.webdav.lib.WebdavResource;
 import org.apache.webdav.lib.WebdavResources;
 import org.chiba.xml.dom.DOMUtil;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import com.idega.block.form.bean.AvailableFormBean;
@@ -250,17 +251,17 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	/**
 	 * Save submitted form's instance
 	 * 
-	 * @param path "/files/forms/submissions/$formId/"
+	 * @param formId
 	 * @param is instance input stream to save
 	 * @throws IOException 
 	 */
-	public void saveSubmittedData(String path, InputStream is) throws IOException {
-		IWSlideService service = getIWSlideService();
-		
+	public void saveSubmittedData(String formId, InputStream is) throws IOException {
+		String path = SUBMITTED_DATA_PATH + "/" + formId + "/";		
 		String fileName = System.currentTimeMillis() + ".xml";
 		
-		logger.info("Saving submitted instance to webdav path: " + fileName);
+		logger.info("Saving submitted instance to webdav path: " + path + fileName);
 
+		IWSlideService service = getIWSlideService();
 		service.uploadFileAndCreateFoldersFromStringAsRoot(path, fileName, is, "text/xml", false);
 	}
 

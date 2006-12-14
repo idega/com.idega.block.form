@@ -37,7 +37,7 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#saveSubmittedData
 	 */
-	public void saveSubmittedData(String path, InputStream is) throws IOException, RemoteException;
+	public void saveSubmittedData(String formId, InputStream is) throws IOException, RemoteException;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#loadSubmittedData
