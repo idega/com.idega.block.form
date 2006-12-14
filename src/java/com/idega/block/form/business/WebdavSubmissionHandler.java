@@ -2,10 +2,10 @@ package com.idega.block.form.business;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.chiba.adapter.ChibaAdapter;
@@ -16,13 +16,10 @@ import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.idegaweb.IWUserContext;
-import com.idega.presentation.IWContext;
-import com.idega.slide.business.IWSlideSession;
-import com.idega.slide.util.WebdavExtendedResource;
+import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWMainApplication;
 
 /**
  * The file submission driver serializes and submits instance data to a file.
@@ -34,7 +31,7 @@ import com.idega.slide.util.WebdavExtendedResource;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.4 2006/11/28 18:27:42 laddi Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.5 2006/12/14 13:47:58 gediminas Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -72,47 +69,21 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
                 	path = path + formId + "/";
                 }
                 
-        		IWUserContext iwuc = IWContext.getInstance();
-                IWSlideSession session = getIWSlideSession(iwuc);
-                
-                session.createAllFoldersInPath(path);
+                // debug
+				DOMUtil.prettyPrintDOM(instance, System.out);
 
-                String fileName = path + System.currentTimeMillis() + ".xml";
-                LOGGER.info("Saving submitted instance to webdav path: " + fileName);
-                WebdavExtendedResource resource = session.getWebdavResource(fileName);
-				
-				if(resource.exists())
-					resource.setProperties();
-				
-				ByteArrayInputStream is = null;
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				serialize(submission, instance, out);
 				
-				try {
-					DOMUtil.prettyPrintDOM(instance, System.out);
-					
-					serialize(submission, instance, out);
-					is = new ByteArrayInputStream(out.toByteArray());
-					resource.putMethod(is);
-					
-		            if (submission.getReplace().equals("all")) {
-		            	is.reset();
-		                response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, is);
-		            }
+				InputStream is = new ByteArrayInputStream(out.toByteArray());
 
-				}
-				catch (Exception e) {
-					LOGGER.log(Level.WARNING, "Error while saving instance to webdav", e);
-				}
-				finally {
-					if (is != null) {
-						try {
-							is.close();
-						}
-						catch (Exception e) {
-						}
-					}
-					out.close();
-				}
+				getFormsService().saveSubmittedData(path, is);
+
+				// TODO: redirect to result page
+	            if (submission.getReplace().equals("all")) {
+	            	InputStream ris = this.getClass().getResourceAsStream("redirect.html");
+	                response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, ris);
+	            }
 
             }
             catch (Exception e) {
@@ -125,17 +96,17 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
         throw new XFormsException("submission method '" + submission.getMethod() + "' not supported");
     }
 
-	protected static IWSlideSession getIWSlideSession(IWUserContext iwuc) {
-		IWSlideSession session = null;
+	private FormsService getFormsService() {
+		FormsService service = null;
 		try {
-			session = (IWSlideSession) IBOLookup.getSessionInstance(iwuc, IWSlideSession.class);
+			IWApplicationContext iwc = IWMainApplication.getDefaultIWApplicationContext();
+			service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
 		}
 		catch (IBOLookupException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.severe("Could not find FormsService");
 		}
-		return session;
+		return service;
 	}
+	
 }
 
-// end of class

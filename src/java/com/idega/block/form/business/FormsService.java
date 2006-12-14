@@ -1,6 +1,8 @@
 package com.idega.block.form.business;
 
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.List;
 import javax.faces.model.SelectItem;
@@ -33,9 +35,14 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	public void setAvailableFormsChanged() throws RemoteException;
 
 	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#getSubmittedData
+	 * @see com.idega.block.form.business.FormsServiceBean#saveSubmittedData
 	 */
-	public Document getSubmittedData(String formId, String submittedDataFilename) throws Exception, RemoteException;
+	public void saveSubmittedData(String path, InputStream is) throws IOException, RemoteException;
+
+	/**
+	 * @see com.idega.block.form.business.FormsServiceBean#loadSubmittedData
+	 */
+	public Document loadSubmittedData(String formId, String submittedDataFilename) throws Exception, RemoteException;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#listSubmittedData

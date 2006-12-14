@@ -118,7 +118,7 @@ public class FormReaderBlock extends IWBaseComponent {
 				FormParser form_parser = new FormParser();
 				form_parser.setHtmlForm(document_output);
 				
-				Document submitted_data_doc = getFormsService(ctx).getSubmittedData(formid_provided, submitted_data_id_provided);
+				Document submitted_data_doc = getFormsService(ctx).loadSubmittedData(formid_provided, submitted_data_id_provided);
 				Element submittedData = submitted_data_doc.getDocumentElement();
 				
 				form_parser.setOutput(ctx.getResponseWriter());

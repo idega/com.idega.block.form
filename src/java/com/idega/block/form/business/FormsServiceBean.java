@@ -127,7 +127,6 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		if(formNames == null) {
 			synchronized (this) {
 				if(formNames == null) {
-					cleanup();
 					formNames = loadAvailableForms();
 				}
 			}
@@ -248,7 +247,24 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return service.getWebdavExtendedResource(path, service.getRootUserCredentials());
 	}
 
-	public Document getSubmittedData(String formId, String submittedDataFilename) throws Exception {
+	/**
+	 * Save submitted form's instance
+	 * 
+	 * @param path "/files/forms/submissions/$formId/"
+	 * @param is instance input stream to save
+	 * @throws IOException 
+	 */
+	public void saveSubmittedData(String path, InputStream is) throws IOException {
+		IWSlideService service = getIWSlideService();
+		
+		String fileName = System.currentTimeMillis() + ".xml";
+		
+		logger.info("Saving submitted instance to webdav path: " + fileName);
+
+		service.uploadFileAndCreateFoldersFromStringAsRoot(path, fileName, is, "text/xml", false);
+	}
+
+	public Document loadSubmittedData(String formId, String submittedDataFilename) throws Exception {
 		
 		if(submittedDataFilename == null || formId == null)
 			throw new NullPointerException("submitted_data_id or formId is not provided");
