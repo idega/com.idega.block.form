@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: chiba-config.xml,v 1.4 2006/11/27 14:32:22 gediminas Exp $ -->
+<!-- $Id: chiba-config.xml,v 1.5 2006/12/18 18:03:31 gediminas Exp $ -->
 <!-- Copyright 2005 Chibacon -->
 <chiba-config>
     <!-- PLEASE COMMENT YOUR ENTRIES -->
     <properties>
+        <!-- ********* web adapter properties ********* -->
+        <!--
+            Normally there should be no reason to change the following prefixes unless they're
+            in conflict with your application that uses Chiba.
+        -->
+        <!-- prefix used in http request param names to denote a data (value) parameter. -->
+        <property name="chiba.web.dataPrefix" value="d_"/>
+        <!-- prefix used in http request param names to denote the id of an action to be fired. -->
+        <property name="chiba.web.triggerPrefix" value="t_"/>
+        <!-- prefix used in http request param names to denote a selector parameter (used for repeats). -->
+        <property name="chiba.web.selectorPrefix" value="s_"/>
+
         <!-- generate default alert elements if none present. -->
         <property name="chiba.ui.generateDefaultAlerts" value="false"/>
         <!-- define the default text for automatically generated alert elements. -->
