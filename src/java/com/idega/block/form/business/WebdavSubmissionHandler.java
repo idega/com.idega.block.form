@@ -30,7 +30,7 @@ import com.idega.idegaweb.IWMainApplication;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.6 2006/12/14 13:58:00 gediminas Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.7 2006/12/18 18:12:20 gediminas Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -55,7 +55,7 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
 
             try {
                 String formId = null;
-                Node formElement = DOMUtil.getFirstChildByTagName(instance, "formId");
+                Node formElement = DOMUtil.getFirstChildByTagName(instance, "form_id");
                 if (formElement != null) {
                 	formId = DOMUtil.getElementValue((Element) formElement);
                 }
