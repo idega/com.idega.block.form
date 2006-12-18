@@ -25,7 +25,7 @@ import com.idega.slide.util.WebdavExtendedResource;
  * element would not be found.
  *
  * @author Ulrich Nicolas Liss&eacute;
- * @version $Id: WebdavURIResolver.java,v 1.1 2006/11/27 14:32:22 gediminas Exp $
+ * @version $Id: WebdavURIResolver.java,v 1.2 2006/12/18 19:57:51 gediminas Exp $
  */
 public class WebdavURIResolver extends AbstractConnector implements URIResolver {
 
@@ -52,8 +52,7 @@ public class WebdavURIResolver extends AbstractConnector implements URIResolver 
             IWSlideSession session = getIWSlideSession(iwuc);
             
             WebdavExtendedResource resource = session.getWebdavResource(path);
-            resource.setProperties();
-
+            
 			if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.fine("loading webdav resource '" + path + "'");
             }
