@@ -102,8 +102,6 @@ import org.apache.log4j.Logger;
 import org.chiba.adapter.ChibaEvent;
 import org.chiba.adapter.DefaultChibaEventImpl;
 import org.chiba.web.WebAdapter;
-import org.chiba.web.session.XFormsSessionManager;
-import org.chiba.web.session.XFormsSession;
 import org.chiba.xml.xforms.config.Config;
 
 import javax.servlet.ServletException;
@@ -161,13 +159,8 @@ public class FluxHelperServlet extends AbstractChibaServlet {
 
         response.setContentType("text/html");
 
-        String key = request.getParameter("sessionKey");
         try {
-
-            XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
-            XFormsSession xFormsSession = manager.getXFormsSession(key);
-
-            webAdapter = xFormsSession.getAdapter();
+        	webAdapter = (WebAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
             if (webAdapter == null) {
                 throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
             }
@@ -183,7 +176,7 @@ public class FluxHelperServlet extends AbstractChibaServlet {
                 out.close();
             }
         } catch (Exception e) {
-        	shutdown(webAdapter, session, e, response, request, key);
+        	shutdown(webAdapter, session, e, response, request);
         }
     }
 

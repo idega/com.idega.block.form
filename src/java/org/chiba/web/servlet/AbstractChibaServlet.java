@@ -103,7 +103,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 import org.chiba.web.WebAdapter;
-import org.chiba.web.session.XFormsSession;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XMLEvent;
 import org.chiba.xml.xforms.exception.XFormsException;
@@ -112,12 +111,13 @@ import org.chiba.xml.xforms.exception.XFormsException;
  * Base servlet with common methods for several servlets, to avoid extending ChibaServlet.
  * 
  * @author Joern Turner
- * @version $Id: AbstractChibaServlet.java,v 1.1 2006/12/18 15:23:05 gediminas Exp $
+ * @version $Id: AbstractChibaServlet.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
  */
 public abstract class AbstractChibaServlet extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractChibaServlet.class);
 	public static final String CHIBA_SUBMISSION_RESPONSE = "chiba.submission.response";
+	protected static final String HTML_CONTENT_TYPE = "text/html;charset=UTF-8";
 
 	/**
 	 * 
@@ -126,23 +126,19 @@ public abstract class AbstractChibaServlet extends HttpServlet {
 		super();
 	}
 
-	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response) throws IOException {
+	protected void handleExit(XMLEvent exitEvent, HttpSession session, HttpServletRequest request, HttpServletResponse response) throws IOException {
 	    if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
-	        response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
+	        response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse"));
 	    } else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
 	        if (exitEvent.getContextInfo("show") != null) {
 	            String loadURI = (String) exitEvent.getContextInfo("uri");
-	
-	            //kill XFormsSession
-	            xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
-	
 	            response.sendRedirect(response.encodeRedirectURL(loadURI));
 	        }
 	    }
 	    LOGGER.debug("************************* EXITED DURING XFORMS MODEL INIT *************************");
 	}
 
-	protected void shutdown(WebAdapter webAdapter, HttpSession session, Exception e, HttpServletResponse response, HttpServletRequest request, String key) throws IOException {
+	protected void shutdown(WebAdapter webAdapter, HttpSession session, Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
 	    // attempt to shutdown processor
 	    if (webAdapter != null) {
 	        try {
@@ -152,11 +148,11 @@ public abstract class AbstractChibaServlet extends HttpServlet {
 	        }
 	    }
 	
+	    session.removeAttribute(WebAdapter.WEB_ADAPTER);
+	    
 	    // store exception
 	    //todo: move exceptions to XFormsSession
 	    session.setAttribute("chiba.exception", e);
-	    //remove xformssession from httpsession
-	    session.removeAttribute(key);
 	
 	    // redirect to error page (after encoding session id if required)
 	    response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/" +

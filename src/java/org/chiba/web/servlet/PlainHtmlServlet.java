@@ -100,8 +100,6 @@ import org.apache.log4j.Logger;
 import org.chiba.adapter.ChibaEvent;
 import org.chiba.adapter.DefaultChibaEventImpl;
 import org.chiba.web.WebAdapter;
-import org.chiba.web.session.XFormsSession;
-import org.chiba.web.session.XFormsSessionManager;
 import org.chiba.xml.events.XMLEvent;
 import org.chiba.xml.xforms.config.Config;
 
@@ -117,7 +115,7 @@ import java.io.IOException;
  * they'll still work.
  *
  * @author Joern Turner
- * @version $Id: PlainHtmlServlet.java,v 1.1 2006/12/18 15:23:05 gediminas Exp $
+ * @version $Id: PlainHtmlServlet.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
  */
 public class PlainHtmlServlet extends AbstractChibaServlet {
     private static final Logger LOGGER = Logger.getLogger(PlainHtmlServlet.class);
@@ -158,17 +156,13 @@ public class PlainHtmlServlet extends AbstractChibaServlet {
         response.setHeader("Pragma","no-cache");
         response.setHeader("Expires","-1");
 
-        String key = request.getParameter("sessionKey");
         try {
-            XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
-            XFormsSession xFormsSession = manager.getXFormsSession(key);
-
-            String referer = (String) xFormsSession.getProperty(XFormsSession.REFERER);
+            String referer = "referer";//(String) xFormsSession.getProperty(XFormsSession.REFERER);
             if(LOGGER.isDebugEnabled()){
                 LOGGER.debug("referer: " + referer);
             }
 
-            webAdapter = xFormsSession.getAdapter();
+        	webAdapter = (WebAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
             if (webAdapter == null) {
                 throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
             }
@@ -179,12 +173,12 @@ public class PlainHtmlServlet extends AbstractChibaServlet {
             XMLEvent exitEvent = webAdapter.checkForExitEvent();
 
             if (exitEvent != null) {
-                handleExit(exitEvent, xFormsSession, session, request,response);
+                handleExit(exitEvent, session, request,response);
             } else {
-                response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/view?sessionKey=" + xFormsSession.getKey() + "&referer=" + referer));
+                response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/view?referer=" + referer));
             }
         } catch (Exception e) {
-            shutdown(webAdapter, session, e, response, request, key);
+            shutdown(webAdapter, session, e, response, request);
         }
     }
 }

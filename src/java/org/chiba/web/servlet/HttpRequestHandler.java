@@ -123,7 +123,7 @@ import java.util.Map;
  * Default implementation for handling HTTP requests.
  *
  * @author Ulrich Nicolas Liss&eacute;
- * @version $Id: HttpRequestHandler.java,v 1.1 2006/12/18 15:23:05 gediminas Exp $
+ * @version $Id: HttpRequestHandler.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
  */
 public class HttpRequestHandler {
     private static final Logger LOGGER = Logger.getLogger(HttpRequestHandler.class);
@@ -145,7 +145,6 @@ public class HttpRequestHandler {
 
     private ChibaBean chibaBean;
     private String uploadRoot;
-    private String sessionKey;
     private String dataPrefix;
     private String selectorPrefix;
     private String triggerPrefix;
@@ -160,10 +159,6 @@ public class HttpRequestHandler {
 
     public void setUploadRoot(String uploadRoot) {
         this.uploadRoot = uploadRoot;
-    }
-
-    public void setSessionKey(String sessionKey) {
-        this.sessionKey = sessionKey;
     }
 
     /**
@@ -228,7 +223,7 @@ public class HttpRequestHandler {
         Map[] parameters = new Map[4];
 
         if (FileUpload.isMultipartContent(new ServletRequestContext(request))) {
-            UploadListener uploadListener = new UploadListener(request, this.sessionKey);
+            UploadListener uploadListener = new UploadListener(request, "");
             DiskFileItemFactory factory = new MonitoredDiskFileItemFactory(uploadListener);
             factory.setRepository(new File(this.uploadRoot));
             ServletFileUpload upload = new ServletFileUpload(factory);

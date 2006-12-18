@@ -105,7 +105,9 @@ import org.chiba.xml.xforms.exception.XFormsException;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 
+import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -114,7 +116,7 @@ import java.util.Map;
  * to the XForms processor.
  *
  * @author joern turner
- * @version $Id: ServletAdapter.java,v 1.1 2006/12/18 15:23:05 gediminas Exp $
+ * @version $Id: ServletAdapter.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
  */
 public class ServletAdapter extends WebAdapter implements EventListener {
 
@@ -178,7 +180,9 @@ public class ServletAdapter extends WebAdapter implements EventListener {
                     Map submissionResponse = new HashMap();
                     submissionResponse.put("header", xmlEvent.getContextInfo("header"));
                     submissionResponse.put("body", xmlEvent.getContextInfo("body"));
-                    this.xformsSession.setProperty(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE, submissionResponse);
+
+                    HttpSession session = (HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true);
+                    session.setAttribute(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE,submissionResponse);
 
                     this.exitEvent = xmlEvent;
                     shutdown();

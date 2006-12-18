@@ -3,9 +3,9 @@ package org.chiba.web;
 import org.apache.log4j.Logger;
 import org.chiba.adapter.AbstractChibaAdapter;
 import org.chiba.adapter.ChibaEvent;
+import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.web.flux.FluxAdapter;
 import org.chiba.web.servlet.HttpRequestHandler;
-import org.chiba.web.session.XFormsSession;
 import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XMLEvent;
@@ -24,7 +24,7 @@ import javax.xml.transform.TransformerException;
  * a common base to build webadapers.
  *
  * @author Joern Turner
- * @version $Id: WebAdapter.java,v 1.1 2006/12/18 15:23:05 gediminas Exp $
+ * @version $Id: WebAdapter.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
  * @see org.chiba.web.flux.FluxAdapter
  * @see org.chiba.web.servlet.ServletAdapter
  *
@@ -35,21 +35,20 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
      */
     public static final String SESSION_ID = "chiba.session.id";
 
+    public static final String WEB_ADAPTER = "chiba.web.adapter";
+    public static final String ADAPTER_PREFIX = "A";
+
     private static final Logger LOGGER = Logger.getLogger(FluxAdapter.class);
     protected EventTarget root;
-    protected XFormsSession xformsSession;
     protected HttpRequestHandler httpRequestHandler;
     protected XMLEvent exitEvent = null;
     public static final String USERAGENT = "useragent";
     public static final String REQUEST_URI = "requestURI";
+    
+    protected UIGenerator uiGenerator;
 
     public WebAdapter() {
         this.chibaBean = createXFormsProcessor();
-    }
-
-
-    public void setXFormsSession(XFormsSession xFormsSession) {
-        this.xformsSession = xFormsSession;
     }
 
     public void setExitEvent(XMLEvent event){
@@ -84,7 +83,7 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
         if(keepAlive != null){
             String pulse = keepAlive.getAttributeNS(null,"pulse");
             if(!(pulse == null || pulse.equals(""))){
-                xformsSession.setProperty(XFormsSession.KEEPALIVE_PULSE,pulse);
+                //xformsSession.setProperty(XFormsSession.KEEPALIVE_PULSE,pulse);
             }
         }
     }
@@ -148,15 +147,30 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
             this.root.removeEventListener(ChibaEventNames.REPLACE_ALL, this, true);
             this.root = null;
         }
+        
+        this.uiGenerator = null;
     }
 
     protected HttpRequestHandler getHttpRequestHandler() {
         if (this.httpRequestHandler == null) {
             this.httpRequestHandler = new HttpRequestHandler(this.chibaBean);
             this.httpRequestHandler.setUploadRoot(this.uploadDestination);
-            this.httpRequestHandler.setSessionKey(this.xformsSession.getKey());
         }
 
         return this.httpRequestHandler;
     }
+
+	/**
+	 * @return Returns the uiGenerator.
+	 */
+	public UIGenerator getUIGenerator() {
+		return this.uiGenerator;
+	}
+	
+	/**
+	 * @param uiGenerator The uiGenerator to set.
+	 */
+	public void setUIGenerator(UIGenerator uiGenerator) {
+		this.uiGenerator = uiGenerator;
+	}
 }

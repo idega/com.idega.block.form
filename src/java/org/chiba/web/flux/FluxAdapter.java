@@ -96,7 +96,13 @@
  */
 package org.chiba.web.flux;
 
+import java.util.HashMap;
+import java.util.Map;
+import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
+import org.chiba.adapter.ChibaEvent;
 import org.chiba.web.WebAdapter;
 import org.chiba.web.servlet.AbstractChibaServlet;
 import org.chiba.xml.events.ChibaEventNames;
@@ -104,13 +110,8 @@ import org.chiba.xml.events.DOMEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
 import org.chiba.xml.xforms.exception.XFormsException;
-import org.chiba.adapter.ChibaEvent;
 import org.w3c.dom.Element;
 import org.w3c.dom.events.Event;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Adapter for processing DWR calls and building appropriate responses. This
@@ -119,7 +120,7 @@ import java.util.Map;
  * be hidden for security.
  *
  * @author Joern Turner
- * @version $Id: FluxAdapter.java,v 1.1 2006/12/18 15:23:05 gediminas Exp $
+ * @version $Id: FluxAdapter.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
  */
 //public class FluxAdapter extends AbstractChibaAdapter implements EventListener {
 public class FluxAdapter extends WebAdapter {
@@ -214,7 +215,10 @@ public class FluxAdapter extends WebAdapter {
                     Map submissionResponse = new HashMap();
                     submissionResponse.put("header", xmlEvent.getContextInfo("header"));
                     submissionResponse.put("body", xmlEvent.getContextInfo("body"));
-                    this.xformsSession.setProperty(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE,submissionResponse);
+                    
+                    // FIXME: how to get session?
+                    HttpSession session = (HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true);
+                    session.setAttribute(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE,submissionResponse);
 
                     // get event properties
                     Element target = (Element) event.getTarget();
@@ -236,7 +240,6 @@ public class FluxAdapter extends WebAdapter {
                     if ("replace".equals(show)) {
                         this.exitEvent = xmlEvent;
                         shutdown();
-                        this.xformsSession.getManager().deleteXFormsSession(this.xformsSession.getKey());
                     }
 
                     return;

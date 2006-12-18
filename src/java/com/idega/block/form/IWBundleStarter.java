@@ -1,5 +1,5 @@
 /**
- * $Id: IWBundleStarter.java,v 1.4 2006/12/08 15:45:33 gediminas Exp $
+ * $Id: IWBundleStarter.java,v 1.5 2006/12/18 16:33:31 gediminas Exp $
  * Created in 2006 by gediminas
  * 
  * Copyright (C) 2000-2006 Idega Software hf. All Rights Reserved.
@@ -16,7 +16,6 @@ import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
-import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.xforms.config.Config;
 import org.chiba.xml.xforms.config.XFormsConfigException;
 import org.chiba.xml.xslt.TransformerService;
@@ -37,10 +36,10 @@ import com.idega.slide.business.IWSlideService;
  * <p>
  * TODO gediminas Describe Type IWBundleStarter
  * </p>
- * Last modified: $Date: 2006/12/08 15:45:33 $ by $Author: gediminas $
+ * Last modified: $Date: 2006/12/18 16:33:31 $ by $Author: gediminas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class IWBundleStarter implements IWBundleStartable {
 	
@@ -78,9 +77,6 @@ public class IWBundleStarter implements IWBundleStartable {
 			log.log(Level.SEVERE, "Cannot load XForms transformer stylesheet", e);
 		}
 		
-		// start managing xforms sessions
-		createXFormsSessionManager(0, 0);
-		
 		// read chiba config
 		try {
 			InputStream inputStream = resolver.resolve(CHIBA_CONFIG_URI).getInputStream();
@@ -115,34 +111,6 @@ public class IWBundleStarter implements IWBundleStartable {
 	 */
 	public void stop(IWBundle starterBundle) {
 		starterBundle.getApplication().removeAttribute(TRANSFORMER_SERVICE);
-		DefaultXFormsSessionManagerImpl manager = DefaultXFormsSessionManagerImpl.getInstance();
-		manager.kill();
-		manager.interrupt();
 	}
-	
-    /**
-     * factory method to create and setup an XFormsSessionManager. Overwrite this to provide your own implementation.
-     *
-     * @param wipingInterval
-     * @param timeout
-     */
-    protected void createXFormsSessionManager(int wipingInterval, int timeout) {
-        DefaultXFormsSessionManagerImpl manager = DefaultXFormsSessionManagerImpl.getInstance();
-        if(wipingInterval != 0){
-            manager.setInterval(wipingInterval);
-        }else{
-            manager.setInterval(1000 * 30);// every 30 secs as default
-        }
-
-        if (timeout != 0){
-            manager.setTimeout(timeout);
-        }else{
-            manager.setTimeout(1000 * 30); // 1 minute session lifetime
-        }
-
-        //start running the session cleanup
-
-        manager.start();
-    }
 
 }

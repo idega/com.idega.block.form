@@ -98,14 +98,14 @@ package org.chiba.web.upload;
 
 
 import org.apache.log4j.Logger;
-import org.chiba.web.session.XFormsSession;
+import org.chiba.web.WebAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
  *
  * Class by Pierre-Alexandre Losson -- http://www.telio.be/blog
- * @author Original : plosson on 05-janv.-2006 10:46:33 - Last modified  by $Author: gediminas $ on $Date: 2006/12/18 15:23:05 $
+ * @author Original : plosson on 05-janv.-2006 10:46:33 - Last modified  by $Author: gediminas $ on $Date: 2006/12/18 16:33:31 $
  * @version $id: $
  */
 public class UploadListener implements OutputStreamListener
@@ -172,7 +172,7 @@ public class UploadListener implements OutputStreamListener
             LOGGER.debug("status: " + status);
             LOGGER.debug("Bytes read: " + totalBytesRead);
         }
-        request.getSession().setAttribute(XFormsSession.ADAPTER_PREFIX + sessionKey+"-uploadInfo", new UploadInfo(totalFiles, totalToRead, totalBytesRead,delta,status));
+        request.getSession().setAttribute(WebAdapter.ADAPTER_PREFIX + /*sessionKey +*/ "-uploadInfo", new UploadInfo(totalFiles, totalToRead, totalBytesRead,delta,status));
     }
 
 }
