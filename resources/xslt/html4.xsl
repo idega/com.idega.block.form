@@ -136,7 +136,7 @@
                 <xsl:text>
 </xsl:text>
                 <script type="text/javascript">
-                    dojo.setModulePrefix("chiba","chiba/");
+                    dojo.setModulePrefix("chiba","chiba");
                     dojo.require("dojo.event.*");
 
 					var pulseInterval;
@@ -501,7 +501,7 @@ todo: clarify if this makes sense - maybe allowing to set the session timeout ma
                     <img src="../resources/images/help_icon.gif" class="help-symbol" alt="?" border="0"/>
                 </xsl:element>
                 <!--<span id="{../@id}-helptext" class="help-text" style="position:absolute;display:none;width:250px;border:thin solid gray 1px;background:lightgrey;padding:5px;">-->
-                <span id="{../@id}-helptext" class="help-text">
+                <span id="{../@id}-helptext" class="helperText">
                     <xsl:apply-templates/>
                 </span>
         </xsl:if>
