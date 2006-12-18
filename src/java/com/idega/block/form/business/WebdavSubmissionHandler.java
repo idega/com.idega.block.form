@@ -3,6 +3,7 @@ package com.idega.block.form.business;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -17,6 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.data.StringInputStream;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 
@@ -30,7 +32,7 @@ import com.idega.idegaweb.IWMainApplication;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.7 2006/12/18 18:12:20 gediminas Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.8 2006/12/18 19:58:36 gediminas Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -54,11 +56,18 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
             Map response = new HashMap();
 
             try {
-                String formId = null;
-                Node formElement = DOMUtil.getFirstChildByTagName(instance, "form_id");
+                // create uri
+                URI uri = new URI(getURI());
+
+                String path = uri.getPath();
+                String formId = path.substring(path.lastIndexOf("/"));
+                
+                /*
+                Node formElement = DOMUtil.getFirstChildByTagName(instance, "formId");
                 if (formElement != null) {
                 	formId = DOMUtil.getElementValue((Element) formElement);
                 }
+                */
                 
                 // debug
 				DOMUtil.prettyPrintDOM(instance, System.out);
@@ -72,8 +81,12 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
 
 				// TODO: redirect to result page
 	            if (submission.getReplace().equals("all")) {
-	            	InputStream ris = this.getClass().getResourceAsStream("redirect.html");
-	                response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, ris);
+	            	//InputStream ris = this.getClass().getResourceAsStream("redirect.html");
+	            	
+	            	StringInputStream ris = new StringInputStream("Form successfully submitted.");
+	            	if (ris != null) {
+	            		response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, ris);
+	            	}
 	            }
 
             }
