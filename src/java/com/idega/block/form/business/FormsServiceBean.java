@@ -292,25 +292,38 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		WebdavResource form_folder = getWebdavExtendedResource(SUBMITTED_DATA_PATH + "/" + formId);
 		
 		if(form_folder == null)
-			throw new NullPointerException("Form submitted data not found");
+			throw new NullPointerException("Error during form folder retrieve");
+		
+		if(!form_folder.exists())
+			return new ArrayList<SubmittedDataBean>();
 		
 		WebdavResources child_resources = form_folder.getChildResources();
 		Enumeration<WebdavResource> resources = child_resources.getResources();
 		
 		DocumentBuilder doc_builder = FormReaderUtil.getDocumentBuilder();
+		
+		System.out.println("builder class name: "+doc_builder.getClass());
 		List<SubmittedDataBean> submitted_data = new ArrayList<SubmittedDataBean>();
 		
 		while (resources.hasMoreElements()) {
 			WebdavResource webdav_resource = resources.nextElement();
+			System.out.println("resource name: "+webdav_resource.getName());
+			System.out.println("resource name2: "+webdav_resource.getDisplayName());
 			
-			InputStream is = webdav_resource.getMethodData();
-			Document submitted_data_doc = doc_builder.parse(is);
-			
-			SubmittedDataBean data_bean = new SubmittedDataBean();
-			data_bean.setSubmittedDataElement(submitted_data_doc.getDocumentElement());
-			data_bean.setId(webdav_resource.getDisplayName());
-			
-			submitted_data.add(data_bean);
+			try {
+				
+				InputStream is = webdav_resource.getMethodData();
+				Document submitted_data_doc = doc_builder.parse(is);
+				
+				SubmittedDataBean data_bean = new SubmittedDataBean();
+				data_bean.setSubmittedDataElement(submitted_data_doc.getDocumentElement());
+				data_bean.setId(webdav_resource.getDisplayName());
+				
+				submitted_data.add(data_bean);
+				
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Error when retrieving/parsing submitted data file", e);
+			}
 		}
 		
 		return submitted_data;
