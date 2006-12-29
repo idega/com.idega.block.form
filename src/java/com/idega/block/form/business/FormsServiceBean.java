@@ -120,7 +120,9 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	 * @throws IOException
 	 */
 	private void setFormTitleProperty(WebdavResource resource, String formTitle) throws HttpException, IOException {
-		resource.proppatchMethod(FORM_NAME_PROPERTY_NAME, formTitle, (formTitle != null));
+		if (formTitle != null) {
+			resource.proppatchMethod(FORM_NAME_PROPERTY_NAME, formTitle, true);
+		}
 	}
 
 	public List<SelectItem> listForms() {
@@ -307,8 +309,10 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		
 		while (resources.hasMoreElements()) {
 			WebdavResource webdav_resource = resources.nextElement();
-			System.out.println("resource name: "+webdav_resource.getName());
-			System.out.println("resource name2: "+webdav_resource.getDisplayName());
+
+			final String displayName = webdav_resource.getDisplayName();
+			if (displayName.startsWith("."))
+				continue; // skip .DS_Store and other junk files
 			
 			try {
 				
@@ -317,7 +321,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 				
 				SubmittedDataBean data_bean = new SubmittedDataBean();
 				data_bean.setSubmittedDataElement(submitted_data_doc.getDocumentElement());
-				data_bean.setId(webdav_resource.getDisplayName());
+				data_bean.setId(displayName);
 				
 				submitted_data.add(data_bean);
 				
@@ -362,6 +366,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		}
 		else if (ContentEvent.CREATE.equals(contentEvent.getMethod())) {
 			// handle manually uploaded forms, saveForm handles the rest
+			setAvailableFormsChanged(); // FIXME: just cleanup for now
 		}
 	}
 
