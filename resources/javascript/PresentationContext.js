@@ -47,7 +47,13 @@ PresentationContext.prototype.handleRenderMessage = function(message, level) {
 PresentationContext.prototype.handleReplaceAll = function() {
     dojo.debug("PresentationContext.handleReplaceAll: ?");
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    window.open("/SubmissionResponse?sessionKey="+sessionKey, "_self");
+    //window.open("/SubmissionResponse?sessionKey="+sessionKey, "_self");
+	// replace only div with xforms, not the whole page
+    var chibaBody = document.getElementById("chiba-body");
+    var chibaDiv = chibaBody.parentNode;
+    var iframe = document.createElement("iframe");
+    iframe.setAttribute("src", "/SubmissionResponse?sessionKey="+sessionKey);
+    chibaDiv.replaceChild(iframe, chibaBody);
 };
 
 /**
