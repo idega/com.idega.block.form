@@ -113,7 +113,7 @@ import javax.xml.transform.TransformerException;
  * AJAX Facade class to hide the full functionality from the web-client.
  *
  * @author Joern Turner
- * @version $Id: FluxFacade.java,v 1.3 2006/12/18 19:57:15 gediminas Exp $
+ * @version $Id: FluxFacade.java,v 1.4 2007/01/03 12:22:06 gediminas Exp $
  */
 public class FluxFacade {
     //this is a custom event to activate a trigger in XForms.
@@ -180,7 +180,7 @@ public class FluxFacade {
         UploadInfo uploadInfo;
 
         if (session.getAttribute(WebAdapter.ADAPTER_PREFIX + /*sessionKey +*/ "-uploadInfo") != null) {
-            uploadInfo = (UploadInfo) session.getAttribute(WebAdapter.ADAPTER_PREFIX + sessionKey + "-uploadInfo");
+            uploadInfo = (UploadInfo) session.getAttribute(WebAdapter.ADAPTER_PREFIX + /*sessionKey +*/ "-uploadInfo");
 
             if (uploadInfo.isInProgress()) {
                 double p = uploadInfo.getBytesRead() / uploadInfo.getTotalSize();
