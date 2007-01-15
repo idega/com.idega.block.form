@@ -358,14 +358,18 @@ todo: clarify if this makes sense - maybe allowing to set the session timeout ma
                 </xsl:if>
             </xsl:if>
             <input type="hidden" id="chibaSessionKey" name="sessionKey" value="{$sessionKey}"/>
+            <!--
             <xsl:if test="$scripted != 'true'">
                 <input type="submit" value="refresh page" class="refresh-button"/>
             </xsl:if>
+            -->
 
             <xsl:apply-templates select="."/>
+            <!--
             <xsl:if test="$scripted != 'true'">
                 <input type="submit" value="refresh page" class="refresh-button"/>
             </xsl:if>
+            -->
         </xsl:element>
     </xsl:template>
 
