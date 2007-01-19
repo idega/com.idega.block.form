@@ -105,7 +105,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  *
  * Class by Pierre-Alexandre Losson -- http://www.telio.be/blog
- * @author Original : plosson on 05-janv.-2006 10:46:33 - Last modified  by $Author: gediminas $ on $Date: 2006/12/18 16:33:31 $
+ * @author Original : plosson on 05-janv.-2006 10:46:33 - Last modified  by $Author: laddi $ on $Date: 2007/01/19 08:15:00 $
  * @version $id: $
  */
 public class UploadListener implements OutputStreamListener
@@ -118,15 +118,13 @@ public class UploadListener implements OutputStreamListener
     private int totalToRead = 0;
     private int totalBytesRead = 0;
     private int totalFiles = -1;
-    private String sessionKey;
-
+    
     public UploadListener(HttpServletRequest request, String sessionKey)
     {
         this.request = request;
         this.delay = 0; //not used
         totalToRead = request.getContentLength();
         this.startTime = System.currentTimeMillis();
-        this.sessionKey=sessionKey;
     }
 
     public void start()
@@ -160,10 +158,10 @@ public class UploadListener implements OutputStreamListener
         updateUploadInfo("done");
     }
 
-    private long getDelta()
+    /*private long getDelta()
     {
         return (System.currentTimeMillis() - startTime) / 1000;
-    }
+    }*/
 
     private void updateUploadInfo(String status)
     {

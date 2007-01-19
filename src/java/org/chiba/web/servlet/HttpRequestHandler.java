@@ -97,8 +97,17 @@
 // Copyright 2005 Chibacon Liss�/Turner GbR
 package org.chiba.web.servlet;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUpload;
+import org.apache.commons.fileupload.FileUploadBase;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -111,19 +120,11 @@ import org.chiba.xml.xforms.ChibaBean;
 import org.chiba.xml.xforms.config.Config;
 import org.chiba.xml.xforms.exception.XFormsException;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 /**
  * Default implementation for handling HTTP requests.
  *
  * @author Ulrich Nicolas Liss&eacute;
- * @version $Id: HttpRequestHandler.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
+ * @version $Id: HttpRequestHandler.java,v 1.3 2007/01/19 08:15:01 laddi Exp $
  */
 public class HttpRequestHandler {
     private static final Logger LOGGER = Logger.getLogger(HttpRequestHandler.class);
@@ -222,7 +223,7 @@ public class HttpRequestHandler {
     protected Map[] parseRequest(HttpServletRequest request) throws FileUploadException, UnsupportedEncodingException {
         Map[] parameters = new Map[4];
 
-        if (FileUpload.isMultipartContent(new ServletRequestContext(request))) {
+        if (FileUploadBase.isMultipartContent(new ServletRequestContext(request))) {
             UploadListener uploadListener = new UploadListener(request, "");
             DiskFileItemFactory factory = new MonitoredDiskFileItemFactory(uploadListener);
             factory.setRepository(new File(this.uploadRoot));
@@ -629,7 +630,7 @@ public class HttpRequestHandler {
         return this.dateTimePrefix;
     }
     
-    private class DateTimeValue
+    protected class DateTimeValue
     {
     	/**
     	 * xs:dateTime looks like 2006-09-19T10:56:00.00+1:00 or YYYY-MM-DDTHH:mm:ss.ms+tz

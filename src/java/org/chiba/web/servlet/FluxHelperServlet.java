@@ -96,20 +96,20 @@
  */
 package org.chiba.web.servlet;
 
-import org.apache.commons.fileupload.FileUpload;
-import org.apache.commons.fileupload.servlet.ServletRequestContext;
-import org.apache.log4j.Logger;
-import org.chiba.adapter.ChibaEvent;
-import org.chiba.adapter.DefaultChibaEventImpl;
-import org.chiba.web.WebAdapter;
-import org.chiba.xml.xforms.config.Config;
+import java.io.IOException;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
+
+import org.apache.commons.fileupload.FileUploadBase;
+import org.apache.commons.fileupload.servlet.ServletRequestContext;
+import org.chiba.adapter.ChibaEvent;
+import org.chiba.adapter.DefaultChibaEventImpl;
+import org.chiba.web.WebAdapter;
+import org.chiba.xml.xforms.config.Config;
 
 /**
  * Provides extra functionality that's not easily handled with AJAX. This helper servlet will only be triggered in
@@ -126,10 +126,6 @@ import java.io.IOException;
  * @version $Version: $
  */
 public class FluxHelperServlet extends AbstractChibaServlet {
-    //init-params
-    private static final Logger LOGGER = Logger.getLogger(FluxHelperServlet.class);
-
-
     /**
      * Returns a short description of the servlet.
      *
@@ -168,7 +164,7 @@ public class FluxHelperServlet extends AbstractChibaServlet {
             chibaEvent.initEvent("http-request", null, request);
             webAdapter.dispatch(chibaEvent);
 
-            boolean isUpload = FileUpload.isMultipartContent(new ServletRequestContext(request));
+            boolean isUpload = FileUploadBase.isMultipartContent(new ServletRequestContext(request));
 
             if (isUpload) {
                 ServletOutputStream out = response.getOutputStream();

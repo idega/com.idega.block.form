@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.faces.model.SelectItem;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.httpclient.HttpException;
 import org.apache.slide.event.ContentEvent;
 import org.apache.webdav.lib.PropertyName;
@@ -21,9 +23,9 @@ import org.apache.webdav.lib.WebdavResource;
 import org.apache.webdav.lib.WebdavResources;
 import org.chiba.xml.dom.DOMUtil;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
 import com.idega.block.form.bean.AvailableFormBean;
 import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.block.formreader.business.util.FormReaderUtil;
