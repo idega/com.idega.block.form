@@ -32,7 +32,7 @@
 
     <xsl:param name="form-id" select="'chibaform'"/>
     <xsl:param name="form-name" select="//xhtml:title"/>
-    <xsl:param name="debug-enabled" select="'false'"/>
+    <xsl:param name="debug-enabled" select="'true'"/>
 
     <!-- ### specifies the parameter prefix for repeat selectors ### -->
     <xsl:param name="selector-prefix" select="'s_'"/>

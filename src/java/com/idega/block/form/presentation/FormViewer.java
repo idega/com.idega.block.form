@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.17 2006/12/18 16:33:31 gediminas Exp $ Created on
+ * $Id: FormViewer.java,v 1.18 2007/02/05 20:57:19 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -48,10 +48,10 @@ import com.idega.presentation.Script;
 
 /**
  * 
- * Last modified: $Date: 2006/12/18 16:33:31 $ by $Author: gediminas $
+ * Last modified: $Date: 2007/02/05 20:57:19 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -250,7 +250,7 @@ public class FormViewer extends IWBaseComponent {
 		//	generator.setParameter("keepalive-pulse", session.getProperty(XFormsSession.KEEPALIVE_PULSE));
 		//}
         generator.setParameter("action-url", context.getExternalContext().encodeActionURL(context.getExternalContext().getRequestContextPath() + "/FluxHelper"));
-		generator.setParameter("debug-enabled", false);
+		generator.setParameter("debug-enabled", true);
 		String selectorPrefix = Config.getInstance().getProperty(HttpRequestHandler.SELECTOR_PREFIX_PROPERTY,
 				HttpRequestHandler.SELECTOR_PREFIX_DEFAULT);
 		generator.setParameter("selector-prefix", selectorPrefix);
