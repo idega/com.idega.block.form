@@ -103,8 +103,8 @@ import org.chiba.web.upload.UploadInfo;
 import org.chiba.web.WebAdapter;
 import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.xforms.exception.XFormsException;
+import org.directwebremoting.WebContextFactory;
 import org.w3c.dom.Element;
-import uk.ltd.getahead.dwr.ExecutionContext;
 
 import javax.servlet.http.HttpSession;
 import javax.xml.transform.TransformerException;
@@ -113,7 +113,7 @@ import javax.xml.transform.TransformerException;
  * AJAX Facade class to hide the full functionality from the web-client.
  *
  * @author Joern Turner
- * @version $Id: FluxFacade.java,v 1.4 2007/01/03 12:22:06 gediminas Exp $
+ * @version $Id: FluxFacade.java,v 1.5 2007/02/21 21:23:13 civilis Exp $
  */
 public class FluxFacade {
     //this is a custom event to activate a trigger in XForms.
@@ -126,7 +126,7 @@ public class FluxFacade {
      * grabs the actual web from the session.
      */
     public FluxFacade() {
-        session = ExecutionContext.get().getSession();
+        session = WebContextFactory.get().getSession();
     }
 
     /**
@@ -151,6 +151,7 @@ public class FluxFacade {
      * @throws FluxException
      */
     public org.w3c.dom.Element setXFormsValue(String id, String value, String sessionKey) throws FluxException {
+    	
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("FluxFacade instance: " + this.toString());
         }

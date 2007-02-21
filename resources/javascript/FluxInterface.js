@@ -43,7 +43,7 @@ function closeSession() {
     dojo.debug("closing XForms session");
     var sessionKey = document.getElementById("chibaSessionKey").value;
     DWREngine.setErrorHandler(ignoreExceptions);
-    Flux.close(null,sessionKey);
+    Flux.close(sessionKey, null);
 }
 function ignoreExceptions(msg){
     alert("ignoring exception: " + msg);
@@ -108,9 +108,9 @@ function activate(target) {
     dojo.debug("Flux.activate: " + id);
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
-    DWREngine.setOrdered(true);
+    DWREngine.setOrdered(false);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.fireAction(updateUI, id, sessionKey);
+    Flux.fireAction(id, sessionKey, updateUI);
 }
 
 // call processor to update a controls' value
@@ -182,10 +182,10 @@ function setXFormsValue(control) {
     dojo.debug("Flux.setXFormsValue: " + id + "='" + value + "'");
     useLoadingMessage();
 
-    DWREngine.setOrdered(true);
+    DWREngine.setOrdered(false);
     DWREngine.setErrorHandler(handleExceptions);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(id, value, sessionKey, updateUI);
     isDirty = true;                                    
 }
 
@@ -232,7 +232,7 @@ function setRange(id, value) {
 
     DWREngine.setErrorHandler(handleExceptions);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(id, value, sessionKey, updateUI);
 }
 
 
@@ -285,9 +285,9 @@ function setRepeatIndex(e) {
     dojo.debug("Flux.setRepeatIndex: " + repeatId + "='" + targetPosition + "'");
     useLoadingMessage();
     DWREngine.setErrorHandler(handleExceptions);
-    DWREngine.setOrdered(true);
+    DWREngine.setOrdered(false);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setRepeatIndex(updateUI, repeatId, targetPosition, sessionKey);
+    Flux.setRepeatIndex(repeatId, targetPosition, sessionKey, updateUI);
 }
 
 function _getEventTarget(event) {
@@ -536,7 +536,7 @@ function calendarOnClose(calendar) {
     // cut off '-value'
     id = id.substring(0, id.length - 6);
     var sessionKey = document.getElementById("chibaSessionKey").value;
-    Flux.setXFormsValue(updateUI, id, value, sessionKey);
+    Flux.setXFormsValue(id, value, sessionKey, updateUI);
 }
 
 /**
