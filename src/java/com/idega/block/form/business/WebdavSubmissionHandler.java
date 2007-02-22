@@ -16,6 +16,7 @@ import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
 import org.w3c.dom.Node;
 
+import com.idega.block.formreader.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.data.StringInputStream;
@@ -32,7 +33,7 @@ import com.idega.idegaweb.IWMainApplication;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.9 2007/01/19 08:15:00 laddi Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.10 2007/02/22 20:23:21 civilis Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -53,48 +54,23 @@ public class WebdavSubmissionHandler extends AbstractConnector implements Submis
                 throw new XFormsException("submission mode '" + submission.getReplace() + "' not supported");
             }
 
-            Map response = new HashMap();
-
             try {
-                // create uri
-                URI uri = new URI(getURI());
-
-                String path = uri.getPath();
-                String formId = path.substring(path.lastIndexOf("/"));
+                String form_id = BlockFormUtil.getFormIdFromSubmissionInstance(instance);
                 
-                /*
-                Node formElement = DOMUtil.getFirstChildByTagName(instance, "formId");
-                if (formElement != null) {
-                	formId = DOMUtil.getElementValue((Element) formElement);
+                if(form_id != null) {
+                	ByteArrayOutputStream out = new ByteArrayOutputStream();
+    				serialize(submission, instance, out);
+    				InputStream is = new ByteArrayInputStream(out.toByteArray());
+    				getFormsService().saveSubmittedData(form_id, is);
+                } else {
+                	LOGGER.severe("Form id not found in the submitted data instance");
                 }
-                */
-                
-                // debug
-				DOMUtil.prettyPrintDOM(instance, System.out);
-
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				serialize(submission, instance, out);
-				
-				InputStream is = new ByteArrayInputStream(out.toByteArray());
-
-				getFormsService().saveSubmittedData(formId, is);
-
-				// TODO: redirect to result page
-	            if (submission.getReplace().equals("all")) {
-	            	//InputStream ris = this.getClass().getResourceAsStream("redirect.html");
-	            	
-	            	StringInputStream ris = new StringInputStream("Form successfully submitted.");
-	            	if (ris != null) {
-	            		response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, ris);
-	            	}
-	            }
-
             }
             catch (Exception e) {
                 throw new XFormsException(e);
             }
 
-            return response;
+            return null;
         }
 
         throw new XFormsException("submission method '" + submission.getMethod() + "' not supported");

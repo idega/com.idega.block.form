@@ -120,9 +120,8 @@ import org.w3c.dom.events.Event;
  * be hidden for security.
  *
  * @author Joern Turner
- * @version $Id: FluxAdapter.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
+ * @version $Id: FluxAdapter.java,v 1.3 2007/02/22 20:23:20 civilis Exp $
  */
-//public class FluxAdapter extends AbstractChibaAdapter implements EventListener {
 public class FluxAdapter extends WebAdapter {
     private static final Logger LOGGER = Logger.getLogger(FluxAdapter.class);
     private EventLog eventLog;

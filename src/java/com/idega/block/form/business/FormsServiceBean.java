@@ -272,7 +272,15 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	 * @throws IOException 
 	 */
 	public void saveSubmittedData(String formId, InputStream is) throws IOException {
-		String path = SUBMITTED_DATA_PATH + "/" + formId + "/";		
+		
+		String path = 
+			new StringBuilder(SUBMITTED_DATA_PATH)
+			.append(BlockFormUtil.slash)
+			.append(formId)
+			.append(BlockFormUtil.slash)
+			.toString()
+		;
+			
 		String fileName = System.currentTimeMillis() + ".xml";
 		
 		logger.info("Saving submitted instance to webdav path: " + path + fileName);
@@ -305,10 +313,15 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		if(formId == null)
 			throw new NullPointerException("Form identifier is not set");
 		
-		WebdavResource form_folder = getWebdavExtendedResource(SUBMITTED_DATA_PATH + "/" + formId);
+		WebdavResource form_folder = getWebdavExtendedResource(
+				new StringBuilder(SUBMITTED_DATA_PATH)
+				.append(BlockFormUtil.slash)
+				.append(formId)
+				.toString()
+		);
 		
 		if(form_folder == null)
-			throw new NullPointerException("Error during form folder retrieve");
+			throw new NullPointerException("Error during form submissions folder retrieve");
 		
 		if(!form_folder.exists())
 			return new ArrayList<SubmittedDataBean>();

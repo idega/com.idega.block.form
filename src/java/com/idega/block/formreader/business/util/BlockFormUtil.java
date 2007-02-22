@@ -35,6 +35,7 @@ public class BlockFormUtil {
 	public static final String loc_tag = "localized_strings";
 	public static final String data_mod = "data_model";
 	public static final String default_language_tag = "default_language";
+	public static final String form_id_tag = "form_id";
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
 		
@@ -208,5 +209,14 @@ public class BlockFormUtil {
 		String title = strings.getString(default_form_locale);
 		return title;
 	}
-
+	
+	public static String getFormIdFromSubmissionInstance(Node instance) {
+		
+		Element form_id = DOMUtil.getChildElement(instance, form_id_tag);
+		
+        if (form_id != null) {
+        	return DOMUtil.getElementValue((Element) form_id);
+        }
+        return null;
+	}
 }
