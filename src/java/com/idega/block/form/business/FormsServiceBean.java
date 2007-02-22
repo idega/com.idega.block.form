@@ -224,14 +224,6 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return forms;
 	}
 
-	public void setAvailableFormsChanged() {		
-		cleanup();
-	}
-
-	protected void cleanup() {
-		formNames = null;
-	}
-
 	/**
 	 * Constructs a path from given formId
 	 * @return A string like /files/forms/f1/f1.xhtml
@@ -367,6 +359,9 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	 * @see com.idega.slide.business.IWSlideChangeListener#onSlideChange(com.idega.slide.business.IWContentEvent)
 	 */
 	public void onSlideChange(IWContentEvent contentEvent) {
+
+		if(!contentEvent.getMethod().equals(ContentEvent.REMOVE))
+			return;
 		
 		String uri = contentEvent.getContentEvent().getUri();
 		if (uri.startsWith(SUBMITTED_DATA_PATH) || !uri.startsWith(FORMS_PATH))
@@ -387,14 +382,8 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			))
 			return;
 		
-		if (ContentEvent.REMOVE.equals(contentEvent.getMethod())) {
-			SelectItem form_name = findFormName(formId);
-			if(form_name != null)
-				getForms().remove(form_name);
-			
-		} else if (ContentEvent.CREATE.equals(contentEvent.getMethod())) {
-			// handle manually uploaded forms, saveForm handles the rest
-			setAvailableFormsChanged(); // FIXME: just cleanup for now
-		}
+		SelectItem form_name = findFormName(formId);
+		if(form_name != null)
+			getForms().remove(form_name);
 	}
 }
