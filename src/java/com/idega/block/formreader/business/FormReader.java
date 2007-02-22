@@ -34,7 +34,7 @@ public class FormReader {
 	
 	public void setFormDocument(Document form_document) throws NullPointerException, Exception {
 		chiba = new ChibaBean();
-		chiba.setXMLContainer(form_document);
+		chiba.setXMLContainer((Document)form_document.cloneNode(true));
 		chiba.setBaseURI(base_uri == null ? "http://localhost:8080/content/files/forms/" : base_uri);
 		chiba.init();
 	}

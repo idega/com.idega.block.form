@@ -20,7 +20,7 @@ import com.idega.block.form.bean.LocalizedStringBean;
  * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
  * @version 1.0
  */
-public class FormReaderUtil {
+public class BlockFormUtil {
 	
 	private static DocumentBuilderFactory factory;
 	
@@ -45,7 +45,7 @@ public class FormReaderUtil {
 			factory.setAttribute("http://apache.org/xml/properties/dom/document-class-name",
 					"org.apache.xerces.dom.DocumentImpl");
 			
-			FormReaderUtil.factory = factory;
+			BlockFormUtil.factory = factory;
 		}
 		
 		return factory.newDocumentBuilder();

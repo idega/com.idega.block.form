@@ -13,7 +13,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.idega.block.formreader.business.util.FormReaderUtil;
+import com.idega.block.formreader.business.util.BlockFormUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
@@ -139,7 +139,7 @@ public class FormParser {
 	
 	private void removeErrorMessages(Element form_element) {
 		
-		List<Element> refresh_buttons = FormReaderUtil.getElementsByAttributeValue(form_element, input_tag, class_att, refresh_butt_att_val);
+		List<Element> refresh_buttons = BlockFormUtil.getElementsByAttributeValue(form_element, input_tag, class_att, refresh_butt_att_val);
 		
 		if(refresh_buttons != null) {
 			
@@ -149,7 +149,7 @@ public class FormParser {
 			}
 		}
 		
-		List<Element> err_messages = FormReaderUtil.getElementsByAttributeValue(form_element, span_tag, class_att, alert_val);
+		List<Element> err_messages = BlockFormUtil.getElementsByAttributeValue(form_element, span_tag, class_att, alert_val);
 		
 		if(err_messages != null) {
 			
@@ -159,7 +159,7 @@ public class FormParser {
 			}
 		}
 		
-		err_messages = FormReaderUtil.getElementsByAttributeValueContained(form_element, div_tag, class_att, invalid_val);
+		err_messages = BlockFormUtil.getElementsByAttributeValueContained(form_element, div_tag, class_att, invalid_val);
 		
 		if(err_messages != null) {
 			

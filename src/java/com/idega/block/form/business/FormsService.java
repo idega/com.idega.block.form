@@ -22,12 +22,12 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#saveForm
 	 */
-	public void saveForm(String formId, Document document) throws RemoteException;
+	public void saveForm(String formId, Document document) throws RemoteException, Exception;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#listForms
 	 */
-	public List<SelectItem> listForms() throws RemoteException;
+	public List<SelectItem> getForms() throws RemoteException;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#setAvailableFormsChanged
@@ -37,17 +37,17 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#saveSubmittedData
 	 */
-	public void saveSubmittedData(String formId, InputStream is) throws IOException, RemoteException;
+	public void saveSubmittedData(String formId, InputStream is) throws RemoteException, IOException;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#loadSubmittedData
 	 */
-	public Document loadSubmittedData(String formId, String submittedDataFilename) throws Exception, RemoteException;
+	public Document loadSubmittedData(String formId, String submittedDataFilename) throws RemoteException, Exception;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#listSubmittedData
 	 */
-	public List<SubmittedDataBean> listSubmittedData(String formId) throws Exception, RemoteException;
+	public List<SubmittedDataBean> listSubmittedData(String formId) throws RemoteException, Exception;
 
 	/**
 	 * @see com.idega.block.form.business.FormsServiceBean#onSlideChange

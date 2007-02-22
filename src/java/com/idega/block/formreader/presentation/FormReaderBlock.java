@@ -14,7 +14,7 @@ import org.w3c.dom.Element;
 import com.idega.block.form.business.FormsService;
 import com.idega.block.formreader.business.FormParser;
 import com.idega.block.formreader.business.FormReader;
-import com.idega.block.formreader.business.util.FormReaderUtil;
+import com.idega.block.formreader.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.idegaweb.IWApplicationContext;
@@ -110,7 +110,7 @@ public class FormReaderBlock extends IWBaseComponent {
 				
 				form_reader.setFormDocument(doc);
 				
-				Document document_output = FormReaderUtil.getDocumentBuilder().newDocument();
+				Document document_output = BlockFormUtil.getDocumentBuilder().newDocument();
 				
 				form_reader.setOutput(document_output);
 				form_reader.generate();

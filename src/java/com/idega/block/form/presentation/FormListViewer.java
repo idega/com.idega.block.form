@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.7 2006/12/08 15:37:41 gediminas Exp $ Created on
+ * $Id: FormListViewer.java,v 1.8 2007/02/22 13:21:12 civilis Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -24,10 +24,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2006/12/08 15:37:41 $ by $Author: gediminas $
+ * Last modified: $Date: 2007/02/22 13:21:12 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -37,6 +37,7 @@ public class FormListViewer extends IWBaseComponent {
 	 * @see com.idega.presentation.IWBaseComponent#initializeComponent(javax.faces.context.FacesContext)
 	 */
 	protected void initializeComponent(FacesContext context) {
+		
 		Lists ul = new Lists();
 
 		FormList bean = (FormList) WFUtil.getBeanInstance("formList");

@@ -12,7 +12,7 @@ import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 
 /**
- * @author <a href="mailto:civilis@idega.com">Vytautas ï¿½ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
  * @version 1.0
  * 
  */
@@ -23,7 +23,7 @@ public class FormList {
 		
 		List<SelectItem> forms = new ArrayList<SelectItem>();
 		try {
-			forms = getFormsService().listForms();
+			forms = getFormsService().getForms();
 		}
 		catch (RemoteException e) {
 			log.warning("Error getting available forms");
@@ -43,5 +43,4 @@ public class FormList {
 		}
 		return service;
 	}
-	
 }
