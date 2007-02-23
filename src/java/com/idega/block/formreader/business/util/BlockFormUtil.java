@@ -1,6 +1,8 @@
 package com.idega.block.formreader.business.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -36,6 +38,8 @@ public class BlockFormUtil {
 	public static final String data_mod = "data_model";
 	public static final String default_language_tag = "default_language";
 	public static final String form_id_tag = "form_id";
+	public static final String ref_s_att = "ref";
+	public static final String lang_att = "lang";
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
 		
@@ -106,7 +110,7 @@ public class BlockFormUtil {
 	
 	public static LocalizedStringBean getElementLocalizedStrings(Element element, Document xforms_doc) {
 		
-		String ref = element.getAttribute("ref");
+		String ref = element.getAttribute(ref_s_att);
 		
 		if(!isRefFormCorrect(ref))
 			return new LocalizedStringBean();
@@ -218,5 +222,115 @@ public class BlockFormUtil {
         	return DOMUtil.getElementValue((Element) form_id);
         }
         return null;
+	}
+	
+	/**
+	 * 
+	 * Copied from com.idega.formbuilder.business.form.manager.util.FormManagerUtil
+	 * 
+	 * Puts localized text on element. Localization is saved on the xforms document.
+	 * 
+	 * @param element - element, to change or put localization message
+	 * @param xforms - xforms document
+	 * @param loc_string - localized message
+	 * @throws NullPointerException - something necessary not provided
+	 */
+	public static void putLocalizedText(Element element, Document xforms, LocalizedStringBean loc_string) {
+		if(xforms == null)
+			throw new NullPointerException("XForms document not provided");
+		
+		String ref = element.getAttribute(ref_s_att);
+		
+		if(ref == null || !isRefFormCorrect(ref))
+			throw new NullPointerException("Ref and key not specified or ref has incorrect format");
+		
+		String key = getKeyFromRef(ref);
+		
+		Element loc_model = getElementByIdFromDocument(xforms, head_tag, data_mod);
+		
+		Element loc_strings = (Element)loc_model.getElementsByTagName(loc_tag).item(0);
+		
+		NodeList loc_tags = loc_strings.getElementsByTagName(key);
+		
+		Collection<Locale> lang_key_set = loc_string.getLanguagesKeySet();
+		
+		Collection<String> lang_strings = new ArrayList<String>();
+		
+		for (Iterator<Locale> iter = lang_key_set.iterator(); iter.hasNext();) {
+			
+			lang_strings.add(iter.next().getLanguage());
+		}
+		
+		for (int i = 0; i < loc_tags.getLength(); i++) {
+			
+			Element loc_tag = (Element)loc_tags.item(i);
+			
+			if(!lang_strings.contains(loc_tag.getAttribute(lang_att))) {
+				
+				loc_strings.removeChild(loc_tag);
+			}
+		}
+		lang_strings = null;
+		
+		for (Iterator<Locale> iter = lang_key_set.iterator(); iter.hasNext();) {
+			Locale locale = iter.next();
+			
+			boolean val_set = false;
+			
+			if(loc_tags != null) {
+				
+				for (int i = 0; i < loc_tags.getLength(); i++) {
+					
+					Element loc_tag = (Element)loc_tags.item(i);
+					
+					if(loc_tag.getAttribute(lang_att).equals(locale.getLanguage())) {
+						
+						if(loc_string.getString(locale) != null)
+							setElementsTextNodeValue(loc_tag, loc_string.getString(locale));
+						
+						val_set = true;
+						break;
+					}
+				}
+			}
+			
+			if(loc_tags == null || !val_set) {
+				
+//				create new localization element
+				Element new_loc_el = xforms.createElement(key);
+				new_loc_el.setAttribute(lang_att, locale.getLanguage());
+				new_loc_el.appendChild(xforms.createTextNode(""));
+				setElementsTextNodeValue(new_loc_el, loc_string.getString(locale) == null ? "" : loc_string.getString(locale));
+				loc_strings.appendChild(new_loc_el);
+			}
+		}
+	}
+	
+	public static void setElementsTextNodeValue(Node element, String value) {
+		
+		NodeList children = element.getChildNodes();
+		List<Node> childs_to_remove = new ArrayList<Node>();
+		
+		for (int i = 0; i < children.getLength(); i++) {
+			
+			Node child = children.item(i);
+			
+			if(child != null && child.getNodeType() == Node.TEXT_NODE)
+				childs_to_remove.add(child);
+		}
+		
+		for (Iterator<Node> iter = childs_to_remove.iterator(); iter.hasNext();)
+			element.removeChild(iter.next());
+		
+		Node text_node = element.getOwnerDocument().createTextNode(value);
+		element.appendChild(text_node);
+	}
+	
+	public static void putDefaultTitle(Document xforms_doc, String new_title_for_default_locale) {
+		Locale default_locale = BlockFormUtil.getDefaultFormLocale(xforms_doc);
+		LocalizedStringBean loc_bean = new LocalizedStringBean();
+		loc_bean.setString(default_locale, new_title_for_default_locale);
+		Element title_element = (Element)((Element)xforms_doc.getDocumentElement().getElementsByTagName(title_tag).item(0)).getElementsByTagName("*").item(0);
+		putLocalizedText(title_element, xforms_doc, loc_bean);
 	}
 }

@@ -17,11 +17,11 @@ import com.idega.slide.business.IWSlideChangeListener;
  */
 public interface FormsService extends IBOService, IWSlideChangeListener {
 
-	public Document loadForm(String formId) throws RemoteException;
+	public abstract Document loadForm(String formId) throws RemoteException;
 
-	public void saveForm(String formId, Document document) throws RemoteException, Exception;
+	public abstract void saveForm(String formId, Document document) throws RemoteException, Exception;
 
-	public List<SelectItem> getForms() throws RemoteException;
+	public abstract List<SelectItem> getForms() throws RemoteException;
 
 	/**
 	 * Save submitted form's instance
@@ -30,11 +30,11 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	 * @param is instance input stream to save
 	 * @throws IOException 
 	 */
-	public void saveSubmittedData(String formId, InputStream is) throws RemoteException, IOException;
+	public abstract void saveSubmittedData(String formId, InputStream is) throws RemoteException, IOException;
 
-	public Document loadSubmittedData(String formId, String submittedDataFilename) throws RemoteException, Exception;
+	public abstract Document loadSubmittedData(String formId, String submittedDataFilename) throws RemoteException, Exception;
 
-	public List<SubmittedDataBean> listSubmittedData(String formId) throws RemoteException, Exception;
+	public abstract List<SubmittedDataBean> listSubmittedData(String formId) throws RemoteException, Exception;
 
 	/**
 	 * 
@@ -42,5 +42,9 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	 * @param remove_submitted_data - remove submitted data for this form
 	 * @throws Exception
 	 */
-	public void removeForm(String form_id, boolean remove_submitted_data) throws Exception;
+	public abstract void removeForm(String form_id, boolean remove_submitted_data) throws Exception;
+	
+	public abstract void duplicateForm(String form_id, String new_title_for_default_locale) throws Exception;
+	
+	public abstract String generateFormId(String name);
 }

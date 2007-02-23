@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
@@ -152,6 +153,19 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		}
 	}
 	
+	public void duplicateForm(String form_id, String new_title_for_default_locale) throws Exception {
+		
+		Document xforms_doc = loadForm(form_id);
+		
+		if(new_title_for_default_locale == null)
+			new_title_for_default_locale = "copy_"+BlockFormUtil.getDefaultFormTitle(xforms_doc);
+		
+		BlockFormUtil.putDefaultTitle(xforms_doc, new_title_for_default_locale);
+		
+		form_id = generateFormId(new_title_for_default_locale);
+		saveForm(form_id, xforms_doc);
+	}
+	
 	public void removeForm(String form_id, boolean remove_submitted_data) throws Exception {
 		
 		if(form_id == null || form_id.equals(""))
@@ -219,7 +233,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 				}
 			}
 		}
-	
+		
 		return formNames;
 	}
 
@@ -473,5 +487,11 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		SelectItem form_name = findFormName(formId);
 		if(form_name != null)
 			getForms().remove(form_name);
+	}
+	
+	public String generateFormId(String name) {
+		
+		String result = name+"-"+ new Date();
+		return result.replace(' ', '_').replace(':', '_');
 	}
 }
