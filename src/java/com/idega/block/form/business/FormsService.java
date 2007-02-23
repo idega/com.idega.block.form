@@ -1,6 +1,5 @@
 package com.idega.block.form.business;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.rmi.RemoteException;
@@ -9,43 +8,39 @@ import javax.faces.model.SelectItem;
 import org.w3c.dom.Document;
 import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.business.IBOService;
-import com.idega.slide.business.IWContentEvent;
 import com.idega.slide.business.IWSlideChangeListener;
 
+/**
+ * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
+ * @version 1.0
+ * 
+ */
 public interface FormsService extends IBOService, IWSlideChangeListener {
 
-	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#loadForm
-	 */
 	public Document loadForm(String formId) throws RemoteException;
 
-	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#saveForm
-	 */
 	public void saveForm(String formId, Document document) throws RemoteException, Exception;
 
-	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#listForms
-	 */
 	public List<SelectItem> getForms() throws RemoteException;
 
 	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#saveSubmittedData
+	 * Save submitted form's instance
+	 * 
+	 * @param formId
+	 * @param is instance input stream to save
+	 * @throws IOException 
 	 */
 	public void saveSubmittedData(String formId, InputStream is) throws RemoteException, IOException;
 
-	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#loadSubmittedData
-	 */
 	public Document loadSubmittedData(String formId, String submittedDataFilename) throws RemoteException, Exception;
 
-	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#listSubmittedData
-	 */
 	public List<SubmittedDataBean> listSubmittedData(String formId) throws RemoteException, Exception;
 
 	/**
-	 * @see com.idega.block.form.business.FormsServiceBean#onSlideChange
+	 * 
+	 * @param form_id - form id to remove
+	 * @param remove_submitted_data - remove submitted data for this form
+	 * @throws Exception
 	 */
-	public void onSlideChange(IWContentEvent contentEvent);
+	public void removeForm(String form_id, boolean remove_submitted_data) throws Exception;
 }

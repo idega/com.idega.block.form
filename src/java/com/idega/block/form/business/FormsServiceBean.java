@@ -60,12 +60,12 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	public Document loadForm(String formId) {
 		Document document = null;
 		try {
-			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getResourcePath(formId));
-
-			if (!webdav_resource.exists()) {
-				logger.log(Level.WARNING, "Form " + formId + " does not exist");
+			
+			WebdavExtendedResource webdav_resource = loadFormResource(formId);
+			
+			if(webdav_resource == null)
 				return null;
-			}
+
 			InputStream is = webdav_resource.getMethodData();
 			document = BlockFormUtil.getDocumentBuilder().parse(is);
 		}
@@ -79,6 +79,37 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			logger.severe("Could not create Xerces document builder");
 		}
 		return document;
+	}
+	
+	protected WebdavExtendedResource loadFormResource(String form_id) {
+		
+		try {
+			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getFormResourcePath(form_id));
+
+			if (!webdav_resource.exists()) {
+				logger.log(Level.WARNING, "Form " + form_id + " does not exist");
+				return null;
+			}
+			
+			return webdav_resource;
+			
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Error loading form from Webdav: " + form_id, e);
+			return null;
+		}
+	}
+	
+	protected WebdavExtendedResource loadSubmittedDataFolderResource(String form_id) {
+		
+		try {
+			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getSubmittedDataResourcePath(form_id, ""));
+
+			return !webdav_resource.exists() ? null : webdav_resource;
+			
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Error loading form submitted data folder from Webdav: " + form_id, e);
+			return null;
+		}
 	}
 
 	public void saveForm(String formId, Document document) throws Exception {
@@ -116,9 +147,53 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			}
 		}
 		catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception occured while saving document to webdav directory: ", e);
+			logger.log(Level.SEVERE, "Exception occured while saving document to webdav directory: "+formId, e);
 			throw e;
 		}
+	}
+	
+	public void removeForm(String form_id, boolean remove_submitted_data) throws Exception {
+		
+		if(form_id == null || form_id.equals(""))
+			throw new NullPointerException("Form id not provided");
+		
+		WebdavExtendedResource resource = loadFormResource(form_id);
+		
+		if(resource == null)
+			throw new Exception("Form with id: "+form_id+" couldn't be loaded from webdav");
+		
+		Exception e = null;
+		try {
+			resource.deleteMethod(resource.getParentPath());
+			
+		} catch (Exception some_e) {
+			logger.log(Level.SEVERE, "Exception occured while deleting form document: "+form_id, some_e);
+			e = some_e;
+		}
+		
+		if(remove_submitted_data) {
+			
+			try {
+				resource = loadSubmittedDataFolderResource(form_id);
+				
+				if(resource == null)
+					return;
+				
+				resource.deleteMethod();
+				
+				
+			} catch (Exception some_e) {
+				
+				logger.log(Level.SEVERE, "Exception occured while deleting form's submitted data for form document: "+form_id, some_e);
+
+//				more imporant to display first error
+				if(e == null)
+					e = some_e;
+			}
+		}
+		
+		if(e != null)
+			throw e;
 	}
 
 	/**
@@ -228,7 +303,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	 * Constructs a path from given formId
 	 * @return A string like /files/forms/f1/f1.xhtml
 	 */
-	public static String getResourcePath(String formId) {
+	protected String getFormResourcePath(String formId) {
 		return 
 			new StringBuilder(FORMS_PATH)
 			.append(BlockFormUtil.slash)
@@ -239,7 +314,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			.toString();
 	}
 
-	public static String getResourcePath(String formId, String submittedDataFilename) {
+	protected String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
 		return 
 			new StringBuilder(SUBMITTED_DATA_PATH)
 			.append(BlockFormUtil.slash)
@@ -294,7 +369,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		if(submittedDataFilename == null || formId == null)
 			throw new NullPointerException("submitted_data_id or formId is not provided");
 	
-		String resource_path = getResourcePath(formId, submittedDataFilename);
+		String resource_path = getSubmittedDataResourcePath(formId, submittedDataFilename);
 
 		WebdavExtendedResource webdav_resource = getWebdavExtendedResource(resource_path);
 		
