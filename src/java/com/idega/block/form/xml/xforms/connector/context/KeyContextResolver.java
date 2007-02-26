@@ -9,12 +9,11 @@ import java.io.InputStream;
 import java.net.URI;
 
 import javax.faces.context.FacesContext;
-import javax.faces.el.ValueBinding;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * 
- * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ÄŒivilis</a>
  * @version 1.0
  * 
  */

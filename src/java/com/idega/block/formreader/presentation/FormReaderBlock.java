@@ -31,7 +31,7 @@ import com.idega.presentation.IWContext;
  * - rendered attribute (also using value binding) is set to true 
  * - both form_identifier and submitted_data_identifier attributes are provided
  * 
- * @author <a href="mailto:civilis@idega.com">Vytautas ‰ivilis</a>
+ * @author <a href="mailto:civilis@idega.com">Vytautas ÄŒivilis</a>
  * @version 1.0
  */
 public class FormReaderBlock extends IWBaseComponent {
