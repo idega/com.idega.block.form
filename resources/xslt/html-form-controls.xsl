@@ -185,7 +185,7 @@
                 <xsl:attribute name="disabled">disabled</xsl:attribute>
             </xsl:if>
             <xsl:if test="$scripted='true'">
-                <xsl:attribute name="onclick">activate(this);</xsl:attribute>
+                <xsl:attribute name="onclick">chiba_activate(this);</xsl:attribute>
             </xsl:if>
             <xsl:apply-templates select="xforms:hint"/>
         </xsl:element>
@@ -711,7 +711,7 @@
                 <xsl:choose>
                     <xsl:when test="$scripted='true'">
                         <xsl:attribute name="type">button</xsl:attribute>
-                        <xsl:attribute name="onclick">activate(this);</xsl:attribute>
+                        <xsl:attribute name="onclick">chiba_activate(this);</xsl:attribute>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:attribute name="type">submit</xsl:attribute>
@@ -755,7 +755,7 @@
                         <xsl:attribute name="id"><xsl:value-of select="concat($id,'-value')"/></xsl:attribute>
                         <xsl:attribute name="href">javascript:void(0);</xsl:attribute>
                         <xsl:if test="not(chiba:data/@chiba:readonly='true')">
-                            <xsl:attribute name="onclick">javascript:activate(this);</xsl:attribute>
+                            <xsl:attribute name="onclick">javascript:chiba_activate(this);</xsl:attribute>
                         </xsl:if>
                         <xsl:apply-templates select="xforms:hint"/>
                         <xsl:apply-templates select="xforms:label"/>
@@ -798,7 +798,7 @@
                             </xsl:attribute>
                         </xsl:if>
                         <xsl:if test="$scripted='true'">
-                            <xsl:attribute name="onclick">activate(this);</xsl:attribute>
+                            <xsl:attribute name="onclick">chiba_activate(this);</xsl:attribute>
 
                         </xsl:if>
                         <xsl:apply-templates select="xforms:hint"/>

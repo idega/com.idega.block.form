@@ -92,8 +92,8 @@ function submitFunction(control) {
 }
 
 // call processor to execute a trigger
-function activate(target) {
-    // lookup value element
+function chiba_activate(target) {
+    // lookup value element fafa
     while (target && ! _hasClass(target, "value")) {
         target = target.parentNode;
     }

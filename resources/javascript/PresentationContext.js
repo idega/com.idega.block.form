@@ -259,7 +259,7 @@ PresentationContext._setReadonlyProperty = function(target, readonly) {
             // special treatment for anchors
             if (readonly) {
                 if (value.detachEvent) {
-                    value.detachEvent("onclick", activate);
+                    value.detachEvent("onclick", chiba_activate);
                     value.onclick = null;
                 }
                 else {
@@ -268,10 +268,10 @@ PresentationContext._setReadonlyProperty = function(target, readonly) {
             }
             else {
                 if (value.attachEvent) {
-                    value.attachEvent("onclick", activate);
+                    value.attachEvent("onclick", chiba_activate);
                 }
                 else {
-                    value.setAttribute("onclick", "activate(this);")
+                    value.setAttribute("onclick", "chiba_activate(this);")
                 }
             }
             return;

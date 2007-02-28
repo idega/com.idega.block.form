@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.18 2007/02/05 20:57:19 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.19 2007/02/28 08:56:50 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -48,16 +48,17 @@ import com.idega.presentation.Script;
 
 /**
  * 
- * Last modified: $Date: 2007/02/05 20:57:19 $ by $Author: civilis $
+ * Last modified: $Date: 2007/02/28 08:56:50 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  */
 public class FormViewer extends IWBaseComponent {
 
 	protected static final Logger log = Logger.getLogger(FormViewer.class.getName());
 
 	private String formId;
+	private Document xforms_document;
 
 	public FormViewer() {
 		super();
@@ -71,29 +72,30 @@ public class FormViewer extends IWBaseComponent {
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
-		String param = (String) context.getExternalContext().getRequestParameterMap().get("formId");
-		if (param != null && !param.equals("")) {
-			setFormId(param);
-		}
-		if (getFormId() == null) {
-			log.warning("formId not defined");
-			return;
-		}
 		
-		// load form
-		Document document = null; 
-		try {
-			document = getFormsService(context).loadForm(getFormId());
-			if (document == null) {
-				log.warning("Could not load the form from " + getFormId());
+		Document document = xforms_document;
+		if(document == null) {
+			
+			String form_id = (String) context.getExternalContext().getRequestParameterMap().get("formId");
+			if (form_id != null && !form_id.equals("")) {
+				setFormId(form_id);
+			} else {
+				log.warning("formId not defined");
+				return;
+			}
+			
+			try {
+				document = getFormsService(context).loadForm(getFormId());
+				if (document == null) {
+					log.warning("Could not load the form for id: " + getFormId());
+					return;
+				}
+			} catch (IOException e) {
+				log.log(Level.SEVERE, "Could not load the form for id: " + getFormId(), e);
 				return;
 			}
 		}
-		catch (IOException e) {
-			log.log(Level.WARNING, "Could not load the form from " + getFormId(), e);
-			return;
-		}
-
+		
 		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 		HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
 		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
@@ -159,7 +161,7 @@ public class FormViewer extends IWBaseComponent {
 
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
-		if (getFormId() != null) {
+		if (getFormId() != null || xforms_document != null) {
 //	        HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 //	        HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
 			// HttpSession session = request.getSession(true);
@@ -250,7 +252,7 @@ public class FormViewer extends IWBaseComponent {
 		//	generator.setParameter("keepalive-pulse", session.getProperty(XFormsSession.KEEPALIVE_PULSE));
 		//}
         generator.setParameter("action-url", context.getExternalContext().encodeActionURL(context.getExternalContext().getRequestContextPath() + "/FluxHelper"));
-		generator.setParameter("debug-enabled", true);
+		generator.setParameter("debug-enabled", false);
 		String selectorPrefix = Config.getInstance().getProperty(HttpRequestHandler.SELECTOR_PREFIX_PROPERTY,
 				HttpRequestHandler.SELECTOR_PREFIX_DEFAULT);
 		generator.setParameter("selector-prefix", selectorPrefix);
@@ -299,4 +301,7 @@ public class FormViewer extends IWBaseComponent {
 		return service;
 	}
 
+	public void setXFormsDocument(Document xforms_document) {
+		this.xforms_document = xforms_document;
+	}
 }
