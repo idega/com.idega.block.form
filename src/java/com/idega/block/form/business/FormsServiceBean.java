@@ -30,7 +30,7 @@ import org.xml.sax.SAXException;
 
 import com.idega.block.form.bean.AvailableFormBean;
 import com.idega.block.form.bean.SubmittedDataBean;
-import com.idega.block.formreader.business.util.BlockFormUtil;
+import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBOServiceBean;
@@ -328,7 +328,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			.toString();
 	}
 
-	protected String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
+	public String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
 		return 
 			new StringBuilder(SUBMITTED_DATA_PATH)
 			.append(BlockFormUtil.slash)

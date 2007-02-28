@@ -8,6 +8,7 @@ import javax.faces.model.SelectItem;
 import org.w3c.dom.Document;
 import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.business.IBOService;
+import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.slide.business.IWSlideChangeListener;
 
 /**
@@ -15,7 +16,7 @@ import com.idega.slide.business.IWSlideChangeListener;
  * @version 1.0
  * 
  */
-public interface FormsService extends IBOService, IWSlideChangeListener {
+public interface FormsService extends IBOService, IWSlideChangeListener, PersistenceManager {
 
 	public abstract Document loadForm(String formId) throws RemoteException;
 
@@ -47,4 +48,6 @@ public interface FormsService extends IBOService, IWSlideChangeListener {
 	public abstract void duplicateForm(String form_id, String new_title_for_default_locale) throws Exception;
 	
 	public abstract String generateFormId(String name);
+	
+	public abstract String getSubmittedDataResourcePath(String formId, String submittedDataFilename);
 }

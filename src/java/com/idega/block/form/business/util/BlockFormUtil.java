@@ -1,4 +1,4 @@
-package com.idega.block.formreader.business.util;
+package com.idega.block.form.business.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +40,14 @@ public class BlockFormUtil {
 	public static final String form_id_tag = "form_id";
 	public static final String ref_s_att = "ref";
 	public static final String lang_att = "lang";
+	public static final String data_instance_id = "data-instance";
+	public static final String id_att = "id";
+	public static final String src_att = "src";
+	public static final String submit_button_class = "fbcomp_button_submit";
+	public static final String trigger_tag = "xf:trigger";
+	public static final String name_att = "name";
+	public static final String relevant_att = "relevant";
+	public static final String xpath_false = "false()";
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
 		
@@ -332,5 +340,39 @@ public class BlockFormUtil {
 		loc_bean.setString(default_locale, new_title_for_default_locale);
 		Element title_element = (Element)((Element)xforms_doc.getDocumentElement().getElementsByTagName(title_tag).item(0)).getElementsByTagName("*").item(0);
 		putLocalizedText(title_element, xforms_doc, loc_bean);
+	}
+	
+	public static void adjustDocumentForPreview(String resource_path, Document xforms_doc) {
+		Element title = (Element)xforms_doc.getElementsByTagName(title_tag).item(0);
+		title.getParentNode().removeChild(title);
+		System.out.println("adjust..........");
+		Element data_instance = getElementByIdFromDocument(xforms_doc, head_tag, data_instance_id);
+		data_instance.setAttribute(src_att, resource_path);
+		
+		NodeList triggers = xforms_doc.getElementsByTagName(trigger_tag);
+		Element model = (Element)data_instance.getParentNode();
+		
+		for (int i = 0; i < triggers.getLength(); i++) {
+			
+			Element trigger = (Element)triggers.item(i);
+			
+			String tr_cl = trigger.getAttribute(name_att);
+			
+			if(tr_cl != null && tr_cl.equals(submit_button_class)) {
+				
+//				Element bind = xforms_doc.createElement("xf:bind");
+//				String tr_id = trigger.getAttribute(id_att);
+//				bind.setAttribute(id_att, "bind."+tr_id);
+//				bind.setAttribute(relevant_att, xpath_false);
+//				model.appendChild(bind);
+//				trigger.setAttribute("bind", "bind."+tr_id);
+				System.out.println("removing........");
+				trigger.getParentNode().removeChild(trigger);
+			}
+				
+		}
+		
+		System.out.println("adjusted >>>>>>>");
+		DOMUtil.prettyPrintDOM(xforms_doc);
 	}
 }

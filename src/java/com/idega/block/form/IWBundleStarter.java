@@ -1,5 +1,5 @@
 /**
- * $Id: IWBundleStarter.java,v 1.5 2006/12/18 16:33:31 gediminas Exp $
+ * $Id: IWBundleStarter.java,v 1.6 2007/02/28 18:44:25 civilis Exp $
  * Created in 2006 by gediminas
  * 
  * Copyright (C) 2000-2006 Idega Software hf. All Rights Reserved.
@@ -21,10 +21,10 @@ import org.chiba.xml.xforms.config.XFormsConfigException;
 import org.chiba.xml.xslt.TransformerService;
 import org.chiba.xml.xslt.impl.CachingTransformerService;
 import org.chiba.xml.xslt.impl.ResourceResolver;
-import com.idega.block.form.business.BundleResourceResolver;
 import com.idega.block.form.business.FormsService;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.documentmanager.business.util.BundleResourceResolver;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWBundleStartable;
@@ -36,10 +36,10 @@ import com.idega.slide.business.IWSlideService;
  * <p>
  * TODO gediminas Describe Type IWBundleStarter
  * </p>
- * Last modified: $Date: 2006/12/18 16:33:31 $ by $Author: gediminas $
+ * Last modified: $Date: 2007/02/28 18:44:25 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class IWBundleStarter implements IWBundleStartable {
 	

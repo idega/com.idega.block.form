@@ -16,7 +16,7 @@ import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
 import org.w3c.dom.Node;
 
-import com.idega.block.formreader.business.util.BlockFormUtil;
+import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.data.StringInputStream;
@@ -33,7 +33,7 @@ import com.idega.idegaweb.IWMainApplication;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.10 2007/02/22 20:23:21 civilis Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.11 2007/02/28 18:44:25 civilis Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
