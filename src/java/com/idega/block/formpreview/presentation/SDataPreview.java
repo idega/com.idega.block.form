@@ -1,9 +1,16 @@
 package com.idega.block.formpreview.presentation;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import javax.faces.context.FacesContext;
 import javax.faces.el.ValueBinding;
+import javax.xml.parsers.DocumentBuilder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,6 +23,12 @@ import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.block.form.presentation.FormViewer;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.documentmanager.business.DocumentManagerService;
+import com.idega.documentmanager.business.form.ButtonArea;
+import com.idega.documentmanager.business.form.DocumentManager;
+import com.idega.documentmanager.business.form.Page;
+import com.idega.documentmanager.business.form.beans.LocalizedStringBean;
+import com.idega.documentmanager.business.form.manager.util.InitializationException;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -41,6 +54,9 @@ public class SDataPreview extends IWBaseComponent {
 	public static final String form_identifier = "form_identifier";
 	public static final String submitted_data_identifier = "submitted_data_identifier";
 	
+	private FormsService forms_service;
+	private DocumentManager doc_man;
+	
 	private String formid_provided;
 	private String submitted_data_id_provided;
 		
@@ -61,11 +77,16 @@ public class SDataPreview extends IWBaseComponent {
 		String resource_path = "webdav:"+
 				getFormsService(context).getSubmittedDataResourcePath(formid_provided, submitted_data_id_provided);
 		
-		BlockFormUtil.adjustDocumentForPreview(resource_path, doc);
-		FormViewer form_viewer = new FormViewer();
-		form_viewer.setXFormsDocument(doc);
-		form_viewer.setRendered(true);
-		renderChild(context, form_viewer);
+		try {
+			doc = adjustDocumentForPreview(resource_path, doc, getDocumentManager(context));
+			FormViewer form_viewer = new FormViewer();
+			form_viewer.setXFormsDocument(doc);
+			form_viewer.setRendered(true);
+			renderChild(context, form_viewer);
+			
+		} catch (Exception e) {
+			logger.error("Error while adjusting document for preview", e);
+		}
 	}
 	
 	@Override
@@ -106,14 +127,87 @@ public class SDataPreview extends IWBaseComponent {
 	}
 	
 	private FormsService getFormsService(FacesContext context) {
-		FormsService service = null;
-		try {
-			IWApplicationContext iwc = IWContext.getIWContext(context);
-			service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
+		
+		if(forms_service == null) {
+			try {
+				IWApplicationContext iwc = IWContext.getIWContext(context);
+				forms_service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
+			}
+			catch (IBOLookupException e) {
+				logger.error("Could not find FormsService");
+			}
 		}
-		catch (IBOLookupException e) {
-			logger.error("Could not find FormsService");
+		
+		return forms_service;
+	}
+	
+	private DocumentManager getDocumentManager(FacesContext context) {
+		
+		if(doc_man == null) {
+			try {
+				IWApplicationContext iwc = IWContext.getIWContext(context);
+				doc_man = ((DocumentManagerService) IBOLookup.getServiceInstance(iwc, DocumentManagerService.class)).newDocumentManager(context);
+			} catch (IBOLookupException e) {
+				logger.error("Could not find DocumentManagerService", e);
+			} catch (InitializationException e) {
+				logger.error("Document manager failed to initialize", e);
+			}
 		}
-		return service;
+		
+		return doc_man;
+	}
+	
+	public Document adjustDocumentForPreview(String resource_path, Document xforms_doc, DocumentManager doc_man) throws Exception {
+		
+		com.idega.documentmanager.business.form.Document doc = doc_man.openForm(xforms_doc);
+		Page c_page = doc.getConfirmationPage();
+		if(c_page == null)
+			c_page = doc.addConfirmationPage(null);
+		else {
+			
+			ButtonArea b_area = c_page.getButtonArea();
+			
+			if(b_area != null)
+				b_area.remove();
+		}
+		
+//		todo: change lang to current
+		
+		LocalizedStringBean label = new LocalizedStringBean();
+		label.setString(new Locale("en"), "Submitted data");
+		c_page.getProperties().setLabel(label);
+				
+		List<String> p_list = doc.getContainedPagesIdList();
+		
+		for (int i = 0; i < p_list.size(); i++) {
+			
+			if(doc.getComponent(p_list.get(i)).getId().equals(c_page.getId())) {
+				
+				p_list.set(i, p_list.get(0));
+				p_list.set(0, c_page.getId());
+				break;
+			}
+		}
+		
+		doc.rearrangeDocument();
+
+		List<String> p_list_c = new ArrayList<String>();
+		p_list_c.addAll(p_list);
+		
+		for (String pid : p_list_c) {
+			
+			if(!c_page.getId().equals(pid)) {
+				doc.getPage(pid).remove();
+			}
+		}
+		
+		xforms_doc = doc.getXformsDocument();
+		
+		Element title = (Element)xforms_doc.getElementsByTagName(BlockFormUtil.title_tag).item(0);
+		title.getParentNode().removeChild(title);
+		Element data_instance = BlockFormUtil.getElementByIdFromDocument(xforms_doc, BlockFormUtil.head_tag, BlockFormUtil.data_instance_id);
+		data_instance.setAttribute(BlockFormUtil.src_att, resource_path);
+		
+		return xforms_doc;
 	}
 }
