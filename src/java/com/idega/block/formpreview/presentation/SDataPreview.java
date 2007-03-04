@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import org.chiba.xml.dom.DOMUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.idega.block.form.business.FormsService;
 import com.idega.block.form.business.util.BlockFormUtil;
@@ -191,23 +192,14 @@ public class SDataPreview extends IWBaseComponent {
 		
 		doc.rearrangeDocument();
 
-		List<String> p_list_c = new ArrayList<String>();
-		p_list_c.addAll(p_list);
-		
-		for (String pid : p_list_c) {
-			
-			if(!c_page.getId().equals(pid)) {
-				doc.getPage(pid).remove();
-			}
-		}
-		
 		xforms_doc = doc.getXformsDocument();
 		
-		Element title = (Element)xforms_doc.getElementsByTagName(BlockFormUtil.title_tag).item(0);
-		title.getParentNode().removeChild(title);
 		Element data_instance = BlockFormUtil.getElementByIdFromDocument(xforms_doc, BlockFormUtil.head_tag, BlockFormUtil.data_instance_id);
 		data_instance.setAttribute(BlockFormUtil.src_att, resource_path);
+
+		//temp hack, something wrong with namespaces again
+		doc.setFormSourceCode(doc.getFormSourceCode());
 		
-		return xforms_doc;
+		return doc.getXformsDocument();
 	}
 }
