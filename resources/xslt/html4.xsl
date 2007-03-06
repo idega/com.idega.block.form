@@ -130,11 +130,12 @@
                     baseRelativePath: "<xsl:value-of select="concat($contextroot,'/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/libs/dojo/version.3.1')"/>",
                     isDebug: <xsl:value-of select="$debug-enabled"/> };
                 </script>
-
+                
                 <!-- dojo lib -->
-                <script type="text/javascript" src="{concat($contextroot,'/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/libs/dojo/version.3.1/dojo.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
+                <script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,'/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/libs/dojo/version.3.1/dojo.js')" />");
+                </script>
+
                 <script type="text/javascript">
                     dojo.setModulePrefix("chiba","chiba");
                     dojo.require("dojo.event.*");
@@ -173,38 +174,37 @@ todo: clarify if this makes sense - maybe allowing to set the session timeout ma
                 </script>
 
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'FluxInterface.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
+				<script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,$scriptPath,'FluxInterface.js')" />");
+                </script>
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,'/dwr/engine.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
+				<script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,'/dwr/engine.js')" />");
+                </script>
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,'/dwr/interface/Flux.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
+				<script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,'/dwr/interface/Flux.js')" />");
+                </script>
                 <!-- for DWR AJAX -->
-                <script type="text/javascript" src="{concat($contextroot,'/dwr/util.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
+				<script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,'/dwr/util.js')" />");
+                </script>
                 <!-- XForms Client -->
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'PresentationContext.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
+				<script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,$scriptPath,'PresentationContext.js')" />");
+                </script>
                 <!-- general xforms utils -->
-                <script type="text/javascript" src="{concat($contextroot,$scriptPath,'xforms-util.js')}">&#160;</script>
-                <xsl:text>
-</xsl:text>
-
+				<script type="text/javascript">
+					include_once("<xsl:value-of select="concat($contextroot,$scriptPath,'xforms-util.js')" />");
+                </script>
 				<!-- import fckeditor for <textarea xforms:mediatype='html/text'/> -->
 				<xsl:if test="$uses-html-textarea">
-					<script type="text/javascript" src="{concat($contextroot,$scriptPath,'fckeditor/fckeditor.js')}">&#160;</script>
-					<xsl:text>
-</xsl:text>
-					<script type="text/javascript" src="{concat($contextroot,$scriptPath,'htmltext.js')}">&#160;</script>
-					<xsl:text>
-</xsl:text>
+					<script type="text/javascript">
+						include_once("<xsl:value-of select="concat($contextroot,$scriptPath,'fckeditor/fckeditor.js')" />");
+	                </script>
+					<script type="text/javascript">
+						include_once("<xsl:value-of select="concat($contextroot,$scriptPath,'htmltext.js')" />");
+	                </script>
 					<script type="text/javascript"><xsl:text>
 </xsl:text>_setStyledTextareaGlobalProperties("Chiba",200,"<xsl:value-of select="concat($contextroot,$scriptPath,'fckeditor/')"/>",1000);<xsl:text>
 </xsl:text>
