@@ -54,12 +54,20 @@ function ignoreExceptions(msg){
  ******************************************************************************/
 
 function useLoadingMessage() {
+
     DWREngine.setPreHook(function() {
-        document.getElementById('indicator').className = 'enabled';
+    
+    	var indicator = document.getElementById('indicator');
+    	
+    	if(indicator != null)
+	        indicator.className = 'enabled';
     });
 
     DWREngine.setPostHook(function() {
-        document.getElementById('indicator').className = 'disabled';
+	    var indicator = document.getElementById('indicator');
+    	
+    	if(indicator != null)
+	        indicator.className = 'disabled';
     });
 }
 
