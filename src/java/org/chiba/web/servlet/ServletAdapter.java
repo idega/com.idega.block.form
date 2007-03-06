@@ -116,7 +116,7 @@ import java.util.Map;
  * to the XForms processor.
  *
  * @author joern turner
- * @version $Id: ServletAdapter.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
+ * @version $Id: ServletAdapter.java,v 1.3 2007/03/06 08:58:49 civilis Exp $
  */
 public class ServletAdapter extends WebAdapter implements EventListener {
 
@@ -181,8 +181,7 @@ public class ServletAdapter extends WebAdapter implements EventListener {
                     submissionResponse.put("header", xmlEvent.getContextInfo("header"));
                     submissionResponse.put("body", xmlEvent.getContextInfo("body"));
 
-                    HttpSession session = (HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true);
-                    session.setAttribute(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE,submissionResponse);
+                    xforms_session.setProperty(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE, submissionResponse);
 
                     this.exitEvent = xmlEvent;
                     shutdown();

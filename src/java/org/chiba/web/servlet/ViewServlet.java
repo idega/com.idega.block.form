@@ -3,6 +3,9 @@ package org.chiba.web.servlet;
 import org.apache.log4j.Logger;
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.web.WebAdapter;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
+import org.chiba.xml.xforms.config.Config;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +18,9 @@ import java.io.IOException;
  * @version $Version: $
  */
 public class ViewServlet extends AbstractChibaServlet {
-    private static final Logger LOGGER = Logger.getLogger(ViewServlet.class);
+    
+	private static final long serialVersionUID = -2328072246331651068L;
+	private static final Logger LOGGER = Logger.getLogger(ViewServlet.class);
 
     /**
      * Returns a short description of the servlet.
@@ -56,15 +61,21 @@ public class ViewServlet extends AbstractChibaServlet {
             LOGGER.debug("referer: " + referer);
         }
         try {
-				webAdapter = (WebAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
-				if (webAdapter == null) {
+        	XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+            XFormsSession xFormsSession = manager.getXFormsSession(key);
+            if (xFormsSession == null) {
                 LOGGER.info("session does not exist: " + key + " - creating new one");
                 response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/XFormsServlet?" + referer));
 
             } else {
+            	webAdapter = xFormsSession.getAdapter();
+                if (webAdapter == null) {
+                    throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
+                }
+                
                 response.setContentType(HTML_CONTENT_TYPE);
 
-				UIGenerator uiGenerator = webAdapter.getUIGenerator();
+                UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
                 uiGenerator.setInput(webAdapter.getXForms());
                 uiGenerator.setOutput(response.getOutputStream());
                 uiGenerator.generate();
@@ -72,7 +83,7 @@ public class ViewServlet extends AbstractChibaServlet {
                 response.getOutputStream().close();
             }
         } catch (Exception e) {
-            shutdown(webAdapter, session, e, response, request);
+        	shutdown(webAdapter, session, e, response, request, key);
         }
     }
 }

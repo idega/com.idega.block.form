@@ -124,7 +124,7 @@ import org.chiba.xml.xforms.exception.XFormsException;
  * Default implementation for handling HTTP requests.
  *
  * @author Ulrich Nicolas Liss&eacute;
- * @version $Id: HttpRequestHandler.java,v 1.3 2007/01/19 08:15:01 laddi Exp $
+ * @version $Id: HttpRequestHandler.java,v 1.4 2007/03/06 08:58:49 civilis Exp $
  */
 public class HttpRequestHandler {
     private static final Logger LOGGER = Logger.getLogger(HttpRequestHandler.class);
@@ -150,6 +150,7 @@ public class HttpRequestHandler {
     private String selectorPrefix;
     private String triggerPrefix;
     private String dateTimePrefix;
+    private String sessionKey;
 
     private HashMap dateTimeValues = new HashMap();
     
@@ -224,7 +225,7 @@ public class HttpRequestHandler {
         Map[] parameters = new Map[4];
 
         if (FileUploadBase.isMultipartContent(new ServletRequestContext(request))) {
-            UploadListener uploadListener = new UploadListener(request, "");
+            UploadListener uploadListener = new UploadListener(request, sessionKey);
             DiskFileItemFactory factory = new MonitoredDiskFileItemFactory(uploadListener);
             factory.setRepository(new File(this.uploadRoot));
             ServletFileUpload upload = new ServletFileUpload(factory);
@@ -779,6 +780,10 @@ public class HttpRequestHandler {
     		
     		return new String();
     	}
+    }
+    
+    public void setSessionKey(String sessionKey) {
+        this.sessionKey = sessionKey;
     }
 }
 

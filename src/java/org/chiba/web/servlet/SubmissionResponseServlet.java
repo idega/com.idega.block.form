@@ -118,6 +118,9 @@
 package org.chiba.web.servlet;
 
 import org.apache.log4j.Logger;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
+import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -135,7 +138,7 @@ import java.util.Map;
  * Returns a submission response exactly once.
  *
  * @author Ulrich Nicolas Liss&eacute;
- * @version $Id: SubmissionResponseServlet.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
+ * @version $Id: SubmissionResponseServlet.java,v 1.3 2007/03/06 08:58:49 civilis Exp $
  */
 public class SubmissionResponseServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(SubmissionResponseServlet.class);
@@ -143,6 +146,16 @@ public class SubmissionResponseServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // lookup session
         HttpSession session = request.getSession(false);
+        String key = request.getParameter("sessionKey");
+
+        if(LOGGER.isDebugEnabled()){
+            LOGGER.debug("requested session: " + key);
+        }
+
+        //todo: inherit from ChibaServlet for getXFormsSessionManager() method ? hm, weak reaon
+        XFormsSessionManager sessionManager = DefaultXFormsSessionManagerImpl.getInstance();
+        XFormsSession xFormsSession = sessionManager.getXFormsSession(key);
+
 
         if (session != null) {
             if(LOGGER.isDebugEnabled()){
@@ -157,7 +170,7 @@ public class SubmissionResponseServlet extends HttpServlet {
             }
 
             // lookup attribute containing submission response map
-            Map submissionResponse = (Map) session.getAttribute(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE);
+            Map submissionResponse = (Map) xFormsSession.getProperty(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE);
             if (submissionResponse != null) {
 
                 if(LOGGER.isDebugEnabled()){
@@ -207,6 +220,9 @@ public class SubmissionResponseServlet extends HttpServlet {
                 // close streams
                 bodyStream.close();
                 outputStream.close();
+                
+//              kill XFormsSession
+                sessionManager.deleteXFormsSession(xFormsSession.getKey());
 
                 return;
             }

@@ -6,6 +6,7 @@ import org.chiba.adapter.ChibaEvent;
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.web.flux.FluxAdapter;
 import org.chiba.web.servlet.HttpRequestHandler;
+import org.chiba.web.session.XFormsSession;
 import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XMLEvent;
@@ -24,7 +25,7 @@ import javax.xml.transform.TransformerException;
  * a common base to build webadapers.
  *
  * @author Joern Turner
- * @version $Id: WebAdapter.java,v 1.2 2006/12/18 16:33:31 gediminas Exp $
+ * @version $Id: WebAdapter.java,v 1.3 2007/03/06 08:58:49 civilis Exp $
  * @see org.chiba.web.flux.FluxAdapter
  * @see org.chiba.web.servlet.ServletAdapter
  *
@@ -41,6 +42,7 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
     private static final Logger LOGGER = Logger.getLogger(FluxAdapter.class);
     protected EventTarget root;
     protected HttpRequestHandler httpRequestHandler;
+    protected XFormsSession xforms_session;
     protected XMLEvent exitEvent = null;
     public static final String USERAGENT = "useragent";
     public static final String REQUEST_URI = "requestURI";
@@ -83,7 +85,7 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
         if(keepAlive != null){
             String pulse = keepAlive.getAttributeNS(null,"pulse");
             if(!(pulse == null || pulse.equals(""))){
-                //xformsSession.setProperty(XFormsSession.KEEPALIVE_PULSE,pulse);
+                xforms_session.setProperty(XFormsSession.KEEPALIVE_PULSE,pulse);
             }
         }
     }
@@ -155,6 +157,7 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
         if (this.httpRequestHandler == null) {
             this.httpRequestHandler = new HttpRequestHandler(this.chibaBean);
             this.httpRequestHandler.setUploadRoot(this.uploadDestination);
+            this.httpRequestHandler.setSessionKey(this.xforms_session.getKey());
         }
 
         return this.httpRequestHandler;
@@ -173,4 +176,8 @@ public class WebAdapter extends AbstractChibaAdapter implements EventListener {
 	public void setUIGenerator(UIGenerator uiGenerator) {
 		this.uiGenerator = uiGenerator;
 	}
+	
+	public void setXFormsSession(XFormsSession xFormsSession) {
+        this.xforms_session = xFormsSession;
+    }
 }

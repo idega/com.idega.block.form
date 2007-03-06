@@ -1,23 +1,16 @@
 package com.idega.block.formpreview.presentation;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import javax.faces.context.FacesContext;
 import javax.faces.el.ValueBinding;
-import javax.xml.parsers.DocumentBuilder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.chiba.xml.dom.DOMUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import com.idega.block.form.business.FormsService;
 import com.idega.block.form.business.util.BlockFormUtil;
@@ -197,9 +190,6 @@ public class SDataPreview extends IWBaseComponent {
 		Element data_instance = BlockFormUtil.getElementByIdFromDocument(xforms_doc, BlockFormUtil.head_tag, BlockFormUtil.data_instance_id);
 		data_instance.setAttribute(BlockFormUtil.src_att, resource_path);
 
-		//temp hack, something wrong with namespaces again
-		doc.setFormSourceCode(doc.getFormSourceCode());
-		
 		return doc.getXformsDocument();
 	}
 }

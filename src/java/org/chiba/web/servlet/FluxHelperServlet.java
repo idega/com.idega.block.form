@@ -109,6 +109,8 @@ import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.chiba.adapter.ChibaEvent;
 import org.chiba.adapter.DefaultChibaEventImpl;
 import org.chiba.web.WebAdapter;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
 import org.chiba.xml.xforms.config.Config;
 
 /**
@@ -154,9 +156,14 @@ public class FluxHelperServlet extends AbstractChibaServlet {
         WebAdapter webAdapter = null;
 
         response.setContentType("text/html");
-
+        String key = request.getParameter("sessionKey");
+        
         try {
-        	webAdapter = (WebAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
+        	
+        	XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+            XFormsSession xforms_session = manager.getXFormsSession(key);
+
+            webAdapter = xforms_session.getAdapter();
             if (webAdapter == null) {
                 throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
             }
@@ -172,10 +179,9 @@ public class FluxHelperServlet extends AbstractChibaServlet {
                 out.close();
             }
         } catch (Exception e) {
-        	shutdown(webAdapter, session, e, response, request);
+        	shutdown(webAdapter, session, e, response, request, key);
         }
     }
-
 }
 
 // end of class

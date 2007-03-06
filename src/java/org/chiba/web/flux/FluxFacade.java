@@ -99,6 +99,8 @@ package org.chiba.web.flux;
 import org.apache.log4j.Logger;
 import org.chiba.adapter.ChibaEvent;
 import org.chiba.adapter.DefaultChibaEventImpl;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
 import org.chiba.web.upload.UploadInfo;
 import org.chiba.web.WebAdapter;
 import org.chiba.xml.dom.DOMUtil;
@@ -113,7 +115,7 @@ import javax.xml.transform.TransformerException;
  * AJAX Facade class to hide the full functionality from the web-client.
  *
  * @author Joern Turner
- * @version $Id: FluxFacade.java,v 1.5 2007/02/21 21:23:13 civilis Exp $
+ * @version $Id: FluxFacade.java,v 1.6 2007/03/06 08:58:49 civilis Exp $
  */
 public class FluxFacade {
     //this is a custom event to activate a trigger in XForms.
@@ -180,8 +182,8 @@ public class FluxFacade {
         String progress;
         UploadInfo uploadInfo;
 
-        if (session.getAttribute(WebAdapter.ADAPTER_PREFIX + /*sessionKey +*/ "-uploadInfo") != null) {
-            uploadInfo = (UploadInfo) session.getAttribute(WebAdapter.ADAPTER_PREFIX + /*sessionKey +*/ "-uploadInfo");
+        if (session.getAttribute(WebAdapter.ADAPTER_PREFIX + sessionKey + "-uploadInfo") != null) {
+            uploadInfo = (UploadInfo) session.getAttribute(WebAdapter.ADAPTER_PREFIX + sessionKey + "-uploadInfo");
 
             if (uploadInfo.isInProgress()) {
                 double p = uploadInfo.getBytesRead() / uploadInfo.getTotalSize();
@@ -205,12 +207,12 @@ public class FluxFacade {
             //javascript polling of progress info
             progress = "100";
         }
-        FluxAdapter adapter = (FluxAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
-		if (adapter == null) {
-			throw new FluxException("Session expired. Please start again.");
-		}
-		EventLog eventLog = adapter.getEventLog();
+        XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+        XFormsSession xFormsSession = manager.getXFormsSession(sessionKey);
 
+        FluxAdapter adapter = (FluxAdapter) xFormsSession.getAdapter();
+        EventLog eventLog = adapter.getEventLog();
+        
         Element eventlogElement = eventLog.getLog();
         eventLog.flush();
 
@@ -227,7 +229,9 @@ public class FluxFacade {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("FluxFacade keepAlive: " + sessionKey);
         }
-        session.getAttribute(WebAdapter.WEB_ADAPTER);
+        XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+        XFormsSession xFormsSession = manager.getXFormsSession(sessionKey);
+        xFormsSession.getKey();
     }
 
     /**
@@ -237,18 +241,33 @@ public class FluxFacade {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("FluxFacade close: " + sessionKey);
         }
+        XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+        XFormsSession xFormsSession = manager.getXFormsSession(sessionKey);
         try {
-            FluxAdapter adapter = (FluxAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
+            // don't use getXFormsSession to avoid needless error
+            if (xFormsSession == null) return;
+            WebAdapter adapter = xFormsSession.getAdapter();
             if (adapter == null) return;
             adapter.shutdown();
-            session.removeAttribute(WebAdapter.WEB_ADAPTER);
         } catch (XFormsException e) {
             LOGGER.warn("FluxFacade close: " + sessionKey, e);
+        } finally {
+            manager.deleteXFormsSession(sessionKey);
         }
     }
 
     private org.w3c.dom.Element dispatch(ChibaEvent event, String sessionKey) throws FluxException {
-        FluxAdapter adapter = (FluxAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
+    	
+    	XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+        XFormsSession xFormsSession = manager.getXFormsSession(sessionKey);
+
+        if(xFormsSession == null){
+            LOGGER.fatal("XFormsSession not found - stopping");
+            throw new FluxException("Your session has expired - Please start again.");
+        }
+
+        FluxAdapter adapter = (FluxAdapter) xFormsSession.getAdapter();
+        
         if (adapter != null) {
             try {
                 adapter.dispatch(event);

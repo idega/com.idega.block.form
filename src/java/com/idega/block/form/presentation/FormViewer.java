@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.19 2007/02/28 08:56:50 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.20 2007/03/06 08:58:49 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -10,6 +10,8 @@
 package com.idega.block.form.presentation;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
@@ -22,11 +24,15 @@ import org.chiba.adapter.ui.XSLTGenerator;
 import org.chiba.web.WebAdapter;
 import org.chiba.web.flux.FluxAdapter;
 import org.chiba.web.servlet.HttpRequestHandler;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
+import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
 import org.chiba.xml.xforms.config.Config;
 import org.chiba.xml.xforms.config.XFormsConfigException;
+import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
 import org.chiba.xml.xslt.TransformerService;
 import org.w3c.dom.Document;
@@ -48,10 +54,10 @@ import com.idega.presentation.Script;
 
 /**
  * 
- * Last modified: $Date: 2007/02/28 08:56:50 $ by $Author: civilis $
+ * Last modified: $Date: 2007/03/06 08:58:49 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -59,6 +65,7 @@ public class FormViewer extends IWBaseComponent {
 
 	private String formId;
 	private Document xforms_document;
+	private String sessionKey;
 
 	public FormViewer() {
 		super();
@@ -99,11 +106,20 @@ public class FormViewer extends IWBaseComponent {
 		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 		HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
 		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
+		
+		XFormsSessionManager session_manager = getXFormsSessionManager();
+		XFormsSession xforms_session = session_manager.createXFormsSession();
+		/*
+        the XFormsSessionManager is kept in the http-session though it is accessible as singleton. Subsequent
+        servlets should access the manager through the http-session attribute as below to ensure the http-session
+        is refreshed.
+		 */
+		session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, session_manager);
 
 		WebAdapter adapter = new FluxAdapter();
 		session.setAttribute(WebAdapter.WEB_ADAPTER, adapter);
 		try {
-			setupAdapter(adapter, document, context);
+			setupAdapter(adapter, document, xforms_session, context);
 			adapter.init();
 			
 			EventTarget eventTarget = (EventTarget) ((Document)adapter.getXForms()).getDocumentElement();
@@ -125,11 +141,19 @@ public class FormViewer extends IWBaseComponent {
 			
 			XMLEvent exitEvent = adapter.checkForExitEvent();
 			if (exitEvent != null) {
-				handleExit(exitEvent, session, request, response);
-			}
-			else {
-				UIGenerator uiGenerator = createUIGenerator(context);
-				adapter.setUIGenerator(uiGenerator);
+				handleExit(exitEvent, xforms_session, session, request, response);
+			} else {
+				
+				UIGenerator uiGenerator = createUIGenerator(context, request, xforms_session);
+				// store WebAdapter in XFormsSession
+				xforms_session.setAdapter(adapter);
+				// store UIGenerator in XFormsSession as property
+				xforms_session.setProperty(XFormsSession.UIGENERATOR, uiGenerator);
+				// store queryString as 'referer' in XFormsSession
+				xforms_session.setProperty(XFormsSession.REFERER, request.getQueryString());
+				// actually add the XFormsSession ot the manager
+				session_manager.addXFormsSession(xforms_session);
+				setSessionKey(xforms_session.getKey());
 
 				// store queryString as 'referer' in XFormsSession
 				//xFormsSession.setProperty(XFormsSession.REFERER, request.getQueryString());
@@ -141,7 +165,7 @@ public class FormViewer extends IWBaseComponent {
 		}
 		catch (XFormsException e) {
 			log.log(Level.WARNING, "Could not set XML container", e);
-			shutdown(adapter, session);
+			shutdown(adapter, session, xforms_session.getKey());
 			return;
 		}
 		
@@ -162,24 +186,24 @@ public class FormViewer extends IWBaseComponent {
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		if (getFormId() != null || xforms_document != null) {
-//	        HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-//	        HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
-			// HttpSession session = request.getSession(true);
+
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 			WebAdapter webAdapter = null;
 			try {
-				webAdapter = (WebAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
-				if (webAdapter == null) {
-					throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
-				}
+				XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+				XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
+				webAdapter = xFormsSession.getAdapter();
 				
-				UIGenerator uiGenerator = webAdapter.getUIGenerator();
+				if (webAdapter == null)
+					throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
+				
+				UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
 				uiGenerator.setInput(webAdapter.getXForms());
 				uiGenerator.setOutput(context.getResponseWriter());
 				uiGenerator.generate();
 	        } catch (Exception e) {
 	        	log.log(Level.WARNING, "Error rendering form", e);
-				shutdown(webAdapter, session);
+	        	shutdown(webAdapter, session, getSessionKey());
 			}
 		}
 		super.encodeEnd(context);
@@ -194,53 +218,53 @@ public class FormViewer extends IWBaseComponent {
 	}
 
 	public Object saveState(FacesContext ctx) {
-		Object values[] = new Object[2];
+		Object values[] = new Object[3];
 		values[0] = super.saveState(ctx);
-		values[1] = this.formId;
+		values[1] = formId;
+		values[2] = sessionKey;
+		
 		return values;
 	}
 
 	public void restoreState(FacesContext ctx, Object state) {
 		Object values[] = (Object[]) state;
 		super.restoreState(ctx, values[0]);
-		this.formId = (String) values[1];
+		formId = (String) values[1];
+		sessionKey = (String) values[2];
 	}
 
-	protected void handleExit(XMLEvent exitEvent, HttpSession session,
+	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session,
 			HttpServletRequest request, HttpServletResponse response) throws IOException {
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
-            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse"));
+            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
         } else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
 			if (exitEvent.getContextInfo("show") != null) {
 				String loadURI = (String) exitEvent.getContextInfo("uri");
-			    session.removeAttribute(WebAdapter.WEB_ADAPTER);
+				// kill XFormsSession
+				xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
+				setSessionKey(null);
 				response.sendRedirect(response.encodeRedirectURL(loadURI));
 			}
 		}
 		log.fine("Exited during XForms model init");
 	}
 
-	/**
-	 * <p>
-	 * TODO menesis describe method setupAdapter
-	 * </p>
-	 * @param adapter
-	 * @param form
-	 * @param xFormsSession
-	 * @param context
-	 * @return
-	 * @throws XFormsException
-	 */
-	protected void setupAdapter(WebAdapter adapter, Document document, FacesContext context) throws XFormsException {
+	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
+		adapter.setXFormsSession(xforms_session);
 		adapter.setXForms(document);
+		
+		Map servletMap = new HashMap();
+		servletMap.put(WebAdapter.SESSION_ID, xforms_session.getKey());
+		adapter.setContextParam(Submission.SUBMISSION, servletMap);
 
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
 		adapter.setUploadDestination(bundle.getBundleBaseRealPath() + "/upload");
+		// storeCookies(request, adapter);
 	}
 
-	protected UIGenerator createUIGenerator(FacesContext context) throws XFormsConfigException {
+	protected UIGenerator createUIGenerator(FacesContext context, HttpServletRequest request, XFormsSession session) throws XFormsConfigException {
 		TransformerService transformerService = (TransformerService) getIWMainApplication(context).getAttribute(
 				IWBundleStarter.TRANSFORMER_SERVICE);
 		XSLTGenerator generator = new XSLTGenerator();
@@ -248,9 +272,10 @@ public class FormViewer extends IWBaseComponent {
 		generator.setStylesheetURI(IWBundleStarter.XSLT_URI);
 		// todo: unify and extract parameter names
 		generator.setParameter("contextroot", context.getExternalContext().getRequestContextPath());
-		//if (session.getProperty(XFormsSession.KEEPALIVE_PULSE) != null) {
-		//	generator.setParameter("keepalive-pulse", session.getProperty(XFormsSession.KEEPALIVE_PULSE));
-		//}
+		generator.setParameter("sessionKey", session.getKey());
+		if (session.getProperty(XFormsSession.KEEPALIVE_PULSE) != null) {
+			generator.setParameter("keepalive-pulse", session.getProperty(XFormsSession.KEEPALIVE_PULSE));
+		}
         generator.setParameter("action-url", context.getExternalContext().encodeActionURL(context.getExternalContext().getRequestContextPath() + "/FluxHelper"));
 		generator.setParameter("debug-enabled", false);
 		String selectorPrefix = Config.getInstance().getProperty(HttpRequestHandler.SELECTOR_PREFIX_PROPERTY,
@@ -263,7 +288,6 @@ public class FormViewer extends IWBaseComponent {
 		generator.setParameter("data-prefix", dataPrefix);
 		String triggerPrefix = Config.getInstance().getProperty("chiba.web.triggerPrefix");
 		generator.setParameter("trigger-prefix", triggerPrefix);
-		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 		generator.setParameter("user-agent", request.getHeader("User-Agent"));
 		generator.setParameter("scripted", true);
 		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/javascript/");
@@ -271,7 +295,7 @@ public class FormViewer extends IWBaseComponent {
 		return generator;
 	}
 
-	protected void shutdown(WebAdapter webAdapter, HttpSession session) {
+	protected void shutdown(WebAdapter webAdapter, HttpSession session, String key) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
 			try {
@@ -281,9 +305,11 @@ public class FormViewer extends IWBaseComponent {
 				xfe.printStackTrace();
 			}
 		}
-		
-	    session.removeAttribute(WebAdapter.WEB_ADAPTER);
-
+		// remove xformssession from httpsession
+		if (key != null) {
+			session.removeAttribute(key);
+		}
+		setSessionKey(null);
 		// redirect to error page (after encoding session id if required)
 		//response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
 		//		+ request.getSession().getServletContext().getInitParameter("error.page")));
@@ -303,5 +329,21 @@ public class FormViewer extends IWBaseComponent {
 
 	public void setXFormsDocument(Document xforms_document) {
 		this.xforms_document = xforms_document;
+	}
+	
+	/**
+     * returns a specific implementation of XFormsSessionManager. Plugin your own implementations here if needed.
+	 * 
+     * @return a specific implementation of XFormsSessionManager (defaults to DefaultXFormsSessionManagerImpl)
+	 */
+	protected XFormsSessionManager getXFormsSessionManager() {
+		return DefaultXFormsSessionManagerImpl.getInstance();
+	}
+	
+	public void setSessionKey(String sessionKey) {
+		this.sessionKey = sessionKey;
+	}
+	public String getSessionKey() {
+		return sessionKey;
 	}
 }

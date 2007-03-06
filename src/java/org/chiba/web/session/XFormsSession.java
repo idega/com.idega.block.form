@@ -94,99 +94,49 @@
  *    MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
-package org.chiba.web.servlet;
 
-import org.apache.log4j.Logger;
-import org.chiba.adapter.ChibaEvent;
-import org.chiba.adapter.DefaultChibaEventImpl;
+package org.chiba.web.session;
+
 import org.chiba.web.WebAdapter;
-import org.chiba.web.session.XFormsSession;
-import org.chiba.web.session.XFormsSessionManager;
-import org.chiba.xml.events.XMLEvent;
-import org.chiba.xml.xforms.config.Config;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
 
 /**
- * This servlet handles clients with accept only plain html without javascript. Cause not the complete XForms
- * functionality can be covered in pure request/response fashion there will be some limitations in user-experience but
- * they'll still work.
+ * encapsulates the objects needed by a Chiba form session.
  *
- * @author Joern Turner
- * @version $Id: PlainHtmlServlet.java,v 1.3 2007/03/06 08:58:49 civilis Exp $
+ * @author joern turner</a>
+ * @version $Id: XFormsSession.java,v 1.3 2007/03/06 08:58:49 civilis Exp $
  */
-public class PlainHtmlServlet extends AbstractChibaServlet {
-    private static final Logger LOGGER = Logger.getLogger(PlainHtmlServlet.class);
+public interface XFormsSession{
+    static final String ADAPTER_PREFIX = "A";
+    static final String UIGENERATOR_PREFIX = "U";
+
+    static final String UIGENERATOR = "chiba.UIGenerator";
+    static final String REFERER = "chiba.referer" ;
+    String KEEPALIVE_PULSE = "keepalive";
+
+    Object getProperty(String propertyId);
+    void setProperty(String id, Object property);
+    void removeProperty(String id);
+
+    String getKey();
+
+    WebAdapter getAdapter();
+
+    void setAdapter(WebAdapter adapter);
+
+    long getLastUseTime();
+
+    XFormsSessionManager getManager();
 
     /**
-     * Returns a short description of the servlet.
-     *
-     * @return - Returns a short description of the servlet.
+     * todo: refactor this method out again. There are potential cases of WebAdapters having no UIGenerator e.g.
+     * when using 'headless' forms thats do not show any interactive UI. This would use XForms as a kind of validation
+     * service.
+     * @return
      */
-    public String getServletInfo() {
-        return "Plain HTML Servlet Controller for Chiba XForms Processor";
-    }
+/*
+    UIGenerator getUIGenerator();
 
-    /**
-     * Destroys the servlet.
-     */
-    public void destroy() {
-    }
+    void setUIGenerator(UIGenerator uiGenerator);
+*/
 
-    /**
-     * handles all interaction with the user during a form-session.
-     * <p/>
-     * Note: this method is only triggered if the
-     * browser has javascript turned off.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws javax.servlet.ServletException
-     * @throws java.io.IOException
-     */
-    protected void doPost(HttpServletRequest request,
-                          HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession(true);
-        WebAdapter webAdapter = null;
-        request.setCharacterEncoding("UTF-8");
-        response.setHeader("Cache-Control","private, no-store,  no-cache, must-revalidate");
-        response.setHeader("Pragma","no-cache");
-        response.setHeader("Expires","-1");
-
-        String key = request.getParameter("sessionKey");
-        try {
-            XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
-            XFormsSession xFormsSession = manager.getXFormsSession(key);
-
-            String referer = (String) xFormsSession.getProperty(XFormsSession.REFERER);
-            if(LOGGER.isDebugEnabled()){
-                LOGGER.debug("referer: " + referer);
-            }
-
-        	webAdapter = (WebAdapter) session.getAttribute(WebAdapter.WEB_ADAPTER);
-            if (webAdapter == null) {
-                throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
-            }
-            ChibaEvent chibaEvent = new DefaultChibaEventImpl();
-            chibaEvent.initEvent("http-request", null, request);
-            webAdapter.dispatch(chibaEvent);
-
-            XMLEvent exitEvent = webAdapter.checkForExitEvent();
-
-            if (exitEvent != null) {
-            	handleExit(exitEvent, xFormsSession, session, request,response);
-            } else {
-                response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/view?sessionKey=" + xFormsSession.getKey() + "&referer=" + referer));
-            }
-        } catch (Exception e) {
-            shutdown(webAdapter, session, e, response, request, key);
-        }
-    }
 }
-
-// end of class

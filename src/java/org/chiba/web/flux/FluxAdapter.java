@@ -98,9 +98,7 @@ package org.chiba.web.flux;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 import org.chiba.adapter.ChibaEvent;
 import org.chiba.web.WebAdapter;
@@ -120,7 +118,7 @@ import org.w3c.dom.events.Event;
  * be hidden for security.
  *
  * @author Joern Turner
- * @version $Id: FluxAdapter.java,v 1.3 2007/02/22 20:23:20 civilis Exp $
+ * @version $Id: FluxAdapter.java,v 1.4 2007/03/06 08:58:49 civilis Exp $
  */
 public class FluxAdapter extends WebAdapter {
     private static final Logger LOGGER = Logger.getLogger(FluxAdapter.class);
@@ -215,9 +213,7 @@ public class FluxAdapter extends WebAdapter {
                     submissionResponse.put("header", xmlEvent.getContextInfo("header"));
                     submissionResponse.put("body", xmlEvent.getContextInfo("body"));
                     
-                    // FIXME: how to get session?
-                    HttpSession session = (HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true);
-                    session.setAttribute(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE,submissionResponse);
+                    xforms_session.setProperty(AbstractChibaServlet.CHIBA_SUBMISSION_RESPONSE, submissionResponse);
 
                     // get event properties
                     Element target = (Element) event.getTarget();
@@ -239,6 +235,7 @@ public class FluxAdapter extends WebAdapter {
                     if ("replace".equals(show)) {
                         this.exitEvent = xmlEvent;
                         shutdown();
+                        xforms_session.getManager().deleteXFormsSession(xforms_session.getKey());
                     }
 
                     return;
