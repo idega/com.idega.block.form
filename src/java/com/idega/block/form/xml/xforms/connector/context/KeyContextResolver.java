@@ -34,7 +34,6 @@ public class KeyContextResolver extends org.chiba.xml.xforms.connector.context.C
     	
         try {
         	String xpath = new URI(getURI()).getSchemeSpecificPart();
-        	System.out.println("resolving: "+xpath);
 
             if(!xpath.startsWith(autofill_key_prefix))
             	return super.resolve();
@@ -50,11 +49,10 @@ public class KeyContextResolver extends org.chiba.xml.xforms.connector.context.C
             	).getValue(ctx);
             
 	        return createResponseDocument(value == null ? "" : value instanceof String ? (String)value : value.toString(), xpath).getDocumentElement();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
         	
         	try {
-        		return createResponseDocument(autofill_key_prefix, "").getDocumentElement();
+        		return createResponseDocument("", "umoon").getDocumentElement();
 			} catch (Exception e2) {
 				throw new XFormsException(e2);
 			}
