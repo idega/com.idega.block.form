@@ -364,3 +364,22 @@ fieldset > fieldset > fieldset {
   width: 0%;
 }
 
+.selected-case span.output{
+	display: block !important;
+	clear: both !important;
+	overflow: hidden;
+	width: auto !important;
+}
+
+.selected-case span.output label.label{
+	float: left;
+	clear: both !important;
+	padding: 4px;
+}
+
+.selected-case span.output span{
+	display: block;
+	float: left;
+	clear: right !important;
+	padding: 4px;
+}
