@@ -433,3 +433,15 @@ top: -4px;
 background: #ffe2ca !important;
 color: #000;
 }
+
+
+select.value{
+width: auto !important;
+min-width: 128px;
+}
+
+select.value option{
+padding: 2px;
+
+}
+
