@@ -24,8 +24,6 @@ import com.idega.block.form.bean.LocalizedStringBean;
  */
 public class BlockFormUtil {
 	
-	private static DocumentBuilderFactory factory;
-	
 	public static final String slash = "/";
 	public static final String dot_xhtml = ".xhtml";
 	public static final String form_bean_name = "formBean";
@@ -51,15 +49,11 @@ public class BlockFormUtil {
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
 		
-		if(factory == null) {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			factory.setValidating(false);
-			factory.setAttribute("http://apache.org/xml/properties/dom/document-class-name",
-					"org.apache.xerces.dom.DocumentImpl");
-			
-			BlockFormUtil.factory = factory;
-		}
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setNamespaceAware(true);
+		factory.setValidating(false);
+		factory.setAttribute("http://apache.org/xml/properties/dom/document-class-name",
+				"org.apache.xerces.dom.DocumentImpl");
 		
 		return factory.newDocumentBuilder();
 	}

@@ -3,13 +3,9 @@ package com.idega.block.form.business;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.chiba.adapter.ChibaAdapter;
-import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.xforms.connector.AbstractConnector;
 import org.chiba.xml.xforms.connector.SubmissionHandler;
 import org.chiba.xml.xforms.core.Submission;
@@ -19,7 +15,6 @@ import org.w3c.dom.Node;
 import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.data.StringInputStream;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 
@@ -33,7 +28,7 @@ import com.idega.idegaweb.IWMainApplication;
  * <p/>
  * 
  * @author Gediminas Paulauskas
- * @version $Id: WebdavSubmissionHandler.java,v 1.11 2007/02/28 18:44:25 civilis Exp $
+ * @version $Id: WebdavSubmissionHandler.java,v 1.12 2007/03/13 21:02:00 civilis Exp $
  */
 public class WebdavSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     

@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.20 2007/03/06 08:58:49 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.21 2007/03/13 21:02:00 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.presentation.Script;
 
 /**
  * 
- * Last modified: $Date: 2007/03/06 08:58:49 $ by $Author: civilis $
+ * Last modified: $Date: 2007/03/13 21:02:00 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -92,7 +92,7 @@ public class FormViewer extends IWBaseComponent {
 			}
 			
 			try {
-				document = getFormsService(context).loadForm(getFormId());
+				document = getFormsService(context).loadFormNoLock(getFormId());
 				if (document == null) {
 					log.warning("Could not load the form for id: " + getFormId());
 					return;

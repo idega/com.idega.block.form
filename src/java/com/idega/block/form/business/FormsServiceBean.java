@@ -34,6 +34,7 @@ import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBOServiceBean;
+import com.idega.documentmanager.business.FormLockException;
 import com.idega.slide.business.IWContentEvent;
 import com.idega.slide.business.IWSlideChangeListener;
 import com.idega.slide.business.IWSlideService;
@@ -57,18 +58,39 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	public static final PropertyName FORM_NAME_PROPERTY_NAME = new PropertyName("FB:", "FormName");
 
 	private static List<SelectItem> formNames;
-
-	public Document loadForm(String formId) {
+	private DocumentBuilder doc_builder;
+	
+	public Document loadFormNoLock(String form_id) {
+		
+		try {
+			return loadForm(form_id, false);
+			
+		} catch (FormLockException e) {
+			logger.warning("Form Lock exception caught");
+			return null;
+		}
+	}
+	
+	public Document loadFormAndLock(String form_id) throws FormLockException {
+		
+		return loadForm(form_id, true);
+	}
+	
+	protected Document loadForm(String formId, boolean lock_relevant) throws FormLockException {
 		Document document = null;
 		try {
 			
-			WebdavExtendedResource webdav_resource = loadFormResource(formId);
+			WebdavExtendedResource webdav_resource = loadFormResource(formId, lock_relevant);
 			
 			if(webdav_resource == null)
 				return null;
 
 			InputStream is = webdav_resource.getMethodData();
-			document = BlockFormUtil.getDocumentBuilder().parse(is);
+			
+			if(doc_builder == null)
+				doc_builder = BlockFormUtil.getDocumentBuilder();
+			
+			document = doc_builder.parse(is);
 		}
 		catch (IOException e) {
 			logger.log(Level.SEVERE, "Error loading form from Webdav: " + formId, e);
@@ -82,15 +104,21 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return document;
 	}
 	
-	protected WebdavExtendedResource loadFormResource(String form_id) {
+	protected WebdavExtendedResource loadFormResource(String form_id, boolean lock_relevant) throws FormLockException {
 		
 		try {
 			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getFormResourcePath(form_id));
-
+			
 			if (!webdav_resource.exists()) {
 				logger.log(Level.WARNING, "Form " + form_id + " does not exist");
 				return null;
 			}
+			
+//			if(lock_relevant && webdav_resource.isLocked())
+//				throw new FormLockException(form_id, "Form with an id: "+form_id+" is locked");
+//			
+//			if(lock_relevant)
+//				webdav_resource.lockMethodNoTimeout();
 			
 			return webdav_resource;
 			
@@ -112,8 +140,12 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			return null;
 		}
 	}
+	
+	public void saveForm(String form_id, Document document) throws Exception {
+		saveForm(form_id, document, true);
+	}
 
-	public void saveForm(String formId, Document document) throws Exception {
+	protected void saveForm(String formId, Document document, boolean lock_relevant) throws Exception {
 
 		if(formId == null || document == null)
 			throw new NullPointerException("formId or document not provided");
@@ -127,6 +159,17 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			DOMUtil.prettyPrintDOM(document, out);
 			InputStream is = new ByteArrayInputStream(out.toByteArray());
 			service_bean.uploadFileAndCreateFoldersFromStringAsRoot(path_to_file, file_name, is, "text/xml", false);
+			
+//			if(lock_relevant) {
+//				
+//				WebdavExtendedResource wextr = getWebdavExtendedResource(path_to_file+file_name);
+//				
+//				if(!wextr.isLocked()) {
+//					logger.info("form is not locked");
+//					wextr.lockMethodNoTimeout();
+//				} else
+//					logger.info("form is locked");
+//			}
 			
 			WebdavResource webdav_res = service_bean.getWebdavResourceAuthenticatedAsRoot(path_to_file);
 			String formTitle = BlockFormUtil.getDefaultFormTitle(document);
@@ -155,7 +198,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	
 	public void duplicateForm(String form_id, String new_title_for_default_locale) throws Exception {
 		
-		Document xforms_doc = loadForm(form_id);
+		Document xforms_doc = loadFormNoLock(form_id);
 		
 		if(new_title_for_default_locale == null)
 			new_title_for_default_locale = "copy_"+BlockFormUtil.getDefaultFormTitle(xforms_doc);
@@ -163,15 +206,15 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		BlockFormUtil.putDefaultTitle(xforms_doc, new_title_for_default_locale);
 		
 		form_id = generateFormId(new_title_for_default_locale);
-		saveForm(form_id, xforms_doc);
+		saveForm(form_id, xforms_doc, false);
 	}
 	
-	public void removeForm(String form_id, boolean remove_submitted_data) throws Exception {
+	public void removeForm(String form_id, boolean remove_submitted_data) throws FormLockException, Exception {
 		
 		if(form_id == null || form_id.equals(""))
 			throw new NullPointerException("Form id not provided");
 		
-		WebdavExtendedResource resource = loadFormResource(form_id);
+		WebdavExtendedResource resource = loadFormResource(form_id, true);
 		
 		if(resource == null)
 			throw new Exception("Form with id: "+form_id+" couldn't be loaded from webdav");
@@ -258,7 +301,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 				String formId = folder.getDisplayName();
 				
 				WebdavResources rs = folder.getChildResources();
-				WebdavResource r = rs.getResource(folder.getName() + "/" + formId + FORMS_FILE_EXTENSION);
+				WebdavResource r = rs.getResource(folder.getName() + BlockFormUtil.slash + formId + FORMS_FILE_EXTENSION);
 				if (r == null) {
 					continue;
 				}
@@ -276,7 +319,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 				}
 				
 				if (formTitle == null) {
-					Document document = loadForm(formId);
+					Document document = loadFormAndLock(formId);
 					if (document == null) {
 						continue;
 					}
@@ -284,7 +327,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 
 					if (formTitle == null) {
 						// if this form is not built with formbuilder, just take text content of title
-						Node title = document.getElementsByTagName("title").item(0);
+						Node title = document.getElementsByTagName(BlockFormUtil.title_tag).item(0);
 						if (title != null) {
 							formTitle = DOMUtil.getTextNodeAsString(title);
 						}
@@ -392,7 +435,10 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		
 		InputStream is = webdav_resource.getMethodData();
 		
-		Document submitted_data = BlockFormUtil.getDocumentBuilder().parse(is);
+		if(doc_builder == null)
+			doc_builder = BlockFormUtil.getDocumentBuilder();
+		
+		Document submitted_data = doc_builder.parse(is);
 		
 		return submitted_data;
 	}
@@ -418,7 +464,8 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		WebdavResources child_resources = form_folder.getChildResources();
 		Enumeration<WebdavResource> resources = child_resources.getResources();
 		
-		DocumentBuilder doc_builder = BlockFormUtil.getDocumentBuilder();
+		if(doc_builder == null)
+			doc_builder = BlockFormUtil.getDocumentBuilder();
 		
 		List<SubmittedDataBean> submitted_data = new ArrayList<SubmittedDataBean>();
 		
@@ -457,9 +504,6 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.idega.slide.business.IWSlideChangeListener#onSlideChange(com.idega.slide.business.IWContentEvent)
-	 */
 	public void onSlideChange(IWContentEvent contentEvent) {
 
 		if(!contentEvent.getMethod().equals(ContentEvent.REMOVE))
@@ -493,5 +537,23 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		
 		String result = name+"-"+ new Date();
 		return result.replace(' ', '_').replace(':', '_');
+	}
+	
+	public void unlockForm(String form_id) {
+		
+		if(true)
+			return;
+		try {
+			WebdavExtendedResource webdav_resource = loadFormResource(form_id, false);
+			
+			if(webdav_resource == null || !webdav_resource.isLocked())
+				return;
+			
+			webdav_resource.unlockMethod();
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Error loading form from Webdav: " + form_id, e);
+		} catch (FormLockException e) {
+			logger.log(Level.WARNING, "FormLockException caught while loading form when lock is irrelevant for form id: "+form_id);
+		}
 	}
 }

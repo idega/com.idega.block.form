@@ -8,6 +8,7 @@ import javax.faces.model.SelectItem;
 import org.w3c.dom.Document;
 import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.business.IBOService;
+import com.idega.documentmanager.business.FormLockException;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.slide.business.IWSlideChangeListener;
 
@@ -18,7 +19,9 @@ import com.idega.slide.business.IWSlideChangeListener;
  */
 public interface FormsService extends IBOService, IWSlideChangeListener, PersistenceManager {
 
-	public abstract Document loadForm(String formId) throws RemoteException;
+	public abstract Document loadFormAndLock(String formId) throws FormLockException, RemoteException;
+	
+	public abstract Document loadFormNoLock(String formId) throws RemoteException;
 
 	public abstract void saveForm(String formId, Document document) throws RemoteException, Exception;
 
@@ -43,11 +46,13 @@ public interface FormsService extends IBOService, IWSlideChangeListener, Persist
 	 * @param remove_submitted_data - remove submitted data for this form
 	 * @throws Exception
 	 */
-	public abstract void removeForm(String form_id, boolean remove_submitted_data) throws Exception;
+	public abstract void removeForm(String form_id, boolean remove_submitted_data) throws FormLockException, Exception;
 	
 	public abstract void duplicateForm(String form_id, String new_title_for_default_locale) throws Exception;
 	
 	public abstract String generateFormId(String name);
 	
 	public abstract String getSubmittedDataResourcePath(String formId, String submittedDataFilename);
+	
+	public abstract void unlockForm(String form_id);
 }

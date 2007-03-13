@@ -1,5 +1,5 @@
 /**
- * $Id: IWBundleStarter.java,v 1.8 2007/03/08 13:34:31 civilis Exp $
+ * $Id: IWBundleStarter.java,v 1.9 2007/03/13 21:02:00 civilis Exp $
  * Created in 2006 by gediminas
  * 
  * Copyright (C) 2000-2006 Idega Software hf. All Rights Reserved.
@@ -38,10 +38,10 @@ import com.idega.slide.business.IWSlideService;
  * <p>
  * TODO gediminas Describe Type IWBundleStarter
  * </p>
- * Last modified: $Date: 2007/03/08 13:34:31 $ by $Author: civilis $
+ * Last modified: $Date: 2007/03/13 21:02:00 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public class IWBundleStarter implements IWBundleStartable {
 	
@@ -122,20 +122,11 @@ public class IWBundleStarter implements IWBundleStartable {
      */
     protected void createXFormsSessionManager(int wipingInterval, int timeout) {
         DefaultXFormsSessionManagerImpl manager = DefaultXFormsSessionManagerImpl.getInstance();
-        if(wipingInterval != 0) {
-            manager.setInterval(wipingInterval);
-        } else {
-            manager.setInterval(1000 * 30*60);// every 30 secs as default
-        }
-
-        if (timeout != 0) {
-            manager.setTimeout(timeout);
-        } else {
-            manager.setTimeout(1000 * 30*60); // 1 minute session lifetime
-        }
+        
+        manager.setInterval(wipingInterval);
+        manager.setTimeout(timeout);
 
         //start running the session cleanup
-
         manager.start();
     }
 }

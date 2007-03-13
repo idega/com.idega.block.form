@@ -66,7 +66,7 @@ public class SDataPreview extends IWBaseComponent {
 		if(formid_provided == null || submitted_data_id_provided == null)
 			return;
 		
-		Document doc = getFormsService(context).loadForm(formid_provided);
+		Document doc = getFormsService(context).loadFormNoLock(formid_provided);
 		
 		String resource_path = "webdav:"+
 				getFormsService(context).getSubmittedDataResourcePath(formid_provided, submitted_data_id_provided);
