@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.21 2007/03/13 21:02:00 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.22 2007/03/15 10:28:02 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.adapter.ui.XSLTGenerator;
+import org.chiba.web.IWBundleStarter;
 import org.chiba.web.WebAdapter;
 import org.chiba.web.flux.FluxAdapter;
 import org.chiba.web.servlet.HttpRequestHandler;
@@ -40,7 +41,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
-import com.idega.block.form.IWBundleStarter;
+
 import com.idega.block.form.business.FormsService;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.business.IBOLookup;
@@ -54,10 +55,10 @@ import com.idega.presentation.Script;
 
 /**
  * 
- * Last modified: $Date: 2007/03/13 21:02:00 $ by $Author: civilis $
+ * Last modified: $Date: 2007/03/15 10:28:02 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -201,6 +202,7 @@ public class FormViewer extends IWBaseComponent {
 				uiGenerator.setInput(webAdapter.getXForms());
 				uiGenerator.setOutput(context.getResponseWriter());
 				uiGenerator.generate();
+				
 	        } catch (Exception e) {
 	        	log.log(Level.WARNING, "Error rendering form", e);
 	        	shutdown(webAdapter, session, getSessionKey());

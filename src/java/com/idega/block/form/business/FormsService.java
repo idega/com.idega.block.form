@@ -1,7 +1,5 @@
 package com.idega.block.form.business;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.List;
 import javax.faces.model.SelectItem;
@@ -26,15 +24,6 @@ public interface FormsService extends IBOService, IWSlideChangeListener, Persist
 	public abstract void saveForm(String formId, Document document) throws RemoteException, Exception;
 
 	public abstract List<SelectItem> getForms() throws RemoteException;
-
-	/**
-	 * Save submitted form's instance
-	 * 
-	 * @param formId
-	 * @param is instance input stream to save
-	 * @throws IOException 
-	 */
-	public abstract void saveSubmittedData(String formId, InputStream is) throws RemoteException, IOException;
 
 	public abstract Document loadSubmittedData(String formId, String submittedDataFilename) throws RemoteException, Exception;
 

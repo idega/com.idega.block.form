@@ -12,6 +12,8 @@ import javax.faces.model.SelectItem;
  */
 public class AvailableFormBean extends SelectItem {
 	
+	private static final long serialVersionUID = -3793938049046388576L;
+
 	public AvailableFormBean() {
 		super();
 	}

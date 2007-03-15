@@ -34,6 +34,7 @@ import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.business.IBOServiceBean;
+import com.idega.chiba.web.xml.xforms.connector.webdav.WebdavSubmissionHandler;
 import com.idega.documentmanager.business.FormLockException;
 import com.idega.slide.business.IWContentEvent;
 import com.idega.slide.business.IWSlideChangeListener;
@@ -53,7 +54,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 
 	public static final String FORMS_PATH = "/files/forms";
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
-	public static final String SUBMITTED_DATA_PATH = "/files/forms/submissions";
+	public static final String SUBMITTED_DATA_PATH = WebdavSubmissionHandler.SUBMITTED_DATA_PATH;
 
 	public static final PropertyName FORM_NAME_PROPERTY_NAME = new PropertyName("FB:", "FormName");
 
@@ -396,31 +397,6 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return service.getWebdavExtendedResource(path, service.getRootUserCredentials());
 	}
 
-	/**
-	 * Save submitted form's instance
-	 * 
-	 * @param formId
-	 * @param is instance input stream to save
-	 * @throws IOException 
-	 */
-	public void saveSubmittedData(String formId, InputStream is) throws IOException {
-		
-		String path = 
-			new StringBuilder(SUBMITTED_DATA_PATH)
-			.append(BlockFormUtil.slash)
-			.append(formId)
-			.append(BlockFormUtil.slash)
-			.toString()
-		;
-			
-		String fileName = System.currentTimeMillis() + ".xml";
-		
-		logger.info("Saving submitted instance to webdav path: " + path + fileName);
-
-		IWSlideService service = getIWSlideService();
-		service.uploadFileAndCreateFoldersFromStringAsRoot(path, fileName, is, "text/xml", false);
-	}
-
 	public Document loadSubmittedData(String formId, String submittedDataFilename) throws Exception {
 		
 		if(submittedDataFilename == null || formId == null)
@@ -491,7 +467,6 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 				logger.log(Level.SEVERE, "Error when retrieving/parsing submitted data file", e);
 			}
 		}
-		
 		return submitted_data;
 	}
 	

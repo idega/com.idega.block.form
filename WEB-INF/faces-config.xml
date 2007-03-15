@@ -70,10 +70,4 @@
     <managed-bean-class>com.idega.block.form.bean.FormList</managed-bean-class>
     <managed-bean-scope>application</managed-bean-scope>
   </managed-bean>
-  <managed-bean>
-    <managed-bean-name>keyCtxResolverTest</managed-bean-name>
-    <managed-bean-class>com.idega.block.form.xml.xforms.connector.context.sandbox.KeyContextResolverTestBean</managed-bean-class>
-    <managed-bean-scope>session</managed-bean-scope>
-  </managed-bean>
-
 </faces-config>
