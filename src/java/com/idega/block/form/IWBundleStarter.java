@@ -1,5 +1,5 @@
 /**
- * $Id: IWBundleStarter.java,v 1.10 2007/03/15 10:28:21 civilis Exp $
+ * $Id: IWBundleStarter.java,v 1.11 2007/03/20 12:08:21 civilis Exp $
  * Created in 2006 by gediminas
  * 
  * Copyright (C) 2000-2006 Idega Software hf. All Rights Reserved.
@@ -26,10 +26,10 @@ import com.idega.slide.business.IWSlideService;
  * <p>
  * TODO gediminas Describe Type IWBundleStarter
  * </p>
- * Last modified: $Date: 2007/03/15 10:28:21 $ by $Author: civilis $
+ * Last modified: $Date: 2007/03/20 12:08:21 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  */
 public class IWBundleStarter implements IWBundleStartable {
 	
@@ -41,8 +41,6 @@ public class IWBundleStarter implements IWBundleStartable {
 		
 		IWMainApplication application = starterBundle.getApplication();
 		
-		System.out.println("____________________starting block.form");
-
 		// add forms service as slide listener
 		IWApplicationContext iwac = application.getIWApplicationContext();
 	    try {
