@@ -19,7 +19,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.slide.event.ContentEvent;
 import org.apache.webdav.lib.PropertyName;
 import org.apache.webdav.lib.WebdavResource;
 import org.apache.webdav.lib.WebdavResources;
@@ -29,15 +28,15 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import com.idega.block.form.bean.AvailableFormBean;
-import com.idega.block.form.bean.SubmittedDataBean;
 import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.business.IBOServiceBean;
 import com.idega.chiba.web.xml.xforms.connector.webdav.WebdavSubmissionHandler;
 import com.idega.documentmanager.business.FormLockException;
-import com.idega.slide.business.IWContentEvent;
-import com.idega.slide.business.IWSlideChangeListener;
+import com.idega.documentmanager.business.PersistenceManager;
+import com.idega.documentmanager.business.SubmittedDataBean;
+import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 
@@ -46,11 +45,12 @@ import com.idega.slide.util.WebdavExtendedResource;
  * @version 1.0
  * 
  */
-public class FormsServiceBean extends IBOServiceBean implements FormsService, IWSlideChangeListener {
+public class FormsSlidePersistence implements PersistenceManager {
 
 	private static final long serialVersionUID = 1790429880309352062L;
 
-	private static final Logger logger = Logger.getLogger(FormsServiceBean.class.getName());
+	private static final Logger logger = Logger.getLogger(FormsSlidePersistence.class.getName());
+	private IWApplicationContext iwac;
 
 	public static final String FORMS_PATH = "/files/forms";
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
@@ -271,7 +271,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 	public List<SelectItem> getForms() {
 		
 		if(formNames == null) {
-			synchronized (FormsServiceBean.class) {
+			synchronized (FormsSlidePersistence.class) {
 				if(formNames == null) {
 					formNames = loadAvailableForms();
 				}
@@ -391,6 +391,12 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 			throw e;
 		}
 	}
+	public IWApplicationContext getIWApplicationContext(){
+		if(iwac == null)
+			iwac = IWMainApplication.getDefaultIWApplicationContext();
+		
+	    return iwac;
+	  }
 
 	private WebdavExtendedResource getWebdavExtendedResource(String path) throws HttpException, IOException, RemoteException, IBOLookupException {
 		IWSlideService service = getIWSlideService();
@@ -470,7 +476,7 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return submitted_data;
 	}
 	
-	private SelectItem findFormName(String formId) {
+	public SelectItem findFormName(String formId) {
 		for (SelectItem f : getForms()) {
 			if (formId.equals(f.getValue())) {
 				return f;
@@ -479,35 +485,6 @@ public class FormsServiceBean extends IBOServiceBean implements FormsService, IW
 		return null;
 	}
 
-	public void onSlideChange(IWContentEvent contentEvent) {
-
-		if(!contentEvent.getMethod().equals(ContentEvent.REMOVE))
-			return;
-		
-		String uri = contentEvent.getContentEvent().getUri();
-		if (uri.startsWith(SUBMITTED_DATA_PATH) || !uri.startsWith(FORMS_PATH))
-			return;
-		
-		String remainder = uri.substring(FORMS_PATH.length() + 1);
-		int slashIndex = remainder.indexOf(BlockFormUtil.slash);
-		if (slashIndex == -1) {
-			return;
-		}
-		String formId = remainder.substring(0, slashIndex);
-		if (!remainder.equals(
-				new StringBuilder(formId)
-				.append(BlockFormUtil.slash)
-				.append(formId)
-				.append(FORMS_FILE_EXTENSION)
-				.toString()
-			))
-			return;
-		
-		SelectItem form_name = findFormName(formId);
-		if(form_name != null)
-			getForms().remove(form_name);
-	}
-	
 	public String generateFormId(String name) {
 		
 		String result = name+"-"+ new Date();

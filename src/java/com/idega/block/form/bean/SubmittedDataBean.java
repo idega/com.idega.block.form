@@ -55,6 +55,7 @@ public class SubmittedDataBean {
 		if(submitted_data_element == null) {
 			label1 = "";
 			label2 = "";
+			return;
 		}
 		
 		List<Element> child_elements = DOMUtil.getChildElements(submitted_data_element);

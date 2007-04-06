@@ -64,10 +64,4 @@
       </idegaweb-info>
     </component-extension>
   </component>
-
-  <managed-bean>
-    <managed-bean-name>formList</managed-bean-name>
-    <managed-bean-class>com.idega.block.form.bean.FormList</managed-bean-class>
-    <managed-bean-scope>application</managed-bean-scope>
-  </managed-bean>
 </faces-config>

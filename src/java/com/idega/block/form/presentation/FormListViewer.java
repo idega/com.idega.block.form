@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.9 2007/03/06 08:58:49 civilis Exp $ Created on
+ * $Id: FormListViewer.java,v 1.10 2007/04/06 20:13:00 civilis Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -16,10 +16,10 @@ import javax.faces.model.SelectItem;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.idega.block.form.bean.FormList;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
+import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
@@ -34,10 +34,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2007/03/06 08:58:49 $ by $Author: civilis $
+ * Last modified: $Date: 2007/04/06 20:13:00 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -54,8 +54,8 @@ public class FormListViewer extends IWBaseComponent {
 
 		try {
 			
-			FormList bean = (FormList) WFUtil.getBeanInstance("formList");
-			List<SelectItem> forms = bean.getForms();
+			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("persistenceManager");
+			List<SelectItem> forms = persistence_manager.getForms();
 			IWContext iw_ctx = IWContext.getInstance();
 			
 			for (SelectItem f : forms) {

@@ -12,12 +12,12 @@ import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.idega.block.form.business.FormsService;
 import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.block.form.presentation.FormViewer;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.documentmanager.business.DocumentManagerService;
+import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.form.ButtonArea;
 import com.idega.documentmanager.business.form.DocumentManager;
 import com.idega.documentmanager.business.form.Page;
@@ -26,6 +26,7 @@ import com.idega.documentmanager.business.form.manager.util.InitializationExcept
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
+import com.idega.webface.WFUtil;
 
 /**
  * Component's responsibility is to provide view form's of submitted data in readonly format.<br /><br /> 
@@ -48,7 +49,6 @@ public class SDataPreview extends IWBaseComponent {
 	public static final String form_identifier = "form_identifier";
 	public static final String submitted_data_identifier = "submitted_data_identifier";
 	
-	private FormsService forms_service;
 	private DocumentManager doc_man;
 	
 	private String formid_provided;
@@ -66,10 +66,11 @@ public class SDataPreview extends IWBaseComponent {
 		if(formid_provided == null || submitted_data_id_provided == null)
 			return;
 		
-		Document doc = getFormsService(context).loadFormNoLock(formid_provided);
+		PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("persistenceManager");
+		Document doc = persistence_manager.loadFormNoLock(formid_provided);
 		
 		String resource_path = "webdav:"+
-				getFormsService(context).getSubmittedDataResourcePath(formid_provided, submitted_data_id_provided);
+			persistence_manager.getSubmittedDataResourcePath(formid_provided, submitted_data_id_provided);
 		
 		try {
 			doc = adjustDocumentForPreview(resource_path, doc, getDocumentManager(context));
@@ -118,21 +119,6 @@ public class SDataPreview extends IWBaseComponent {
 		formid_provided = form_identifier;
 		submitted_data_id_provided = submitted_data_identifier;
 		return true;
-	}
-	
-	private FormsService getFormsService(FacesContext context) {
-		
-		if(forms_service == null) {
-			try {
-				IWApplicationContext iwc = IWContext.getIWContext(context);
-				forms_service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
-			}
-			catch (IBOLookupException e) {
-				logger.error("Could not find FormsService");
-			}
-		}
-		
-		return forms_service;
 	}
 	
 	private DocumentManager getDocumentManager(FacesContext context) {

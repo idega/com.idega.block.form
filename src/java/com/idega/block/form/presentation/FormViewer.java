@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.22 2007/03/15 10:28:02 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.23 2007/04/06 20:13:00 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -42,23 +42,22 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
-import com.idega.block.form.business.FormsService;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.business.IBOLookup;
-import com.idega.business.IBOLookupException;
-import com.idega.idegaweb.IWApplicationContext;
+import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Script;
+import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2007/03/15 10:28:02 $ by $Author: civilis $
+ * Last modified: $Date: 2007/04/06 20:13:00 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -82,31 +81,32 @@ public class FormViewer extends IWBaseComponent {
 		super.initializeComponent(context);
 		
 		Document document = xforms_document;
+		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
+		
 		if(document == null) {
 			
-			String form_id = (String) context.getExternalContext().getRequestParameterMap().get("formId");
-			if (form_id != null && !form_id.equals("")) {
-				setFormId(form_id);
-			} else {
-				log.warning("formId not defined");
-				return;
-			}
-			
-			try {
-				document = getFormsService(context).loadFormNoLock(getFormId());
-				if (document == null) {
-					log.warning("Could not load the form for id: " + getFormId());
+			if(getFormId() == null) {
+				
+				String form_id = (String) context.getExternalContext().getRequestParameterMap().get("formId");
+				if (form_id != null && !form_id.equals("")) {
+					setFormId(form_id);
+				} else {
+					log.warning("formId not defined");
 					return;
 				}
-			} catch (IOException e) {
-				log.log(Level.SEVERE, "Could not load the form for id: " + getFormId(), e);
+			}
+			
+			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("persistenceManager");
+			document = persistence_manager.loadFormNoLock(getFormId());
+			
+			if (document == null) {
+				log.warning("Could not load the form for id: " + getFormId());
 				return;
 			}
 		}
 		
 		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 		HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
-		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 		
 		XFormsSessionManager session_manager = getXFormsSessionManager();
 		XFormsSession xforms_session = session_manager.createXFormsSession();
@@ -315,18 +315,6 @@ public class FormViewer extends IWBaseComponent {
 		// redirect to error page (after encoding session id if required)
 		//response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
 		//		+ request.getSession().getServletContext().getInitParameter("error.page")));
-	}
-	
-	private FormsService getFormsService(FacesContext context) {
-		FormsService service = null;
-		try {
-			IWApplicationContext iwc = IWContext.getIWContext(context);
-			service = (FormsService) IBOLookup.getServiceInstance(iwc, FormsService.class);
-		}
-		catch (IBOLookupException e) {
-			log.severe("Could not find FormsService");
-		}
-		return service;
 	}
 
 	public void setXFormsDocument(Document xforms_document) {
