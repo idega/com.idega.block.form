@@ -2,5 +2,5 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
 
 <beans>
-	<bean id="persistenceManager" class="com.idega.block.form.business.FormsSlidePersistence" scope="session" />
+	<bean id="formbuilderPersistenceManager" class="com.idega.block.form.business.FormsSlidePersistence" scope="session" />
 </beans>

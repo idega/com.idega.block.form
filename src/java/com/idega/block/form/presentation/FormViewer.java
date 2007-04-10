@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.23 2007/04/06 20:13:00 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.24 2007/04/10 09:49:35 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2007/04/06 20:13:00 $ by $Author: civilis $
+ * Last modified: $Date: 2007/04/10 09:49:35 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -96,7 +96,7 @@ public class FormViewer extends IWBaseComponent {
 				}
 			}
 			
-			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("persistenceManager");
+			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("formbuilderPersistenceManager");
 			document = persistence_manager.loadFormNoLock(getFormId());
 			
 			if (document == null) {

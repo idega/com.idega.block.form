@@ -66,7 +66,7 @@ public class SDataPreview extends IWBaseComponent {
 		if(formid_provided == null || submitted_data_id_provided == null)
 			return;
 		
-		PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("persistenceManager");
+		PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("formbuilderPersistenceManager");
 		Document doc = persistence_manager.loadFormNoLock(formid_provided);
 		
 		String resource_path = "webdav:"+
