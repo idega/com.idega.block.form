@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.24 2007/04/10 09:49:35 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.25 2007/04/20 16:22:08 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2007/04/10 09:49:35 $ by $Author: civilis $
+ * Last modified: $Date: 2007/04/20 16:22:08 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -118,7 +118,7 @@ public class FormViewer extends IWBaseComponent {
 		session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, session_manager);
 
 		WebAdapter adapter = new FluxAdapter();
-		session.setAttribute(WebAdapter.WEB_ADAPTER, adapter);
+		xforms_session.setAdapter(adapter);
 		try {
 			setupAdapter(adapter, document, xforms_session, context);
 			adapter.init();
@@ -293,6 +293,7 @@ public class FormViewer extends IWBaseComponent {
 		generator.setParameter("user-agent", request.getHeader("User-Agent"));
 		generator.setParameter("scripted", true);
 		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/javascript/");
+		generator.setParameter("imagesPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/style/images/");
 		
 		return generator;
 	}
