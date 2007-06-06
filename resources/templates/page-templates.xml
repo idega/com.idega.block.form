@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <page-templates>
-	<page name="Forms Viewer" type="formsviewer" iconfile="/idegaweb/bundles/com.idega.content.bundle/resources/images/pageIcons/formsviewer.png" templatefile="idega_theme_forms.xml"></page>
-	<page name="Egov Form" type="egovform" iconfile="/idegaweb/bundles/com.idega.content.bundle/resources/images/pageIcons/formsviewer.png" templatefile="idega_theme_egov_form.xml"></page>
+	<page name="Forms Viewer" type="formsviewer" iconfile="idegaweb/bundles/com.idega.block.form.bundle/resources/images/pageIcons/formsviewer.png" templatefile="idegaweb/bundles/com.idega.block.form.bundle/resources/pages/idega_theme_forms.xml"></page>
+	<page name="Egov Form" type="egovform" iconfile="idegaweb/bundles/com.idega.block.form.bundle/resources/images/pageIcons/egovform.png" templatefile="idegaweb/bundles/com.idega.block.form.bundle/resources/pages/idega_theme_egov_form.xml"></page>
 </page-templates>
