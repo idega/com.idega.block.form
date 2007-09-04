@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.25 2007/04/20 16:22:08 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.26 2007/09/04 07:50:33 alexis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -14,11 +14,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.adapter.ui.XSLTGenerator;
 import org.chiba.web.IWBundleStarter;
@@ -28,6 +30,7 @@ import org.chiba.web.servlet.HttpRequestHandler;
 import org.chiba.web.session.XFormsSession;
 import org.chiba.web.session.XFormsSessionManager;
 import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
+import org.chiba.xml.dom.DOMUtil;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
@@ -54,10 +57,10 @@ import com.idega.webface.WFUtil;
 
 /**
  * 
- * Last modified: $Date: 2007/04/20 16:22:08 $ by $Author: civilis $
+ * Last modified: $Date: 2007/09/04 07:50:33 $ by $Author: alexis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -76,9 +79,8 @@ public class FormViewer extends IWBaseComponent {
 		// return RENDERER_TYPE;
 	}
 
-	@Override
 	protected void initializeComponent(FacesContext context) {
-		super.initializeComponent(context);
+//		super.initializeComponent(context);
 		
 		Document document = xforms_document;
 		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
@@ -169,23 +171,10 @@ public class FormViewer extends IWBaseComponent {
 			shutdown(adapter, session, xforms_session.getKey());
 			return;
 		}
-		
-		try {
-			IWContext iwc = IWContext.getIWContext(context);
-			Web2Business business = (Web2Business) IBOLookup.getServiceInstance(iwc, Web2Business.class);
-			
-			Script s = new Script();
-			s.addScriptSource(business.getBundleURIToPrototypeLib());
-			s.addScriptSource(business.getBundleURIToScriptaculousLib());
-			this.getChildren().add(s);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
-	@Override
-	public void encodeEnd(FacesContext context) throws IOException {
+	public void encodeBegin(FacesContext context) throws IOException {
+		initializeComponent(context);
 		if (getFormId() != null || xforms_document != null) {
 
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
@@ -197,7 +186,7 @@ public class FormViewer extends IWBaseComponent {
 				
 				if (webAdapter == null)
 					throw new ServletException(Config.getInstance().getErrorMessage("session-invalid"));
-				
+				DOMUtil.prettyPrintDOM(webAdapter.getXForms());
 				UIGenerator uiGenerator = (UIGenerator) xFormsSession.getProperty(XFormsSession.UIGENERATOR);
 				uiGenerator.setInput(webAdapter.getXForms());
 				uiGenerator.setOutput(context.getResponseWriter());
@@ -208,7 +197,6 @@ public class FormViewer extends IWBaseComponent {
 	        	shutdown(webAdapter, session, getSessionKey());
 			}
 		}
-		super.encodeEnd(context);
 	}
 
 	public String getFormId() {
