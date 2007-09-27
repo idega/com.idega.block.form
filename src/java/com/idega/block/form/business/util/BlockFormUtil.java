@@ -9,6 +9,11 @@ import java.util.Locale;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 
 import org.chiba.xml.dom.DOMUtil;
 import org.w3c.dom.Document;
@@ -17,10 +22,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.idega.block.form.bean.LocalizedStringBean;
+import com.idega.util.xml.NamespaceContextImpl;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version 1.0
+ * @version $Revision: 1.5 $
+ *
+ * Last modified: $Date: 2007/09/27 16:23:10 $ by $Author: civilis $
  */
 public class BlockFormUtil {
 	
@@ -45,6 +53,7 @@ public class BlockFormUtil {
 	public static final String name_att = "name";
 	public static final String relevant_att = "relevant";
 	public static final String xpath_false = "false()";
+	public static final String action_att = "action";
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
 		
@@ -323,5 +332,54 @@ public class BlockFormUtil {
 		loc_bean.setString(default_locale, new_title_for_default_locale);
 		Element title_element = (Element)((Element)xforms_doc.getDocumentElement().getElementsByTagName(title_tag).item(0)).getElementsByTagName("*").item(0);
 		putLocalizedText(title_element, xforms_doc, loc_bean);
+	}
+	
+	public static void appendToSubmissionsActions(Document xformsDoc, String str) {
+		
+		try {
+			XPathExpression exp = getAppendToSubmissionsactionsExp();
+			NodeList submissions = null;
+			
+			synchronized (exp) {
+				submissions = (NodeList)exp.evaluate(xformsDoc, XPathConstants.NODESET);
+			}
+				
+			for (int i = 0; i < submissions.getLength(); i++) {
+				Element submission = (Element)submissions.item(i);
+				
+				String action = submission.getAttribute(action_att);
+				
+				if(action == null)
+					action = "";
+				
+				submission.setAttribute(action_att, action+str);
+			}
+			
+		} catch (XPathException e) {
+			throw new RuntimeException("Could not evaluate XPath expression: " + e.getMessage(), e);
+		}
+	}
+	
+	private static XPathExpression appendToSubmissionsactionsExp;
+	
+	private static synchronized XPathExpression getAppendToSubmissionsactionsExp() {
+		
+		if(appendToSubmissionsactionsExp != null)
+			return appendToSubmissionsactionsExp;
+		
+		try {
+			XPathFactory factory = XPathFactory.newInstance();
+			XPath xpath = factory.newXPath();
+
+			NamespaceContextImpl nmspCtx = new NamespaceContextImpl();
+			nmspCtx.addPrefix("xf", "http://www.w3.org/2002/xforms");
+			xpath.setNamespaceContext(nmspCtx);
+			
+			appendToSubmissionsactionsExp = xpath.compile("//xf:model/xf:submission");
+			return appendToSubmissionsactionsExp;
+			
+		} catch (XPathException e) {
+			throw new RuntimeException("Could not compile XPath expression: " + e.getMessage(), e);
+		}
 	}
 }
