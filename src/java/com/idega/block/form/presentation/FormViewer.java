@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.28 2007/09/27 16:23:10 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.29 2007/10/01 16:28:02 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -19,6 +19,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.adapter.ui.XSLTGenerator;
 import org.chiba.web.IWBundleStarter;
@@ -38,6 +44,7 @@ import org.chiba.xml.xforms.exception.XFormsException;
 import org.chiba.xml.xslt.TransformerService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
@@ -48,28 +55,30 @@ import com.idega.business.IBOLookup;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.jbpm.exe.VariablesHandler;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Script;
+import com.idega.util.xml.NamespaceContextImpl;
 import com.idega.webface.WFUtil;
 
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2007/09/27 16:23:10 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/01 16:28:02 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.28 $
+ * @version $Revision: 1.29 $
  */
 public class FormViewer extends IWBaseComponent {
 
 	protected static final Logger log =   Logger.getLogger(FormViewer.class.getName());
-	private static final String taskInstanceId = "taskInstanceId";
+	private static final String taskInstanceIdParameter = "taskInstanceId";
 
 	private String formId;
 	private Document xDoc;
 	private String sessionKey;
-	private String taskId;
+	private String taskInstanceId;
 
 	public FormViewer() {
 		super();
@@ -81,20 +90,34 @@ public class FormViewer extends IWBaseComponent {
 
 	@Override
 	protected void initializeComponent(FacesContext context) {
+		
 		super.initializeComponent(context);
 		
+		initializeXForms(context);
+		
+		try {
+			IWContext iwc = IWContext.getIWContext(context);
+			Web2Business business = (Web2Business) IBOLookup.getServiceInstance(iwc, Web2Business.class);
+			
+			Script s = new Script();
+			s.addScriptSource(business.getBundleURIToPrototypeLib());
+			s.addScriptSource(business.getBundleURIToScriptaculousLib());
+			this.getChildren().add(s);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void initializeXForms(FacesContext context) {
 		Document document = xDoc;
-		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 		
 		if(document == null) {
 			
-			String formId = getFormId() == null ? (String)context.getExternalContext().getRequestParameterMap().get("formId") : getFormId();
+			String formId = getFormId() != null ? getFormId() : getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
 			
-			if(formId == null || formId.equals("")) {
-				
-				log.log(Level.SEVERE, "formId not defined");
+			if(formId == null || formId.equals(""))
 				return;
-			}
 				
 			setFormId(formId);
 
@@ -118,6 +141,7 @@ public class FormViewer extends IWBaseComponent {
         servlets should access the manager through the http-session attribute as below to ensure the http-session
         is refreshed.
 		 */
+		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 		session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, sessionManager);
 
 		WebAdapter adapter = new FluxAdapter();
@@ -173,26 +197,25 @@ public class FormViewer extends IWBaseComponent {
 			shutdown(adapter, session, xformsSession.getKey());
 			return;
 		}
-		
-		try {
-			IWContext iwc = IWContext.getIWContext(context);
-			Web2Business business = (Web2Business) IBOLookup.getServiceInstance(iwc, Web2Business.class);
-			
-			Script s = new Script();
-			s.addScriptSource(business.getBundleURIToPrototypeLib());
-			s.addScriptSource(business.getBundleURIToScriptaculousLib());
-			this.getChildren().add(s);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		
+		if(xDoc == null) {
+			
+			String formId = getFormId();
+			String newFormId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
+			
+			if(newFormId != null && (formId == null || !formId.equals(newFormId))) {
+				
+				setFormId(null);
+				initializeXForms(context);
+			}
+		}
+		
 		if (getFormId() != null || xDoc != null) {
-
+			
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 			WebAdapter webAdapter = null;
 			try {
@@ -218,10 +241,12 @@ public class FormViewer extends IWBaseComponent {
 	}
 
 	public String getFormId() {
+		
 		return formId;
 	}
 
 	public void setFormId(String formId) {
+		
 		this.formId = formId;
 	}
 
@@ -230,7 +255,7 @@ public class FormViewer extends IWBaseComponent {
 		values[0] = super.saveState(ctx);
 		values[1] = formId;
 		values[2] = sessionKey;
-		values[3] = taskId;
+		values[3] = taskInstanceId;
 		
 		return values;
 	}
@@ -240,7 +265,7 @@ public class FormViewer extends IWBaseComponent {
 		super.restoreState(ctx, values[0]);
 		formId = (String) values[1];
 		sessionKey = (String) values[2];
-		taskId = (String) values[3];
+		taskInstanceId = (String) values[3];
 	}
 
 	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session,
@@ -261,15 +286,34 @@ public class FormViewer extends IWBaseComponent {
 	
 	protected void setupDocument(FacesContext ctx, Document document) {
 
-//		TODO: move this to specific form viewer
-		String tiId = getTaskInstanceId() == null ? (String)ctx.getExternalContext().getRequestParameterMap().get(taskInstanceId) : getTaskInstanceId();
+//		TODO: move this to specific form viewer. don't worry about the mess for now
+		String tiIdPar = getTaskInstanceId() != null ? getTaskInstanceId() : getValueBinding("taskInstanceId") != null ? (String)getValueBinding("taskInstanceId").getValue(ctx) : (String)ctx.getExternalContext().getRequestParameterMap().get(taskInstanceIdParameter);
 		
-		if(tiId == null || tiId.equals(""))
+		if(tiIdPar == null || tiIdPar.equals(""))
 			return;
 		
 //		check if task id parses as long
-		Long.parseLong(tiId);
-		BlockFormUtil.appendToSubmissionsActions(document, "?taskId="+tiId);
+		long tiId = Long.parseLong(tiIdPar);
+		
+		try {
+			XPathFactory factory = XPathFactory.newInstance();
+			XPath xpath = factory.newXPath();
+			
+			NamespaceContextImpl nmspCtx = new NamespaceContextImpl();
+			nmspCtx.addPrefix("xf", "http://www.w3.org/2002/xforms");
+			xpath.setNamespaceContext(nmspCtx);
+			
+			XPathExpression exp = xpath.compile("//xf:instance[@id='data-instance']");
+			
+			Node instance = (Node)exp.evaluate(document, XPathConstants.NODE);
+			VariablesHandler vh = (VariablesHandler)WFUtil.getBeanInstance("process_xforms_variablesHandler");
+			vh.populate(tiId, instance);
+			
+		} catch (XPathException e) {
+			throw new RuntimeException("Could not compile XPath expression: " + e.getMessage(), e);
+		}
+		
+		BlockFormUtil.appendToSubmissionsActions(document, "?taskId="+tiIdPar);
 	}
 
 	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
@@ -360,10 +404,10 @@ public class FormViewer extends IWBaseComponent {
 	}
 
 	public String getTaskInstanceId() {
-		return taskId;
+		return taskInstanceId;
 	}
 
-	public void setTaskId(String taskId) {
-		this.taskId = taskId;
+	public void setTaskInstanceId(String taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
 	}
 }
