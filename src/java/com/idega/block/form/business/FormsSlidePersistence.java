@@ -41,9 +41,10 @@ import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 
 /**
- * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version 1.0
- * 
+ * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
+ * @version $Revision: 1.2 $
+ *
+ * Last modified: $Date: 2007/10/05 11:44:19 $ by $Author: civilis $
  */
 public class FormsSlidePersistence implements PersistenceManager {
 
@@ -291,6 +292,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 			WebdavResource root = service.getWebdavResourceAuthenticatedAsRoot(FORMS_PATH);
 			WebdavResources form_folders = root.getChildResources();
+			
+			@SuppressWarnings("unchecked")
 			Enumeration<WebdavResource> folders = form_folders.getResources();
 			
 			Vector<PropertyName> props = new Vector<PropertyName>(1);
@@ -307,12 +310,13 @@ public class FormsSlidePersistence implements PersistenceManager {
 					continue;
 				}
 				
-				Enumeration prop_values = folder.propfindMethod(folder.getPath(), props);
+				@SuppressWarnings("unchecked")
+				Enumeration<String> propValues = folder.propfindMethod(folder.getPath(), props);
 				
 				String formTitle = null;
 				
-				if(prop_values.hasMoreElements()) {					
-					formTitle = (String)prop_values.nextElement();
+				if(propValues.hasMoreElements()) {					
+					formTitle = (String)propValues.nextElement();
 					
 					if(formTitle.equals("")) {
 						formTitle = null;
@@ -391,7 +395,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			throw e;
 		}
 	}
-	public IWApplicationContext getIWApplicationContext(){
+	public synchronized IWApplicationContext getIWApplicationContext(){
 		if(iwac == null)
 			iwac = IWMainApplication.getDefaultIWApplicationContext();
 		
@@ -444,6 +448,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 			return new ArrayList<SubmittedDataBean>();
 		
 		WebdavResources child_resources = form_folder.getChildResources();
+		
+		@SuppressWarnings("unchecked")
 		Enumeration<WebdavResource> resources = child_resources.getResources();
 		
 		if(doc_builder == null)

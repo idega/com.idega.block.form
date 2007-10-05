@@ -14,18 +14,13 @@ import org.w3c.dom.Element;
 
 import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.block.form.presentation.FormViewer;
-import com.idega.business.IBOLookup;
-import com.idega.business.IBOLookupException;
-import com.idega.documentmanager.business.DocumentManagerService;
+import com.idega.documentmanager.business.DocumentManager;
+import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.documentmanager.business.form.ButtonArea;
-import com.idega.documentmanager.business.form.DocumentManager;
-import com.idega.documentmanager.business.form.Page;
-import com.idega.documentmanager.business.form.beans.LocalizedStringBean;
-import com.idega.documentmanager.business.form.manager.util.InitializationException;
-import com.idega.idegaweb.IWApplicationContext;
+import com.idega.documentmanager.business.component.ButtonArea;
+import com.idega.documentmanager.business.component.Page;
+import com.idega.documentmanager.component.beans.LocalizedStringBean;
 import com.idega.presentation.IWBaseComponent;
-import com.idega.presentation.IWContext;
 import com.idega.webface.WFUtil;
 
 /**
@@ -49,8 +44,6 @@ public class SDataPreview extends IWBaseComponent {
 	public static final String form_identifier = "form_identifier";
 	public static final String submitted_data_identifier = "submitted_data_identifier";
 	
-	private DocumentManager doc_man;
-	
 	private String formid_provided;
 	private String submitted_data_id_provided;
 		
@@ -66,14 +59,16 @@ public class SDataPreview extends IWBaseComponent {
 		if(formid_provided == null || submitted_data_id_provided == null)
 			return;
 		
-		PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("formbuilderPersistenceManager");
+		PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
 		Document doc = persistence_manager.loadFormNoLock(formid_provided);
 		
 		String resource_path = "webdav:"+
 			persistence_manager.getSubmittedDataResourcePath(formid_provided, submitted_data_id_provided);
 		
 		try {
-			doc = adjustDocumentForPreview(resource_path, doc, getDocumentManager(context));
+			
+			DocumentManagerFactory docManagerFact = (DocumentManagerFactory)WFUtil.getBeanInstance("xformsDocumentManagerFact");
+			doc = adjustDocumentForPreview(resource_path, doc, docManagerFact.newDocumentManager(context));
 			FormViewer form_viewer = new FormViewer();
 			form_viewer.setXFormsDocument(doc);
 			form_viewer.setRendered(true);
@@ -121,25 +116,9 @@ public class SDataPreview extends IWBaseComponent {
 		return true;
 	}
 	
-	private DocumentManager getDocumentManager(FacesContext context) {
-		
-		if(doc_man == null) {
-			try {
-				IWApplicationContext iwc = IWContext.getIWContext(context);
-				doc_man = ((DocumentManagerService) IBOLookup.getServiceInstance(iwc, DocumentManagerService.class)).newDocumentManager(context);
-			} catch (IBOLookupException e) {
-				logger.error("Could not find DocumentManagerService", e);
-			} catch (InitializationException e) {
-				logger.error("Document manager failed to initialize", e);
-			}
-		}
-		
-		return doc_man;
-	}
-	
 	public Document adjustDocumentForPreview(String resource_path, Document xforms_doc, DocumentManager doc_man) throws Exception {
 		
-		com.idega.documentmanager.business.form.Document doc = doc_man.openForm(xforms_doc);
+		com.idega.documentmanager.business.Document doc = doc_man.openForm(xforms_doc);
 		Page c_page = doc.getConfirmationPage();
 		if(c_page == null)
 			c_page = doc.addConfirmationPage(null);

@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.11 2007/04/10 09:49:35 civilis Exp $ Created on
+ * $Id: FormListViewer.java,v 1.12 2007/10/05 11:44:19 civilis Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -34,10 +34,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2007/04/10 09:49:35 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/05 11:44:19 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -54,7 +54,7 @@ public class FormListViewer extends IWBaseComponent {
 
 		try {
 			
-			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("formbuilderPersistenceManager");
+			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
 			List<SelectItem> forms = persistence_manager.getForms();
 			IWContext iw_ctx = IWContext.getInstance();
 			
