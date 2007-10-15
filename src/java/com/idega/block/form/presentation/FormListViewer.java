@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.12 2007/10/05 11:44:19 civilis Exp $ Created on
+ * $Id: FormListViewer.java,v 1.13 2007/10/15 16:13:16 civilis Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -10,6 +10,8 @@
 package com.idega.block.form.presentation;
 
 import java.util.List;
+
+import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 
@@ -34,10 +36,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2007/10/05 11:44:19 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/15 16:13:16 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -71,7 +73,9 @@ public class FormListViewer extends IWBaseComponent {
 			logger.error("Error while loading form list", e);
 		}
 		
-		getChildren().add(ul);
+		@SuppressWarnings("unchecked")
+		List<UIComponent> children = getChildren();
+		children.add(ul);
 	}
 
 	public String getDetailsViewerPath(IWContext iw_ctx) throws Exception {
