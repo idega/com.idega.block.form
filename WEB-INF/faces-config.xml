@@ -48,6 +48,32 @@
       </idegaweb-info>
     </component-extension>
   </component>
+  
+  <component>
+    <component-type>SimpleCasesProcessFormViewer</component-type>
+    <component-class>com.idega.block.form.process.cases.SimpleCasesProcessFormViewer</component-class>
+    <property>
+      <display-name>Process definition ID</display-name>
+      <property-name>processDefinitionId</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <property>
+      <display-name>Process instance ID</display-name>
+      <property-name>processInstanceId</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <property>
+      <display-name>Cfg</display-name>
+      <property-name>jbpmConfiguration</property-name>
+      <property-class>org.jbpm.JbpmConfiguration</property-class>
+    </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
 
   <component>
     <component-type>FormListViewer</component-type>

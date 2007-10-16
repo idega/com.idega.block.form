@@ -13,5 +13,11 @@
             <component-type>FormViewer</component-type>
         </component>
 	</tag>
+	<tag>
+		<tag-name>casesformViewer</tag-name>
+		<component>
+            <component-type>SimpleCasesProcessFormViewer</component-type>
+        </component>
+	</tag>
 	
 </facelet-taglib>

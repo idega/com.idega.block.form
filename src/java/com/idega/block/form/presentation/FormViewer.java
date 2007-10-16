@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.30 2007/10/05 11:44:19 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.31 2007/10/16 12:09:19 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -11,9 +11,12 @@ package com.idega.block.form.presentation;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -65,10 +68,10 @@ import com.idega.webface.WFUtil;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2007/10/05 11:44:19 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/16 12:09:19 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.30 $
+ * @version $Revision: 1.31 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -102,7 +105,10 @@ public class FormViewer extends IWBaseComponent {
 			Script s = new Script();
 			s.addScriptSource(business.getBundleURIToPrototypeLib());
 			s.addScriptSource(business.getBundleURIToScriptaculousLib());
-			this.getChildren().add(s);
+			
+			@SuppressWarnings("unchecked")
+			List<UIComponent> children = getChildren();
+			children.add(s);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -110,17 +116,16 @@ public class FormViewer extends IWBaseComponent {
 	}
 	
 	private void initializeXForms(FacesContext context) {
+		
 		Document document = xDoc;
 		
 		if(document == null) {
 			
-			String formId = getFormId() != null ? getFormId() : getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
+			String formId = getFormId(context);
 			
 			if(formId == null || formId.equals(""))
 				return;
 				
-			setFormId(formId);
-
 			PersistenceManager persistenceManager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
 			document = persistenceManager.loadFormNoLock(formId);
 			
@@ -202,19 +207,22 @@ public class FormViewer extends IWBaseComponent {
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		
+		if("asd".equals(getFormId(context)))
+			return;
+		
 		if(xDoc == null) {
 			
-			String formId = getFormId();
+			String formId = getFormId(context);
 			String newFormId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
 			
 			if(newFormId != null && (formId == null || !formId.equals(newFormId))) {
 				
-				setFormId(null);
+				setFormId((String)null);
 				initializeXForms(context);
 			}
 		}
 		
-		if (getFormId() != null || xDoc != null) {
+		if (getFormId(context) != null || xDoc != null) {
 			
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 			WebAdapter webAdapter = null;
@@ -244,9 +252,22 @@ public class FormViewer extends IWBaseComponent {
 		
 		return formId;
 	}
+	
+	public String getFormId(FacesContext context) {
+
+		String formId = getFormId();
+		
+		if(formId == null) {
+			
+			formId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
+			setFormId(formId);
+		}
+		
+		return formId;
+	}
 
 	public void setFormId(String formId) {
-		
+
 		this.formId = formId;
 	}
 
