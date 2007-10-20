@@ -63,9 +63,9 @@
       <property-class>java.lang.String</property-class>
     </property>
     <property>
-      <display-name>Cfg</display-name>
-      <property-name>jbpmConfiguration</property-name>
-      <property-class>org.jbpm.JbpmConfiguration</property-class>
+      <display-name>Simple cases process processing bean</display-name>
+      <property-name>processingBean</property-name>
+      <property-class>com.idega.block.form.process.cases.beans.SimpleCasesProcessProcessingBean</property-class>
     </property>
     <component-extension>
       <idegaweb-info>

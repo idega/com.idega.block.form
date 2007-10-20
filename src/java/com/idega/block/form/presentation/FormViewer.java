@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.31 2007/10/16 12:09:19 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.32 2007/10/20 20:13:59 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -68,10 +68,10 @@ import com.idega.webface.WFUtil;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2007/10/16 12:09:19 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/20 20:13:59 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.31 $
+ * @version $Revision: 1.32 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -207,21 +207,6 @@ public class FormViewer extends IWBaseComponent {
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		
-		if("asd".equals(getFormId(context)))
-			return;
-		
-		if(xDoc == null) {
-			
-			String formId = getFormId(context);
-			String newFormId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
-			
-			if(newFormId != null && (formId == null || !formId.equals(newFormId))) {
-				
-				setFormId((String)null);
-				initializeXForms(context);
-			}
-		}
-		
 		if (getFormId(context) != null || xDoc != null) {
 			
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
@@ -260,6 +245,7 @@ public class FormViewer extends IWBaseComponent {
 		if(formId == null) {
 			
 			formId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
+			formId = "".equals(formId) ? null : formId;
 			setFormId(formId);
 		}
 		

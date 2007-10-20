@@ -2,6 +2,7 @@ package com.idega.block.form.process;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.jbpm.JbpmConfiguration;
 import org.jbpm.taskmgmt.def.Task;
 
@@ -11,9 +12,9 @@ import com.idega.jbpm.def.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/10/14 10:51:07 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/20 20:13:59 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -26,9 +27,15 @@ public class XFormsToTask implements ViewToTask {
 //		also catch when duplicate view type and task id pair is tried to be entered, and override
 //		views could be versioned
 		
-		Session session = null;
+		Session session = getSessionFactory().getCurrentSession();
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
 		try {
-			session = getSessionFactory().openSession();
+			if(!transactionWasActive)
+				transaction.begin();
+			
 			ViewTaskBind vtb = ViewTaskBind.getViewTaskBind(session, task.getId(), XFormsView.VIEW_TYPE);
 			
 			boolean newVtb = false;
@@ -49,14 +56,20 @@ public class XFormsToTask implements ViewToTask {
 			
 		} finally {
 			
-			if(session != null)
-				session.close();
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	
 	public View getView(long taskId) {
 		
-		Session session = getSessionFactory().openSession();
+		Session session = getSessionFactory().getCurrentSession();
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		if(!transactionWasActive)
+			transaction.begin();
 		
 		try {
 			ViewTaskBind vtb = ViewTaskBind.getViewTaskBind(session, taskId, XFormsView.VIEW_TYPE);
@@ -70,9 +83,8 @@ public class XFormsToTask implements ViewToTask {
 			return view;
 			
 		} finally {
-			
-			if(session != null)
-				session.close();
+			if(!transactionWasActive)
+				transaction.commit();
 		}
 	}
 	

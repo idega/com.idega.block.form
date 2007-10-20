@@ -4,23 +4,48 @@ import java.io.IOException;
 
 import javax.faces.context.FacesContext;
 
+import com.idega.block.form.process.cases.beans.SimpleCasesProcessProcessingBean;
 import com.idega.presentation.IWBaseComponent;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/10/16 12:09:20 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/20 20:13:59 $ by $Author: civilis $
  */
 public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	
 	
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
 	public static final String PROCESS_INSTANCE_PROPERTY = "processInstanceId";
+	public static final String PROCESSING_BEAN_PROPERTY = "processingBean";
 	
 	private String processDefinitionId;
 	private String processInstanceId;
+	private SimpleCasesProcessProcessingBean processingBean;
     
+	public SimpleCasesProcessProcessingBean getProcessingBean() {
+		
+		return processingBean;
+	}
+	
+	public SimpleCasesProcessProcessingBean getProcessingBean(FacesContext context) {
+		
+		SimpleCasesProcessProcessingBean processingBean = getProcessingBean();
+		
+		if(processingBean == null) {
+			
+			processingBean = getValueBinding(PROCESSING_BEAN_PROPERTY) != null ? (SimpleCasesProcessProcessingBean)getValueBinding(PROCESSING_BEAN_PROPERTY).getValue(context) : null;
+			setProcessingBean(processingBean);
+		}
+		
+		return processingBean;
+	}
+
+	public void setProcessingBean(SimpleCasesProcessProcessingBean processingBean) {
+		this.processingBean = processingBean;
+	}
+
 	public String getProcessDefinitionId() {
 		
 		return processDefinitionId;
@@ -76,6 +101,25 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		
+		
+		SimpleCasesProcessProcessingBean processingBean = getProcessingBean(context);
+		
+		String processDefinitionId = getProcessDefinitionId();
+		
+		if(processDefinitionId != null) {
+			
+			/*form = */processingBean.loadDefinitionForm(Long.parseLong(processDefinitionId));
+			
+			return;
+		}
+		
+		String processInstanceId = getProcessInstanceId();
+		
+		if(processInstanceId != null) {
+			/*form = */processingBean.loadInstanceForm(Long.parseLong(processInstanceId));
+			
+			return;
+		}
 	}
 	
 	@Override
