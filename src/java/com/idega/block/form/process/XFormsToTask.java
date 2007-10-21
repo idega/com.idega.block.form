@@ -12,9 +12,9 @@ import com.idega.jbpm.def.ViewToTask;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/20 20:13:59 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/21 21:16:02 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -51,8 +51,6 @@ public class XFormsToTask implements ViewToTask {
 
 			if(newVtb)
 				session.save(vtb);
-			else
-				session.flush();
 			
 		} finally {
 			
