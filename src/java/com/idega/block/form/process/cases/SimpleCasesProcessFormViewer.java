@@ -6,7 +6,6 @@ import java.util.Map;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
-import org.chiba.xml.dom.DOMUtil;
 import org.w3c.dom.Document;
 
 import com.idega.block.form.presentation.FormViewer;
@@ -16,9 +15,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2007/10/22 15:36:25 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/22 20:33:30 $ by $Author: civilis $
  */
 public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	
@@ -151,11 +150,8 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		Document xformsDoc = getProcessingBean(context).loadDefinitionForm(context, Long.parseLong(processDefinitionId), initiatorId);
 		FormViewer formviewer = new FormViewer();
 		formviewer.setRendered(true);
-		formviewer.setXFormsDocument(xformsDoc);
 		
-		System.out.println("________________________");
-		DOMUtil.prettyPrintDOM(xformsDoc);
-		System.out.println("________en________________");
+		formviewer.setXFormsDocument(xformsDoc);
 		
 		return formviewer;
 	}
@@ -178,11 +174,8 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
 		FormViewer formviewer = (FormViewer)facets.get(FORMVIEWER_FACET);
 		
-		if(formviewer != null) {
-			
-			System.out.println("rendering formviewer: "+formviewer.getId());
-//			renderChild(context, formviewer);
-		}
+		if(formviewer != null)
+			renderChild(context, formviewer);
 	}
 	
 	@Override
