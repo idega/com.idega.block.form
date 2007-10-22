@@ -1,17 +1,24 @@
 package com.idega.block.form.process.cases;
 
 import java.io.IOException;
+import java.util.Map;
 
+import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
+import org.chiba.xml.dom.DOMUtil;
+import org.w3c.dom.Document;
+
+import com.idega.block.form.presentation.FormViewer;
 import com.idega.block.form.process.cases.beans.SimpleCasesProcessProcessingBean;
 import com.idega.presentation.IWBaseComponent;
+import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/20 20:13:59 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/22 15:36:25 $ by $Author: civilis $
  */
 public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	
@@ -19,6 +26,8 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
 	public static final String PROCESS_INSTANCE_PROPERTY = "processInstanceId";
 	public static final String PROCESSING_BEAN_PROPERTY = "processingBean";
+	
+	private static final String FORMVIEWER_FACET = "formviewer";
 	
 	private String processDefinitionId;
 	private String processInstanceId;
@@ -58,6 +67,7 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		if(processDefinitionId == null) {
 			
 			processDefinitionId = getValueBinding(PROCESS_DEFINITION_PROPERTY) != null ? (String)getValueBinding(PROCESS_DEFINITION_PROPERTY).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(PROCESS_DEFINITION_PROPERTY);
+			processDefinitionId = "".equals(processDefinitionId) ? null : processDefinitionId;
 			setProcessDefinitionId(processDefinitionId);
 		}
 		
@@ -81,6 +91,7 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		if(processInstanceId == null) {
 			
 			processInstanceId = getValueBinding(PROCESS_INSTANCE_PROPERTY) != null ? (String)getValueBinding(PROCESS_INSTANCE_PROPERTY).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(PROCESS_INSTANCE_PROPERTY);
+			processInstanceId = "".equals(processInstanceId) ? null : processInstanceId;
 			setProcessInstanceId(processInstanceId);
 		}
 		
@@ -101,25 +112,6 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		
-		
-		SimpleCasesProcessProcessingBean processingBean = getProcessingBean(context);
-		
-		String processDefinitionId = getProcessDefinitionId();
-		
-		if(processDefinitionId != null) {
-			
-			/*form = */processingBean.loadDefinitionForm(Long.parseLong(processDefinitionId));
-			
-			return;
-		}
-		
-		String processInstanceId = getProcessInstanceId();
-		
-		if(processInstanceId != null) {
-			/*form = */processingBean.loadInstanceForm(Long.parseLong(processInstanceId));
-			
-			return;
-		}
 	}
 	
 	@Override
@@ -129,8 +121,52 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	
 	@Override
 	public void encodeBegin(FacesContext context) throws IOException {
-		// TODO Auto-generated method stub
+		
 		super.encodeBegin(context);
+		
+		String processDefinitionId = getProcessDefinitionId(context);
+		String processInstanceId = getProcessInstanceId(context);
+		
+		FormViewer formviewer = null;
+		
+		if(processDefinitionId != null)
+			formviewer = loadFormViewerFromDefinition(context, processDefinitionId);
+			
+		else if(processInstanceId != null)
+			formviewer = loadFormViewerFromInstance(context, processInstanceId);
+		
+		@SuppressWarnings("unchecked")
+		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
+		
+		if(formviewer != null)
+			facets.put(FORMVIEWER_FACET, formviewer);
+		else
+			facets.remove(FORMVIEWER_FACET);
+	}
+	
+	private FormViewer loadFormViewerFromDefinition(FacesContext context, String processDefinitionId) {
+
+		int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
+		
+		Document xformsDoc = getProcessingBean(context).loadDefinitionForm(context, Long.parseLong(processDefinitionId), initiatorId);
+		FormViewer formviewer = new FormViewer();
+		formviewer.setRendered(true);
+		formviewer.setXFormsDocument(xformsDoc);
+		
+		System.out.println("________________________");
+		DOMUtil.prettyPrintDOM(xformsDoc);
+		System.out.println("________en________________");
+		
+		return formviewer;
+	}
+	
+	private FormViewer loadFormViewerFromInstance(FacesContext context, String processInstanceId) {
+
+		/*xforms = *///getProcessingBean(context).loadInstanceForm(Long.parseLong(processInstanceId));
+		FormViewer formviewer = new FormViewer();
+		formviewer.setRendered(true);
+		formviewer.setId("piid_"+processInstanceId);
+		return formviewer;
 	}
 	
 	@Override
@@ -138,6 +174,15 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		
 		super.encodeChildren(context);
 
+		@SuppressWarnings("unchecked")
+		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
+		FormViewer formviewer = (FormViewer)facets.get(FORMVIEWER_FACET);
+		
+		if(formviewer != null) {
+			
+			System.out.println("rendering formviewer: "+formviewer.getId());
+//			renderChild(context, formviewer);
+		}
 	}
 	
 	@Override

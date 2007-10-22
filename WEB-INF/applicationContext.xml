@@ -19,5 +19,7 @@
 	<bean id="simpleCasesProcessProcessingBean" class="com.idega.block.form.process.cases.beans.SimpleCasesProcessProcessingBean" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
+        <property name="documentManagerFactory" ref="xformsDocumentManagerFact" />
+        <property name="viewToTaskBinder" ref="process_xforms_viewToTask" />
 	</bean>
 </beans>
