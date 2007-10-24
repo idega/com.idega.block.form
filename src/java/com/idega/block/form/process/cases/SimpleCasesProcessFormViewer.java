@@ -15,9 +15,9 @@ import com.idega.presentation.IWContext;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/10/22 20:33:30 $ by $Author: civilis $
+ * Last modified: $Date: 2007/10/24 15:25:23 $ by $Author: civilis $
  */
 public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	
@@ -51,6 +51,7 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	}
 
 	public void setProcessingBean(SimpleCasesProcessProcessingBean processingBean) {
+		
 		this.processingBean = processingBean;
 	}
 
@@ -131,8 +132,11 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		if(processDefinitionId != null)
 			formviewer = loadFormViewerFromDefinition(context, processDefinitionId);
 			
-		else if(processInstanceId != null)
+		else if(processInstanceId != null) {
+			
 			formviewer = loadFormViewerFromInstance(context, processInstanceId);
+		}
+			
 		
 		@SuppressWarnings("unchecked")
 		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
@@ -150,7 +154,6 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 		Document xformsDoc = getProcessingBean(context).loadDefinitionForm(context, Long.parseLong(processDefinitionId), initiatorId);
 		FormViewer formviewer = new FormViewer();
 		formviewer.setRendered(true);
-		
 		formviewer.setXFormsDocument(xformsDoc);
 		
 		return formviewer;
@@ -158,10 +161,11 @@ public class SimpleCasesProcessFormViewer extends IWBaseComponent {
 	
 	private FormViewer loadFormViewerFromInstance(FacesContext context, String processInstanceId) {
 
-		/*xforms = *///getProcessingBean(context).loadInstanceForm(Long.parseLong(processInstanceId));
+		Document xformsDoc = getProcessingBean(context).loadInstanceForm(context, Long.parseLong(processInstanceId));
+		
 		FormViewer formviewer = new FormViewer();
 		formviewer.setRendered(true);
-		formviewer.setId("piid_"+processInstanceId);
+		formviewer.setXFormsDocument(xformsDoc);
 		return formviewer;
 	}
 	

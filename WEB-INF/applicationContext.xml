@@ -21,5 +21,6 @@
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
         <property name="documentManagerFactory" ref="xformsDocumentManagerFact" />
         <property name="viewToTaskBinder" ref="process_xforms_viewToTask" />
+        <property name="variablesHandler" ref="process_xforms_variablesHandler" />
 	</bean>
 </beans>
