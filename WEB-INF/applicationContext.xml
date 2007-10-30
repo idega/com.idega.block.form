@@ -17,11 +17,4 @@
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 		<property name="xformsPersistenceManager" ref="xformsPersistenceManager" />
 	</bean>
-	<bean id="simpleCasesProcessProcessingBean" class="com.idega.block.form.process.cases.beans.SimpleCasesProcessProcessingBean" scope="singleton">
-		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
-		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
-		<property name="documentManagerFactory" ref="xformsDocumentManagerFact" />
-        <property name="viewToTaskBinder" ref="process_xforms_viewToTask" />
-        <property name="variablesHandler" ref="process_xforms_variablesHandler" />
-	</bean>
 </beans>
