@@ -16,5 +16,6 @@
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />
 		<property name="xformsPersistenceManager" ref="xformsPersistenceManager" />
+		<property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />
 	</bean>
 </beans>

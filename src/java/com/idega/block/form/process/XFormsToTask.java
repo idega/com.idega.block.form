@@ -13,6 +13,7 @@ import org.jbpm.JbpmConfiguration;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.documentmanager.business.PersistenceManager;
+import com.idega.jbpm.business.JbpmProcessBusinessBean;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewToTask;
@@ -21,15 +22,24 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/10/26 12:44:12 $ by $Author: alexis $
+ * Last modified: $Date: 2007/11/10 13:51:18 $ by $Author: alexis $
  */
 public class XFormsToTask implements ViewToTask {
 	
 	private JbpmConfiguration cfg;
 	private SessionFactory sessionFactory;
 	private PersistenceManager xformsPersistenceManager;
+	private JbpmProcessBusinessBean jbpmProcessBusiness;
+
+	public JbpmProcessBusinessBean getJbpmProcessBusiness() {
+		return jbpmProcessBusiness;
+	}
+
+	public void setJbpmProcessBusiness(JbpmProcessBusinessBean jbpmProcessBusiness) {
+		this.jbpmProcessBusiness = jbpmProcessBusiness;
+	}
 
 	public PersistenceManager getXformsPersistenceManager() {
 		return xformsPersistenceManager;
@@ -63,7 +73,7 @@ public class XFormsToTask implements ViewToTask {
 		for(Iterator<SelectItem> it = list.iterator(); it.hasNext(); ) {
 			SelectItem form = it.next();
 			String formId = (String) form.getValue();
-			if(!formId.equals(bindFormId) && getFormTask(formId) != null) {
+			if(!formId.equals(bindFormId) && getTask(formId) != null) {
 				View view = new XFormsView();
 				forms.add(view);
 			}
@@ -71,7 +81,7 @@ public class XFormsToTask implements ViewToTask {
 		return forms;
 	}
 	
-	private Long getFormTask(String viewId) {
+	public Long getTask(String viewId) {
 		Session session = getSessionFactory().getCurrentSession();
 		
 		Transaction transaction = session.getTransaction();
