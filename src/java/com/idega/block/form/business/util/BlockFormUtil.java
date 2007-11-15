@@ -26,9 +26,9 @@ import com.idega.util.xml.NamespaceContextImpl;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/09/27 16:23:10 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/15 09:22:36 $ by $Author: civilis $
  */
 public class BlockFormUtil {
 	
@@ -48,7 +48,7 @@ public class BlockFormUtil {
 	public static final String data_instance_id = "data-instance";
 	public static final String id_att = "id";
 	public static final String src_att = "src";
-	public static final String submit_button_class = "fbcomp_button_submit";
+	public static final String submit_button_class = "fbc_button_submit";
 	public static final String trigger_tag = "xf:trigger";
 	public static final String name_att = "name";
 	public static final String relevant_att = "relevant";
