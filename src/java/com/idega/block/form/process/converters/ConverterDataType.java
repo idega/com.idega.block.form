@@ -2,11 +2,11 @@ package com.idega.block.form.process.converters;
 
 
 /**
- * 
- *  Last modified: $Date: 2007/10/14 10:51:07 $ by $Author: civilis $
+ *  TODO: use data types from VariableDataType 
+ *  Last modified: $Date: 2007/11/15 09:23:02 $ by $Author: civilis $
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public enum ConverterDataType {
 	

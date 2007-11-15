@@ -16,12 +16,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.idega.jbpm.exe.Converter;
+import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/10/14 10:51:07 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/15 09:23:02 $ by $Author: civilis $
  */
 public class XFormsConverter implements Converter {
 
@@ -77,7 +78,7 @@ public class XFormsConverter implements Converter {
 	
 	protected String getDataType(String mapping) {
 		
-		return mapping.contains(":") ? mapping.substring(0, mapping.indexOf(":")) : "string";
+		return mapping.contains(CoreConstants.COLON) ? mapping.substring(0, mapping.indexOf(CoreConstants.COLON)) : "string";
 	}
 
 	public Object revert(Map<String, Object> variables, Object submissionData) {
