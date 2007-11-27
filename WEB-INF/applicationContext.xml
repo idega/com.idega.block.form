@@ -11,7 +11,9 @@
 		<property name="convertersFactory" ref="process_xforms_dataConvertersFactory" />
 	</bean>
 	<bean id="process_xforms_dataConvertersFactory" class="com.idega.block.form.process.converters.DataConvertersFactory" scope="singleton" />
+    
 	<bean id="process_xforms_viewFactory" class="com.idega.block.form.process.XFormsViewFactory" scope="singleton" />
+    
 	<bean id="process_xforms_viewToTask" class="com.idega.block.form.process.XFormsToTask" scope="singleton">
 		<property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />
 		<property name="sessionFactory" ref="idega_jbpmDSHibernateSessionFactory" />

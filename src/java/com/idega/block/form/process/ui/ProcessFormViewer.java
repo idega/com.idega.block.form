@@ -15,9 +15,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/27 16:27:15 $ by $Author: civilis $
+ * Last modified: $Date: 2007/11/27 20:35:33 $ by $Author: civilis $
  */
 public class ProcessFormViewer extends IWBaseComponent {
 	
@@ -25,6 +25,7 @@ public class ProcessFormViewer extends IWBaseComponent {
 	
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
 	public static final String PROCESS_INSTANCE_PROPERTY = "processInstanceId";
+	public static final String TASK_INSTANCE_PROPERTY = "taskInstanceId";
 	public static final String FORM_MANAGER_PROPERTY = "formManager";
 	public static final String PROCESS_VIEW_PROPERTY = "processView";
 	
@@ -32,6 +33,7 @@ public class ProcessFormViewer extends IWBaseComponent {
 	
 	private String processDefinitionId;
 	private String processInstanceId;
+	private String taskInstanceId;
 	private boolean processView = false;
 	private ProcessFormManager formManager;
     
@@ -106,6 +108,7 @@ public class ProcessFormViewer extends IWBaseComponent {
 		
 		String processDefinitionId = getProcessDefinitionId(context);
 		String processInstanceId = getProcessInstanceId(context);
+		String taskInstanceId = getTaskInstanceId(context);
 		
 		FormViewer formviewer = null;
 		
@@ -115,6 +118,8 @@ public class ProcessFormViewer extends IWBaseComponent {
 			formviewer = loadFormViewerForProcessView(context, processInstanceId);
 		else if(processInstanceId != null)
 			formviewer = loadFormViewerFromInstance(context, processInstanceId);
+		else if(taskInstanceId != null)
+			formviewer = loadFormViewerFromInstance(context, taskInstanceId);
 		
 		@SuppressWarnings("unchecked")
 		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
@@ -228,5 +233,27 @@ public class ProcessFormViewer extends IWBaseComponent {
 
 	public void setFormManager(ProcessFormManager formManager) {
 		this.formManager = formManager;
+	}
+
+	public String getTaskInstanceId() {
+		return taskInstanceId;
+	}
+	
+	public String getTaskInstanceId(FacesContext context) {
+
+		String taskInstanceId = getTaskInstanceId();
+		
+		if(taskInstanceId == null) {
+			
+			taskInstanceId = getValueBinding(TASK_INSTANCE_PROPERTY) != null ? (String)getValueBinding(TASK_INSTANCE_PROPERTY).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(TASK_INSTANCE_PROPERTY);
+			taskInstanceId = CoreConstants.EMPTY.equals(taskInstanceId) ? null : taskInstanceId;
+			setTaskInstanceId(taskInstanceId);
+		}
+		
+		return taskInstanceId;
+	}
+
+	public void setTaskInstanceId(String taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
 	}
 }
