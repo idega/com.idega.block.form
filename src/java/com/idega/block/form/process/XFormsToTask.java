@@ -22,9 +22,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/11/10 13:51:18 $ by $Author: alexis $
+ * Last modified: $Date: 2007/11/28 13:12:01 $ by $Author: alexis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -98,6 +98,31 @@ public class XFormsToTask implements ViewToTask {
 			if(session != null)
 				session.close();
 		}
+	}
+	
+	public void unbind(String viewId) {
+		
+		Session session = getSessionFactory().getCurrentSession();
+		
+		Transaction transaction = session.getTransaction();
+		boolean transactionWasActive = transaction.isActive();
+		
+		try {
+			if(!transactionWasActive)
+				transaction.begin();
+			
+			ViewTaskBind vtb = ViewTaskBind.getViewTaskBindByView(session, viewId, XFormsView.VIEW_TYPE);
+			
+			if(vtb != null)
+				session.delete(vtb);
+			
+		} finally {
+			
+			if(!transactionWasActive)
+				transaction.commit();
+			
+		}
+		
 	}
 
 	public void bind(View view, Task task) {
