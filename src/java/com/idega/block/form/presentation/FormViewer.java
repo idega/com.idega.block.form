@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.32 2007/10/20 20:13:59 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.33 2007/12/01 16:59:28 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -11,12 +11,10 @@ package com.idega.block.form.presentation;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -61,17 +59,16 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.exe.VariablesHandler;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
-import com.idega.presentation.Script;
 import com.idega.util.xml.NamespaceContextImpl;
 import com.idega.webface.WFUtil;
 
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2007/10/20 20:13:59 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/01 16:59:28 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.32 $
+ * @version $Revision: 1.33 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -97,22 +94,6 @@ public class FormViewer extends IWBaseComponent {
 		super.initializeComponent(context);
 		
 		initializeXForms(context);
-		
-		try {
-			IWContext iwc = IWContext.getIWContext(context);
-			Web2Business business = (Web2Business) IBOLookup.getServiceInstance(iwc, Web2Business.class);
-			
-			Script s = new Script();
-			s.addScriptSource(business.getBundleURIToPrototypeLib());
-			s.addScriptSource(business.getBundleURIToScriptaculousLib());
-			
-			@SuppressWarnings("unchecked")
-			List<UIComponent> children = getChildren();
-			children.add(s);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	private void initializeXForms(FacesContext context) {
@@ -366,6 +347,22 @@ public class FormViewer extends IWBaseComponent {
 		generator.setParameter("scripted", true);
 		generator.setParameter("scriptPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/javascript/");
 		generator.setParameter("imagesPath", "/idegaweb/bundles/" + IWBundleStarter.BUNDLE_IDENTIFIER + ".bundle/resources/style/images/");
+		
+		try {
+			
+			IWContext iwc = IWContext.getIWContext(context);
+			Web2Business business = (Web2Business) IBOLookup.getServiceInstance(iwc, Web2Business.class);
+			
+			generator.setParameter("uriToMootoolsLib", business.getBundleURIToMootoolsLib());
+			generator.setParameter("uriToPrototypeLib", business.getBundleURIToPrototypeLib());
+			generator.setParameter("uriToScriptaculousLib", business.getBundleURIToScriptaculousLib());
+		
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
 		
 		return generator;
 	}
