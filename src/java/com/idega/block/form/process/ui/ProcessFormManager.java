@@ -5,15 +5,17 @@ import org.w3c.dom.Document;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/11/27 16:27:15 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/02 11:50:25 $ by $Author: civilis $
  */
 public interface ProcessFormManager {
 
-	public Document loadDefinitionForm(FacesContext context, Long processDefinitionId, int initiatorId);
+	public abstract Document loadDefinitionForm(FacesContext context, Long processDefinitionId, int initiatorId);
 	
-	public Document loadInstanceForm(FacesContext context, Long processInstanceId);
+	public abstract Document loadInstanceForm(FacesContext context, Long processInstanceId);
 	
-	public Document loadProcessViewForm(FacesContext context, Long processInstanceId, int viewerId);
+	public abstract Document loadTaskInstanceForm(FacesContext context, Long taskInstanceId);
+	
+	public abstract Document loadProcessViewForm(FacesContext context, Long processInstanceId, int viewerId);
 }

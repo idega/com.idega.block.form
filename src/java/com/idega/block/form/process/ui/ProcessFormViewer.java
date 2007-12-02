@@ -15,9 +15,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/11/27 20:35:33 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/02 11:50:25 $ by $Author: civilis $
  */
 public class ProcessFormViewer extends IWBaseComponent {
 	
@@ -119,7 +119,7 @@ public class ProcessFormViewer extends IWBaseComponent {
 		else if(processInstanceId != null)
 			formviewer = loadFormViewerFromInstance(context, processInstanceId);
 		else if(taskInstanceId != null)
-			formviewer = loadFormViewerFromInstance(context, taskInstanceId);
+			formviewer = loadFormViewerFromTaskInstance(context, taskInstanceId);
 		
 		@SuppressWarnings("unchecked")
 		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
@@ -145,6 +145,16 @@ public class ProcessFormViewer extends IWBaseComponent {
 	private FormViewer loadFormViewerFromInstance(FacesContext context, String processInstanceId) {
 
 		Document xformsDoc = getFormManager(context).loadInstanceForm(context, Long.parseLong(processInstanceId));
+		
+		FormViewer formviewer = new FormViewer();
+		formviewer.setRendered(true);
+		formviewer.setXFormsDocument(xformsDoc);
+		return formviewer;
+	}
+	
+	private FormViewer loadFormViewerFromTaskInstance(FacesContext context, String taskInstanceId) {
+
+		Document xformsDoc = getFormManager(context).loadTaskInstanceForm(context, Long.parseLong(taskInstanceId));
 		
 		FormViewer formviewer = new FormViewer();
 		formviewer.setRendered(true);
