@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.33 2007/12/01 16:59:28 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.34 2007/12/04 14:00:37 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -20,11 +20,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathException;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.adapter.ui.XSLTGenerator;
@@ -45,30 +40,26 @@ import org.chiba.xml.xforms.exception.XFormsException;
 import org.chiba.xml.xslt.TransformerService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
-import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.business.IBOLookup;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.exe.VariablesHandler;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
-import com.idega.util.xml.NamespaceContextImpl;
 import com.idega.webface.WFUtil;
 
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2007/12/01 16:59:28 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 14:00:37 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.33 $
+ * @version $Revision: 1.34 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -133,7 +124,7 @@ public class FormViewer extends IWBaseComponent {
 		WebAdapter adapter = new FluxAdapter();
 		xformsSession.setAdapter(adapter);
 		try {
-			setupDocument(context, document);
+//			setupDocument(context, document);
 			setupAdapter(adapter, document, xformsSession, context);
 			adapter.init();
 			
@@ -272,37 +263,37 @@ public class FormViewer extends IWBaseComponent {
 		log.fine("Exited during XForms model init");
 	}
 	
-	protected void setupDocument(FacesContext ctx, Document document) {
-
-//		TODO: move this to specific form viewer. don't worry about the mess for now
-		String tiIdPar = getTaskInstanceId() != null ? getTaskInstanceId() : getValueBinding("taskInstanceId") != null ? (String)getValueBinding("taskInstanceId").getValue(ctx) : (String)ctx.getExternalContext().getRequestParameterMap().get(taskInstanceIdParameter);
-		
-		if(tiIdPar == null || tiIdPar.equals(""))
-			return;
-		
-//		check if task id parses as long
-		long tiId = Long.parseLong(tiIdPar);
-		
-		try {
-			XPathFactory factory = XPathFactory.newInstance();
-			XPath xpath = factory.newXPath();
-			
-			NamespaceContextImpl nmspCtx = new NamespaceContextImpl();
-			nmspCtx.addPrefix("xf", "http://www.w3.org/2002/xforms");
-			xpath.setNamespaceContext(nmspCtx);
-			
-			XPathExpression exp = xpath.compile("//xf:instance[@id='data-instance']");
-			
-			Node instance = (Node)exp.evaluate(document, XPathConstants.NODE);
-			VariablesHandler vh = (VariablesHandler)WFUtil.getBeanInstance("process_xforms_variablesHandler");
-			vh.populate(tiId, instance);
-			
-		} catch (XPathException e) {
-			throw new RuntimeException("Could not compile XPath expression: " + e.getMessage(), e);
-		}
-		
-		BlockFormUtil.appendToSubmissionsActions(document, "?taskId="+tiIdPar);
-	}
+//	protected void setupDocument(FacesContext ctx, Document document) {
+//
+////		TODO: move this to specific form viewer. don't worry about the mess for now
+//		String tiIdPar = getTaskInstanceId() != null ? getTaskInstanceId() : getValueBinding("taskInstanceId") != null ? (String)getValueBinding("taskInstanceId").getValue(ctx) : (String)ctx.getExternalContext().getRequestParameterMap().get(taskInstanceIdParameter);
+//		
+//		if(tiIdPar == null || tiIdPar.equals(""))
+//			return;
+//		
+////		check if task id parses as long
+//		long tiId = Long.parseLong(tiIdPar);
+//		
+//		try {
+//			XPathFactory factory = XPathFactory.newInstance();
+//			XPath xpath = factory.newXPath();
+//			
+//			NamespaceContextImpl nmspCtx = new NamespaceContextImpl();
+//			nmspCtx.addPrefix("xf", "http://www.w3.org/2002/xforms");
+//			xpath.setNamespaceContext(nmspCtx);
+//			
+//			XPathExpression exp = xpath.compile("//xf:instance[@id='data-instance']");
+//			
+//			Node instance = (Node)exp.evaluate(document, XPathConstants.NODE);
+//			VariablesHandler vh = (VariablesHandler)WFUtil.getBeanInstance("process_xforms_variablesHandler");
+//			vh.populate(tiId, instance);
+//			
+//		} catch (XPathException e) {
+//			throw new RuntimeException("Could not compile XPath expression: " + e.getMessage(), e);
+//		}
+//		
+//		BlockFormUtil.appendToSubmissionsActions(document, "?taskId="+tiIdPar);
+//	}
 
 	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
 		adapter.setXFormsSession(xforms_session);

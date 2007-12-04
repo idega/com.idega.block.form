@@ -16,20 +16,22 @@ import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.jbpm.business.JbpmProcessBusinessBean;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.def.View;
+import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
 import com.idega.jbpm.presentation.beans.ActorBindingViewBean;
 import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2007/11/28 13:12:01 $ by $Author: alexis $
+ * Last modified: $Date: 2007/12/04 14:00:37 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
 	private JbpmConfiguration cfg;
 	private SessionFactory sessionFactory;
+	private ViewFactory viewFactory;
 	private PersistenceManager xformsPersistenceManager;
 	private JbpmProcessBusinessBean jbpmProcessBusiness;
 
@@ -179,10 +181,7 @@ public class XFormsToTask implements ViewToTask {
 			if(vtb == null)
 				return null;
 			
-			XFormsView view = new XFormsView();
-			view.setViewId(vtb.getViewIdentifier());
-			
-			return view;
+			return getViewFactory().getView(vtb.getViewIdentifier());
 			
 		} finally {
 			if(!transactionWasActive)
@@ -203,5 +202,13 @@ public class XFormsToTask implements ViewToTask {
 	}
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
+	}
+
+	public ViewFactory getViewFactory() {
+		return viewFactory;
+	}
+
+	public void setViewFactory(ViewFactory viewFactory) {
+		this.viewFactory = viewFactory;
 	}
 }

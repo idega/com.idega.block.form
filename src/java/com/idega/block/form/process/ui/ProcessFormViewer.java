@@ -6,18 +6,17 @@ import java.util.Map;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
-import org.w3c.dom.Document;
-
-import com.idega.block.form.presentation.FormViewer;
+import com.idega.jbpm.def.View;
+import com.idega.jbpm.exe.Process;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2007/12/02 11:50:25 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 14:00:37 $ by $Author: civilis $
  */
 public class ProcessFormViewer extends IWBaseComponent {
 	
@@ -26,16 +25,17 @@ public class ProcessFormViewer extends IWBaseComponent {
 	public static final String PROCESS_DEFINITION_PROPERTY = "processDefinitionId";
 	public static final String PROCESS_INSTANCE_PROPERTY = "processInstanceId";
 	public static final String TASK_INSTANCE_PROPERTY = "taskInstanceId";
-	public static final String FORM_MANAGER_PROPERTY = "formManager";
+	public static final String PROCESS_PROPERTY = "process";
 	public static final String PROCESS_VIEW_PROPERTY = "processView";
 	
-	private static final String FORMVIEWER_FACET = "formviewer";
+	private static final String VIEWER_FACET = "viewer";
 	
 	private String processDefinitionId;
 	private String processInstanceId;
 	private String taskInstanceId;
 	private boolean processView = false;
-	private ProcessFormManager formManager;
+	
+	private Process process;
     
 	public String getProcessDefinitionId() {
 		
@@ -92,11 +92,6 @@ public class ProcessFormViewer extends IWBaseComponent {
 	}
 	
 	@Override
-	protected void initializeComponent(FacesContext context) {
-		
-	}
-	
-	@Override
 	public boolean getRendersChildren() {
 		return true;
 	}
@@ -110,67 +105,57 @@ public class ProcessFormViewer extends IWBaseComponent {
 		String processInstanceId = getProcessInstanceId(context);
 		String taskInstanceId = getTaskInstanceId(context);
 		
-		FormViewer formviewer = null;
+		UIComponent viewer = null;
 		
 		if(processDefinitionId != null)
-			formviewer = loadFormViewerFromDefinition(context, processDefinitionId);
+			viewer = loadViewerFromDefinition(context, processDefinitionId);
 		else if(processInstanceId != null && isProcessView(context))
-			formviewer = loadFormViewerForProcessView(context, processInstanceId);
+			throw new UnsupportedOperationException("TODO: implement");
+			//viewer = loadFormViewerForProcessView(context, processInstanceId);
 		else if(processInstanceId != null)
-			formviewer = loadFormViewerFromInstance(context, processInstanceId);
+			viewer = loadViewerFromInstance(context, processInstanceId);
 		else if(taskInstanceId != null)
-			formviewer = loadFormViewerFromTaskInstance(context, taskInstanceId);
+			viewer = loadViewerFromTaskInstance(context, taskInstanceId);
 		
 		@SuppressWarnings("unchecked")
 		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
 		
-		if(formviewer != null)
-			facets.put(FORMVIEWER_FACET, formviewer);
+		if(viewer != null)
+			facets.put(VIEWER_FACET, viewer);
 		else
-			facets.remove(FORMVIEWER_FACET);
+			facets.remove(VIEWER_FACET);
 	}
 	
-	private FormViewer loadFormViewerFromDefinition(FacesContext context, String processDefinitionId) {
+	private UIComponent loadViewerFromDefinition(FacesContext context, String processDefinitionId) {
 
 		int initiatorId = IWContext.getIWContext(context).getCurrentUserId();
 		
-		Document xformsDoc = getFormManager(context).loadDefinitionForm(context, Long.parseLong(processDefinitionId), initiatorId);
-		FormViewer formviewer = new FormViewer();
-		formviewer.setRendered(true);
-		formviewer.setXFormsDocument(xformsDoc);
-		
-		return formviewer;
+		View initView = getProcess(context).getViewManager().loadInitView(context, Long.parseLong(processDefinitionId), initiatorId);
+		return initView.getViewForDisplay();
 	}
 	
-	private FormViewer loadFormViewerFromInstance(FacesContext context, String processInstanceId) {
+	private UIComponent loadViewerFromInstance(FacesContext context, String processInstanceId) {
 
-		Document xformsDoc = getFormManager(context).loadInstanceForm(context, Long.parseLong(processInstanceId));
-		
-		FormViewer formviewer = new FormViewer();
-		formviewer.setRendered(true);
-		formviewer.setXFormsDocument(xformsDoc);
-		return formviewer;
+//		TODO: get task instance id to display
+		View initView = getProcess(context).getViewManager().loadTaskInstanceView(context, null);
+		return initView.getViewForDisplay();
 	}
 	
-	private FormViewer loadFormViewerFromTaskInstance(FacesContext context, String taskInstanceId) {
+	private UIComponent loadViewerFromTaskInstance(FacesContext context, String taskInstanceId) {
 
-		Document xformsDoc = getFormManager(context).loadTaskInstanceForm(context, Long.parseLong(taskInstanceId));
-		
-		FormViewer formviewer = new FormViewer();
-		formviewer.setRendered(true);
-		formviewer.setXFormsDocument(xformsDoc);
-		return formviewer;
+		View initView = getProcess(context).getViewManager().loadTaskInstanceView(context, Long.parseLong(taskInstanceId));
+		return initView.getViewForDisplay();
 	}
 	
-	private FormViewer loadFormViewerForProcessView(FacesContext context, String processInstanceId) {
-
-		Document xformsDoc = getFormManager(context).loadProcessViewForm(context, Long.parseLong(processInstanceId), IWContext.getIWContext(context).getCurrentUserId());
-		
-		FormViewer formviewer = new FormViewer();
-		formviewer.setRendered(true);
-		formviewer.setXFormsDocument(xformsDoc);
-		return formviewer;
-	}
+//	private FormViewer loadFormViewerForProcessView(FacesContext context, String processInstanceId) {
+//
+//		Document xformsDoc = getFormManager(context).loadProcessViewForm(context, Long.parseLong(processInstanceId), IWContext.getIWContext(context).getCurrentUserId());
+//		
+//		FormViewer formviewer = new FormViewer();
+//		formviewer.setRendered(true);
+//		formviewer.setXFormsDocument(xformsDoc);
+//		return formviewer;
+//	}
 	
 	@Override
 	public void encodeChildren(FacesContext context) throws IOException {
@@ -179,16 +164,10 @@ public class ProcessFormViewer extends IWBaseComponent {
 
 		@SuppressWarnings("unchecked")
 		Map<String, UIComponent> facets = (Map<String, UIComponent>)getFacets();
-		FormViewer formviewer = (FormViewer)facets.get(FORMVIEWER_FACET);
+		UIComponent viewer = facets.get(VIEWER_FACET);
 		
-		if(formviewer != null)
-			renderChild(context, formviewer);
-	}
-	
-	@Override
-	public void encodeEnd(FacesContext context) throws IOException {
-		// TODO Auto-generated method stub
-		super.encodeEnd(context);
+		if(viewer != null)
+			renderChild(context, viewer);
 	}
 
 	public boolean isProcessView() {
@@ -222,29 +201,6 @@ public class ProcessFormViewer extends IWBaseComponent {
 		return isProcessView;
 	}
 
-	public ProcessFormManager getFormManager() {
-		
-		
-		return formManager;
-	}
-	
-	public ProcessFormManager getFormManager(FacesContext context) {
-	
-		ProcessFormManager processManager = getFormManager();
-		
-		if(processManager == null) {
-			
-			processManager = getValueBinding(FORM_MANAGER_PROPERTY) != null ? (ProcessFormManager)getValueBinding(FORM_MANAGER_PROPERTY).getValue(context) : null;
-			setFormManager(processManager);
-		}
-	
-		return processManager;
-	}
-
-	public void setFormManager(ProcessFormManager formManager) {
-		this.formManager = formManager;
-	}
-
 	public String getTaskInstanceId() {
 		return taskInstanceId;
 	}
@@ -265,5 +221,25 @@ public class ProcessFormViewer extends IWBaseComponent {
 
 	public void setTaskInstanceId(String taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
+	}
+
+	public Process getProcess() {
+		return process;
+	}
+	
+	public Process getProcess(FacesContext context) {
+		
+		Process process = getProcess();
+		if(process == null) {
+			
+			process = getValueBinding(PROCESS_PROPERTY) != null ? (Process)getValueBinding(PROCESS_PROPERTY).getValue(context) : null;
+			setProcess(process);
+		}
+		
+		return process;
+	}
+
+	public void setProcess(Process process) {
+		this.process = process;
 	}
 }
