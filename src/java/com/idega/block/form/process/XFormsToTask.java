@@ -23,9 +23,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2007/12/04 18:48:49 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 19:38:00 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -165,7 +165,6 @@ public class XFormsToTask implements ViewToTask {
 		}
 	}
 	
-//	TODO: is this used
 	public View getView(long taskId) {
 		
 		Session session = getSessionFactory().getCurrentSession();
@@ -180,7 +179,7 @@ public class XFormsToTask implements ViewToTask {
 			ViewTaskBind vtb = ViewTaskBind.getViewTaskBind(session, taskId, XFormsView.VIEW_TYPE);
 			
 			if(vtb == null)
-				return null;
+				throw new NullPointerException("XForms view task bind couldn't be found for task id provided: "+taskId);
 			
 			return getViewFactory().getView(vtb.getViewIdentifier(), true);
 			
