@@ -23,9 +23,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2007/12/04 14:00:37 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 18:48:49 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -165,6 +165,7 @@ public class XFormsToTask implements ViewToTask {
 		}
 	}
 	
+//	TODO: is this used
 	public View getView(long taskId) {
 		
 		Session session = getSessionFactory().getCurrentSession();
@@ -181,7 +182,7 @@ public class XFormsToTask implements ViewToTask {
 			if(vtb == null)
 				return null;
 			
-			return getViewFactory().getView(vtb.getViewIdentifier());
+			return getViewFactory().getView(vtb.getViewIdentifier(), true);
 			
 		} finally {
 			if(!transactionWasActive)

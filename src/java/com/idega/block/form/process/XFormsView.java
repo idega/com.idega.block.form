@@ -16,15 +16,16 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2007/12/04 14:00:37 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/04 18:48:49 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
 	public static final String VIEW_TYPE = "xforms";
 	
-	private String viewType;
+	private String viewId;
+	private boolean submitable = true;
 	private DocumentManagerFactory documentManagerFactory;
 	private Document form;
 	private Converter converter;
@@ -38,19 +39,19 @@ public class XFormsView implements View {
 	}
 
 	public void setViewId(String viewId) {
-		throw new UnsupportedOperationException("XFormsView view type cannot be changed");
+		this.viewId = viewId;
 	}
 	
 	public String getViewId() {
-		return VIEW_TYPE;
+		return viewId;
 	}
 
 	public String getViewType() {
-		return viewType;
+		return VIEW_TYPE;
 	}
 
 	public void setViewType(String viewType) {
-		this.viewType = viewType;
+		throw new UnsupportedOperationException("XFormsView view type cannot be changed");
 	}
 	
 	public DocumentManagerFactory getDocumentManagerFactory() {
@@ -106,5 +107,13 @@ public class XFormsView implements View {
 			throw new NullPointerException("Form not loaded (null)");
 	
 		getConverter().revert(variables, form.getSubmissionInstanceElement());
+	}
+
+	public boolean isSubmitable() {
+		return submitable;
+	}
+
+	public void setSubmitable(boolean submitable) {
+		this.submitable = submitable;
 	}
 }
