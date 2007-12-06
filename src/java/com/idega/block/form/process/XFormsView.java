@@ -6,7 +6,7 @@ import javax.faces.application.Application;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
-import com.idega.block.form.process.ui.ProcessFormViewer;
+import com.idega.block.form.presentation.FormViewer;
 import com.idega.documentmanager.business.Document;
 import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
@@ -16,9 +16,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/12/04 18:48:49 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/06 13:22:30 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -68,12 +68,12 @@ public class XFormsView implements View {
 		FacesContext context = FacesContext.getCurrentInstance();
 		Application application = context.getApplication();
 		
-		ProcessFormViewer viewer = (ProcessFormViewer)application.createComponent(ProcessFormViewer.COMPONENT_TYPE);
+		System.out.println("submittable: "+submitable);
 		
-		//FIXME: viewer.setFormManager((ProcessFormManager)WFUtil.getBeanInstance("casesJbpmFormManager"));
-		//viewer.setTaskInstanceId(String.valueOf(taskInstanceId));
+		FormViewer formviewer = (FormViewer)application.createComponent(FormViewer.COMPONENT_TYPE);
+		formviewer.setXFormsDocument(form.getXformsDocument());
 		
-		return viewer;
+		return formviewer;
 	}
 	
 	public void load() {
@@ -95,8 +95,6 @@ public class XFormsView implements View {
 	}
 
 	public void addParameters(Map<String, String> parameters) {
-		
-//		FIXME: remove those custom 'managers', add possibility to add parameters to submit action 
 		
 		form.getParametersManager().cleanUpdate(parameters);
 	}

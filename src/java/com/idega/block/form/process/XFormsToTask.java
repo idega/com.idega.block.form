@@ -23,9 +23,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2007/12/04 19:38:00 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/06 13:22:30 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -53,7 +53,7 @@ public class XFormsToTask implements ViewToTask {
 	}
 	
 	public List<View> getAllViewsForViewType(String viewType) {
-		List<SelectItem> list = xformsPersistenceManager.getForms();
+		List<SelectItem> list = getXformsPersistenceManager().getForms();
 		List<View> forms = new ArrayList<View>();
 		ActorBindingViewBean actorBean = (ActorBindingViewBean) WFUtil.getBeanInstance("actorBindingManager");
 		String bindFormId = null;

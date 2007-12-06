@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.34 2007/12/04 14:00:37 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.35 2007/12/06 13:22:30 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -56,15 +56,17 @@ import com.idega.webface.WFUtil;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2007/12/04 14:00:37 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/06 13:22:30 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.34 $
+ * @version $Revision: 1.35 $
  */
 public class FormViewer extends IWBaseComponent {
 
+	public static final String COMPONENT_TYPE = "FormViewer";
+	
 	protected static final Logger log =   Logger.getLogger(FormViewer.class.getName());
-	private static final String taskInstanceIdParameter = "taskInstanceId";
+//	private static final String taskInstanceIdParameter = "taskInstanceId";
 
 	private String formId;
 	private Document xDoc;
