@@ -16,9 +16,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2007/12/06 13:22:30 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/06 20:29:20 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -68,8 +68,6 @@ public class XFormsView implements View {
 		FacesContext context = FacesContext.getCurrentInstance();
 		Application application = context.getApplication();
 		
-		System.out.println("submittable: "+submitable);
-		
 		FormViewer formviewer = (FormViewer)application.createComponent(FormViewer.COMPONENT_TYPE);
 		formviewer.setXFormsDocument(form.getXformsDocument());
 		
@@ -86,7 +84,10 @@ public class XFormsView implements View {
 		try {
 			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(FacesContext.getCurrentInstance());
 			form = documentManager.openForm(formId);
-		
+
+			if(!isSubmitable())
+				form.setReadonly(true);
+			
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
@@ -112,6 +113,10 @@ public class XFormsView implements View {
 	}
 
 	public void setSubmitable(boolean submitable) {
+		
 		this.submitable = submitable;
+		
+		if(form != null)
+			form.setReadonly(submitable);
 	}
 }

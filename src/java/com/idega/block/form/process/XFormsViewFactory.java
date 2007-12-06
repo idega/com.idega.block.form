@@ -8,21 +8,28 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2007/12/06 13:22:30 $ by $Author: civilis $
+ * Last modified: $Date: 2007/12/06 20:29:20 $ by $Author: civilis $
  */
 public class XFormsViewFactory extends DefaultViewFactoryImpl {
 
 	private DocumentManagerFactory documentManagerFactory;
 	private Converter converter;
 	
-//	TODO: is this called?
-	@Deprecated
-	public View createView() {
-		return new XFormsView();
+	public View getViewNoLoad(String viewIdentifier) {
+		
+		if(viewIdentifier == null || CoreConstants.EMPTY.equals(viewIdentifier))
+			throw new NullPointerException("View identifier not provided");
+		
+		XFormsView view = new XFormsView();
+		view.setViewId(viewIdentifier);
+		view.setDocumentManagerFactory(getDocumentManagerFactory());
+		view.setConverter(getConverter());
+		
+		return view;
 	}
-
+	
 	public View getView(String viewIdentifier, boolean submitable) {
 
 		if(viewIdentifier == null || CoreConstants.EMPTY.equals(viewIdentifier))
