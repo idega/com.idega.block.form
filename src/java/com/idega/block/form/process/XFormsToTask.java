@@ -6,15 +6,11 @@ import java.util.List;
 
 import javax.faces.model.SelectItem;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.jbpm.JbpmConfiguration;
 import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.jbpm.business.JbpmProcessBusinessBean;
 import com.idega.jbpm.data.ViewTaskBind;
+import com.idega.jbpm.data.dao.JbpmBindsDao;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
@@ -23,26 +19,16 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2007/12/06 13:22:30 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/06 16:56:35 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
-	private JbpmConfiguration cfg;
-	private SessionFactory sessionFactory;
 	private ViewFactory viewFactory;
 	private PersistenceManager xformsPersistenceManager;
-	private JbpmProcessBusinessBean jbpmProcessBusiness;
-
-	public JbpmProcessBusinessBean getJbpmProcessBusiness() {
-		return jbpmProcessBusiness;
-	}
-
-	public void setJbpmProcessBusiness(JbpmProcessBusinessBean jbpmProcessBusiness) {
-		this.jbpmProcessBusiness = jbpmProcessBusiness;
-	}
-
+	private JbpmBindsDao jbpmBindsDao; 
+	
 	public PersistenceManager getXformsPersistenceManager() {
 		return xformsPersistenceManager;
 	}
@@ -59,17 +45,10 @@ public class XFormsToTask implements ViewToTask {
 		String bindFormId = null;
 		if(actorBean.getTaskId() != null) {
 			String task = actorBean.getTaskId()[0];
-			Session session = null;
-			try {
-				session = getSessionFactory().openSession();
-				ViewTaskBind vtb = ViewTaskBind.getViewTaskBind(session, new Long(task).longValue(), viewType);
-				
-				if(vtb != null) {
-					bindFormId = vtb.getViewIdentifier();
-				}
-			} finally {
-				if(session != null)
-					session.close();
+			ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBind(new Long(task).longValue(), viewType);
+			
+			if(vtb != null) {
+				bindFormId = vtb.getViewIdentifier();
 			}
 		}
 		for(Iterator<SelectItem> it = list.iterator(); it.hasNext(); ) {
@@ -84,47 +63,17 @@ public class XFormsToTask implements ViewToTask {
 	}
 	
 	public Long getTask(String viewId) {
-		Session session = getSessionFactory().getCurrentSession();
 		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		try {
-			if(!transactionWasActive)
-				transaction.begin();
-			
-			ViewTaskBind vtb = ViewTaskBind.getViewTaskBindByView(session, viewId, XFormsView.VIEW_TYPE);
-			
-			return vtb == null ? null : vtb.getTaskId();
-		} finally {
-			if(session != null)
-				session.close();
-		}
+		ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBindByView(viewId, XFormsView.VIEW_TYPE);
+		return vtb == null ? null : vtb.getTaskId();
 	}
 	
 	public void unbind(String viewId) {
 		
-		Session session = getSessionFactory().getCurrentSession();
+		ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBindByView(viewId, XFormsView.VIEW_TYPE);
 		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
-		
-		try {
-			if(!transactionWasActive)
-				transaction.begin();
-			
-			ViewTaskBind vtb = ViewTaskBind.getViewTaskBindByView(session, viewId, XFormsView.VIEW_TYPE);
-			
-			if(vtb != null)
-				session.delete(vtb);
-			
-		} finally {
-			
-			if(!transactionWasActive)
-				transaction.commit();
-			
-		}
-		
+		if(vtb != null)
+			getJbpmBindsDao().remove(vtb);
 	}
 
 	public void bind(View view, Task task) {
@@ -133,82 +82,46 @@ public class XFormsToTask implements ViewToTask {
 //		also catch when duplicate view type and task id pair is tried to be entered, and override
 //		views could be versioned
 		
-		Session session = getSessionFactory().getCurrentSession();
+		ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBind(task.getId(), XFormsView.VIEW_TYPE);
 		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
+		boolean newVtb = false;
 		
-		try {
-			if(!transactionWasActive)
-				transaction.begin();
-			
-			ViewTaskBind vtb = ViewTaskBind.getViewTaskBind(session, task.getId(), XFormsView.VIEW_TYPE);
-			
-			boolean newVtb = false;
-			
-			if(vtb == null) {
-				vtb = new ViewTaskBind();
-				newVtb = true;
-			}
-			
-			vtb.setTaskId(task.getId());
-			vtb.setViewIdentifier(view.getViewId());
-			vtb.setViewType(view.getViewType());
-
-			if(newVtb)
-				session.save(vtb);
-			
-		} finally {
-			
-			if(!transactionWasActive)
-				transaction.commit();
+		if(vtb == null) {
+			vtb = new ViewTaskBind();
+			newVtb = true;
 		}
+		
+		vtb.setTaskId(task.getId());
+		vtb.setViewIdentifier(view.getViewId());
+		vtb.setViewType(view.getViewType());
+
+		if(newVtb)
+			getJbpmBindsDao().persist(vtb);
 	}
 	
 	public View getView(long taskId) {
 		
-		Session session = getSessionFactory().getCurrentSession();
+		ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBind(taskId, XFormsView.VIEW_TYPE);
 		
-		Transaction transaction = session.getTransaction();
-		boolean transactionWasActive = transaction.isActive();
+		if(vtb == null)
+			throw new NullPointerException("XForms view task bind couldn't be found for task id provided: "+taskId);
 		
-		if(!transactionWasActive)
-			transaction.begin();
-		
-		try {
-			ViewTaskBind vtb = ViewTaskBind.getViewTaskBind(session, taskId, XFormsView.VIEW_TYPE);
-			
-			if(vtb == null)
-				throw new NullPointerException("XForms view task bind couldn't be found for task id provided: "+taskId);
-			
-			return getViewFactory().getView(vtb.getViewIdentifier(), true);
-			
-		} finally {
-			if(!transactionWasActive)
-				transaction.commit();
-		}
+		return getViewFactory().getView(vtb.getViewIdentifier(), true);
 	}
 	
-	public void setJbpmConfiguration(JbpmConfiguration cfg) {
-		this.cfg = cfg;
-	}
-	
-	public JbpmConfiguration getJbpmConfiguration() {
-		return cfg;
-	}
-
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-
 	public ViewFactory getViewFactory() {
 		return viewFactory;
 	}
 
 	public void setViewFactory(ViewFactory viewFactory) {
 		this.viewFactory = viewFactory;
+	}
+
+	public JbpmBindsDao getJbpmBindsDao() {
+		return jbpmBindsDao;
+	}
+
+	public void setJbpmBindsDao(JbpmBindsDao jbpmBindsDao) {
+		this.jbpmBindsDao = jbpmBindsDao;
 	}
 }
