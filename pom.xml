@@ -1,8 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: pom.xml,v 1.24 2008/01/20 14:32:13 civilis Exp $ -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
   	<groupId>com.idega.block.platform</groupId>
@@ -13,7 +9,7 @@
   <groupId>com.idega.block.platform</groupId>
   <name>idegaWeb Form</name>
   <artifactId>com.idega.block.form</artifactId>
-  <version>4.0.0-SNAPSHOT</version>
+  <version>4.0.0</version>
   <inceptionYear>2006</inceptionYear>
   <description>idegaWeb Form block is a component for management of XForms-based forms</description>
   <scm>
@@ -23,6 +19,7 @@
      -->
     <connection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</connection>
     <developerConnection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</developerConnection>
+    <tag>com_idega_block_form-4_0_0</tag>
   </scm>
 
   <developers>
@@ -31,14 +28,14 @@
       <name>Gediminas Paulauskas</name>
       <email>gediminas@idega.com</email>
       <organization>idega software</organization>
-      <roles/>
+      <roles />
     </developer>
     <developer>
       <name>Vytautas Čivilis</name>
       <id>civilis</id>
       <email>civilis@idega.com</email>
       <organization>idega software</organization>
-      <roles/>
+      <roles />
     </developer>
   </developers>
   <dependencies>
