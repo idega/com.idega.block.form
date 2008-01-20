@@ -3,13 +3,17 @@
 	<name>com.idega.block.form</name>
 	<comment>idegaWeb Form block is a component for management of XForms-based forms</comment>
 	<projects>
-		<project>com.idega.content</project>
-		<project>com.idega.core</project>
-		<project>com.idega.dwr</project>
+		<project>is.idega.idegaweb.egov.cases</project>
+		<project>org.jboss.jbpm</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.springframework.ide.eclipse.core.springbuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -22,5 +26,6 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.maven.ide.eclipse.maven2Nature</nature>
+		<nature>org.springframework.ide.eclipse.core.springnature</nature>
 	</natures>
 </projectDescription>

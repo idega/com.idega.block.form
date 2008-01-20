@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: pom.xml,v 1.23 2007/10/14 10:51:24 civilis Exp $ -->
+<!-- $Id: pom.xml,v 1.24 2008/01/20 14:32:13 civilis Exp $ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -7,16 +7,20 @@
   <parent>
   	<groupId>com.idega.block.platform</groupId>
   	<artifactId>com.idega.block.base</artifactId>
-  	<version>4.0-SNAPSHOT</version>
+  	<version>4.0.0</version>
   </parent>
   <packaging>jar</packaging>
   <groupId>com.idega.block.platform</groupId>
   <name>idegaWeb Form</name>
   <artifactId>com.idega.block.form</artifactId>
-  <version>4.0-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
   <inceptionYear>2006</inceptionYear>
   <description>idegaWeb Form block is a component for management of XForms-based forms</description>
   <scm>
+    <!--
+    <connection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</connection>
+    <developerConnection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</developerConnection> 
+     -->
     <connection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</connection>
     <developerConnection>scm:cvs:ext:${user.name}@code.idega.com:/idega/cvs:${groupId}/${artifactId}/</developerConnection>
   </scm>
@@ -41,26 +45,32 @@
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.core</artifactId>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.webface</artifactId>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.documentmanager</artifactId>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>org.chiba.web</artifactId>
+      <version>2.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
 	  <artifactId>com.idega.slide</artifactId>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.addon</groupId>
       <artifactId>org.jboss.jbpm</artifactId>
+      <version>4.0.0</version>
     </dependency>
   </dependencies>
 </project>
