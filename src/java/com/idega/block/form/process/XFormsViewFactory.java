@@ -8,12 +8,14 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2007/12/06 20:29:20 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:23:38 $ by $Author: civilis $
  */
 public class XFormsViewFactory extends DefaultViewFactoryImpl {
 
+	private final String beanIdentifier = "process_xforms_viewFactory";
+	
 	private DocumentManagerFactory documentManagerFactory;
 	private Converter converter;
 	
@@ -64,5 +66,9 @@ public class XFormsViewFactory extends DefaultViewFactoryImpl {
 
 	public void setConverter(Converter converter) {
 		this.converter = converter;
+	}
+
+	public String getBeanIdentifier() {
+		return beanIdentifier;
 	}
 }

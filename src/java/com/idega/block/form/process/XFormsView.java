@@ -16,9 +16,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2007/12/06 20:29:20 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:23:38 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -118,5 +118,25 @@ public class XFormsView implements View {
 		
 		if(form != null)
 			form.setReadonly(submitable);
+	}
+
+	public void populateParameters(Map<String, String> parameters) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void populateVariables(Map<String, Object> variables) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public Map<String, String> resolveParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Map<String, Object> resolveVariables() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

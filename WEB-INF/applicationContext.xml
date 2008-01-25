@@ -19,6 +19,6 @@
 		<property name="xformsPersistenceManager" ref="xformsPersistenceManager" />
 		<!--  <property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />-->
         <property name="viewFactory" ref="process_xforms_viewFactory" />
-        <property name="jbpmBindsDao" ref="jbpmBindsDao" />
+        <property name="jbpmBindsDao" ref="bpmBindsDAO" />
 	</bean>
 </beans>

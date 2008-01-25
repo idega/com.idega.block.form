@@ -10,7 +10,7 @@ import org.jbpm.taskmgmt.def.Task;
 
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.data.dao.JbpmBindsDao;
+import com.idega.jbpm.data.dao.BpmBindsDAO;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
@@ -19,15 +19,15 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/01/06 16:56:35 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/25 15:23:38 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
 	private ViewFactory viewFactory;
 	private PersistenceManager xformsPersistenceManager;
-	private JbpmBindsDao jbpmBindsDao; 
+	private BpmBindsDAO jbpmBindsDao; 
 	
 	public PersistenceManager getXformsPersistenceManager() {
 		return xformsPersistenceManager;
@@ -117,11 +117,11 @@ public class XFormsToTask implements ViewToTask {
 		this.viewFactory = viewFactory;
 	}
 
-	public JbpmBindsDao getJbpmBindsDao() {
+	public BpmBindsDAO getJbpmBindsDao() {
 		return jbpmBindsDao;
 	}
 
-	public void setJbpmBindsDao(JbpmBindsDao jbpmBindsDao) {
+	public void setJbpmBindsDao(BpmBindsDAO jbpmBindsDao) {
 		this.jbpmBindsDao = jbpmBindsDao;
 	}
 }
