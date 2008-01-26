@@ -8,9 +8,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/01/25 15:23:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/26 09:45:18 $ by $Author: civilis $
  */
 public class XFormsViewFactory extends DefaultViewFactoryImpl {
 
@@ -19,19 +19,6 @@ public class XFormsViewFactory extends DefaultViewFactoryImpl {
 	private DocumentManagerFactory documentManagerFactory;
 	private Converter converter;
 	
-	public View getViewNoLoad(String viewIdentifier) {
-		
-		if(viewIdentifier == null || CoreConstants.EMPTY.equals(viewIdentifier))
-			throw new NullPointerException("View identifier not provided");
-		
-		XFormsView view = new XFormsView();
-		view.setViewId(viewIdentifier);
-		view.setDocumentManagerFactory(getDocumentManagerFactory());
-		view.setConverter(getConverter());
-		
-		return view;
-	}
-	
 	public View getView(String viewIdentifier, boolean submitable) {
 
 		if(viewIdentifier == null || CoreConstants.EMPTY.equals(viewIdentifier))
@@ -39,10 +26,9 @@ public class XFormsViewFactory extends DefaultViewFactoryImpl {
 		
 		XFormsView view = new XFormsView();
 		view.setViewId(viewIdentifier);
-		view.setSubmitable(submitable);
 		view.setDocumentManagerFactory(getDocumentManagerFactory());
 		view.setConverter(getConverter());
-		view.load();
+		view.setSubmitable(submitable);
 		
 		return view;
 	}

@@ -6,19 +6,24 @@ import javax.faces.application.Application;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
+import org.chiba.xml.xforms.core.Submission;
+import org.w3c.dom.Node;
+
 import com.idega.block.form.presentation.FormViewer;
 import com.idega.documentmanager.business.Document;
 import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
+import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.exe.Converter;
 import com.idega.util.CoreConstants;
+import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/01/25 15:23:38 $ by $Author: civilis $
+ * Last modified: $Date: 2008/01/26 09:45:18 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -29,6 +34,8 @@ public class XFormsView implements View {
 	private DocumentManagerFactory documentManagerFactory;
 	private Document form;
 	private Converter converter;
+	private Map<String, String> parameters;
+	private Map<String, Object> variables;
 	
 	public Converter getConverter() {
 		return converter;
@@ -39,6 +46,7 @@ public class XFormsView implements View {
 	}
 
 	public void setViewId(String viewId) {
+		form = null;
 		this.viewId = viewId;
 	}
 	
@@ -69,12 +77,15 @@ public class XFormsView implements View {
 		Application application = context.getApplication();
 		
 		FormViewer formviewer = (FormViewer)application.createComponent(FormViewer.COMPONENT_TYPE);
-		formviewer.setXFormsDocument(form.getXformsDocument());
+		formviewer.setXFormsDocument(getFormDocument().getXformsDocument());
 		
 		return formviewer;
 	}
 	
-	public void load() {
+	protected Document getFormDocument() {
+		
+		if(form != null)
+			return form;
 		
 		String formId = getViewId();
 		
@@ -88,24 +99,13 @@ public class XFormsView implements View {
 			if(!isSubmitable())
 				form.setReadonly(true);
 			
+			return form;
+			
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public void addParameters(Map<String, String> parameters) {
-		
-		form.getParametersManager().cleanUpdate(parameters);
-	}
-	
-	public void populate(Map<String, Object> variables) {
-		
-		if(form == null)
-			throw new NullPointerException("Form not loaded (null)");
-	
-		getConverter().revert(variables, form.getSubmissionInstanceElement());
 	}
 
 	public boolean isSubmitable() {
@@ -115,28 +115,39 @@ public class XFormsView implements View {
 	public void setSubmitable(boolean submitable) {
 		
 		this.submitable = submitable;
-		
-		if(form != null)
-			form.setReadonly(submitable);
+		getFormDocument().setReadonly(submitable);
 	}
 
 	public void populateParameters(Map<String, String> parameters) {
-		// TODO Auto-generated method stub
+		getFormDocument().getParametersManager().cleanUpdate(parameters);
 		
 	}
 
 	public void populateVariables(Map<String, Object> variables) {
-		// TODO Auto-generated method stub
-		
+		getConverter().revert(variables, getFormDocument().getSubmissionInstanceElement());
 	}
 
 	public Map<String, String> resolveParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		if(parameters != null)
+			return parameters;
+		
+		throw new UnsupportedOperationException("Resolving parameters from form not supported yet.");
 	}
 
 	public Map<String, Object> resolveVariables() {
-		// TODO Auto-generated method stub
-		return null;
+		
+		if(variables != null)
+			return variables;
+		
+		throw new UnsupportedOperationException("Resolving variables from form not supported yet.");
+	}
+	
+	public void setSubmission(Submission submission, Node submissionInstance) {
+		
+		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
+		
+    	parameters = new URIUtil(action).getParameters();
+    	variables = getConverter().convert(submissionInstance);
 	}
 }
