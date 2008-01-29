@@ -9,7 +9,7 @@
   <groupId>com.idega.block.platform</groupId>
   <name>idegaWeb Form</name>
   <artifactId>com.idega.block.form</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1-SNAPSHOT</version>
   <inceptionYear>2006</inceptionYear>
   <description>idegaWeb Form block is a component for management of XForms-based forms</description>
   <scm>
@@ -19,7 +19,6 @@
      -->
     <connection>scm:cvs:ext:civilis@code.idega.com:/idega/cvs:com.idega.block.platform/com.idega.block.form/</connection>
     <developerConnection>scm:cvs:ext:civilis@code.idega.com:/idega/cvs:com.idega.block.platform/com.idega.block.form/</developerConnection>
-    <tag>com_idega_block_addon_super-4_0_0</tag>
   </scm>
 
   <developers>
@@ -52,12 +51,12 @@
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>com.idega.documentmanager</artifactId>
-      <version>4.0.0</version>
+      <version>4.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
       <artifactId>org.chiba.web</artifactId>
-      <version>2.0.0</version>
+      <version>2.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.idega.block.platform</groupId>
@@ -67,7 +66,7 @@
     <dependency>
       <groupId>com.idega.block.addon</groupId>
       <artifactId>org.jboss.jbpm</artifactId>
-      <version>4.0.0</version>
+      <version>4.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
