@@ -21,9 +21,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- * Last modified: $Date: 2008/01/27 13:11:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 18:18:52 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -91,7 +91,7 @@ public class XFormsView implements View {
 		if (!isSubmitable())
 			form.setReadonly(true);
 
-		setViewId(form.getId());
+		viewId = form.getId();
 	}
 
 	protected Document getFormDocument() {
@@ -127,7 +127,7 @@ public class XFormsView implements View {
 	public void setSubmitable(boolean submitable) {
 
 		this.submitable = submitable;
-		getFormDocument().setReadonly(submitable);
+		getFormDocument().setReadonly(!submitable);
 	}
 
 	public void populateParameters(Map<String, String> parameters) {

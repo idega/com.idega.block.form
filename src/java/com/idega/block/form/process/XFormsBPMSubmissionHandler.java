@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 
 import com.idega.block.form.process.XFormsView;
 import com.idega.documentmanager.util.FormManagerUtil;
+import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessConstants;
 import com.idega.util.URIUtil;
@@ -23,9 +24,9 @@ import com.idega.webface.WFUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/02/07 13:53:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 18:18:52 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
@@ -57,7 +58,8 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
     	XFormsView casesXFormsView = xfvFact.getXFormsView();
     	casesXFormsView.setSubmission(submission, submissionInstance);
     	
-    	JbpmContext jbpmCtx = (JbpmContext)WFUtil.getBeanInstance(jbpmContextBeanIdentifier);
+    	IdegaJbpmContext ijCtx = (IdegaJbpmContext)WFUtil.getBeanInstance(jbpmContextBeanIdentifier);
+    	JbpmContext ctx = ijCtx.createJbpmContext();
     	
     	try {
     		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
@@ -68,13 +70,13 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
         	if(parameters.containsKey(ProcessConstants.PROCESS_DEFINITION_ID)) {
         		
         		long pdId = Long.parseLong(parameters.get(ProcessConstants.PROCESS_DEFINITION_ID));
-        		processDefinition = jbpmCtx.getGraphSession().getProcessDefinition(pdId);
+        		processDefinition = ctx.getGraphSession().getProcessDefinition(pdId);
         		bpmFactory.getProcessManager(processDefinition.getId()).startProcess(processDefinition.getId(), casesXFormsView);
         		
         	} else if(parameters.containsKey(ProcessConstants.TASK_INSTANCE_ID)) {
         		
         		long tskInstId = Long.parseLong(parameters.get(ProcessConstants.TASK_INSTANCE_ID));
-        		processDefinition = jbpmCtx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
+        		processDefinition = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
         		bpmFactory.getProcessManager(processDefinition.getId()).submitTaskInstance(tskInstId, casesXFormsView);
 
         	} else {
@@ -83,7 +85,7 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
         	}
 			
 		} finally {
-			jbpmCtx.close();
+			ijCtx.closeAndCommit(ctx);
 		}
     	
     	return null;
