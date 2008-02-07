@@ -23,13 +23,14 @@ import com.idega.webface.WFUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/01/26 09:45:18 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:53:53 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
 	private static final String bpmFactoryBeanIdentifier = "bpmFactory";
+	private static final String xformsViewBeanIdentifier = "process_xforms_viewFactory";
 	private static final String jbpmContextBeanIdentifier = "idegaJbpmContext";
     
 	@SuppressWarnings("unchecked")
@@ -52,8 +53,8 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
     	}
     	
     	BPMFactory bpmFactory = (BPMFactory)WFUtil.getBeanInstance(bpmFactoryBeanIdentifier);
-    	
-    	XFormsView casesXFormsView = new XFormsView();
+    	XFormsViewFactory xfvFact = (XFormsViewFactory)WFUtil.getBeanInstance(xformsViewBeanIdentifier);
+    	XFormsView casesXFormsView = xfvFact.getXFormsView();
     	casesXFormsView.setSubmission(submission, submissionInstance);
     	
     	JbpmContext jbpmCtx = (JbpmContext)WFUtil.getBeanInstance(jbpmContextBeanIdentifier);

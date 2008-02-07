@@ -8,9 +8,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/01/26 09:45:18 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/07 13:53:53 $ by $Author: civilis $
  */
 public class XFormsViewFactory extends DefaultViewFactoryImpl {
 
@@ -29,6 +29,15 @@ public class XFormsViewFactory extends DefaultViewFactoryImpl {
 		view.setDocumentManagerFactory(getDocumentManagerFactory());
 		view.setConverter(getConverter());
 		view.setSubmitable(submitable);
+		
+		return view;
+	}
+	
+	public XFormsView getXFormsView() {
+
+		XFormsView view = new XFormsView();
+		view.setDocumentManagerFactory(getDocumentManagerFactory());
+		view.setConverter(getConverter());
 		
 		return view;
 	}
