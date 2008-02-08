@@ -39,12 +39,13 @@ import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
+import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/10/05 11:44:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/02/08 07:54:12 $ by $Author: civilis $
  */
 public class FormsSlidePersistence implements PersistenceManager {
 
@@ -492,9 +493,22 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 
 	public String generateFormId(String name) {
+
+		String result = name+CoreConstants.MINUS+new Date();
+		String formId = result.replaceAll(" |:|\n", CoreConstants.UNDER).toLowerCase();
 		
-		String result = name+"-"+ new Date();
-		return result.replace(' ', '_').replace(':', '_');
+		char[] chars = formId.toCharArray();
+		StringBuilder correctFormId = new StringBuilder(formId.length());
+		
+		for (int i = 0; i < chars.length; i++) {
+			
+			int charId = (int)chars[i];
+			
+			if((charId > 47 && charId < 58) || charId == 45 || charId == 95 || (charId > 96 && charId < 123))
+				correctFormId.append(chars[i]);
+		}
+		
+		return correctFormId.toString();
 	}
 	
 	public void unlockForm(String form_id) {
