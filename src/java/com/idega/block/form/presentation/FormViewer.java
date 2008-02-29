@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.36 2008/02/28 17:11:58 anton Exp $ Created on
+ * $Id: FormViewer.java,v 1.37 2008/02/29 14:34:43 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -24,6 +24,12 @@ import javax.servlet.http.HttpSession;
 import org.chiba.adapter.ui.UIGenerator;
 import org.chiba.adapter.ui.XSLTGenerator;
 import org.chiba.web.IWBundleStarter;
+import org.chiba.web.WebAdapter;
+import org.chiba.web.flux.FluxAdapter;
+import org.chiba.web.servlet.HttpRequestHandler;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
+import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
@@ -47,20 +53,13 @@ import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.webface.WFUtil;
 
-import org.chiba.web.WebAdapter;
-import org.chiba.web.flux.FluxAdapter;
-import org.chiba.web.servlet.HttpRequestHandler;
-import org.chiba.web.session.XFormsSession;
-import org.chiba.web.session.XFormsSessionManager;
-import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
-
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/02/28 17:11:58 $ by $Author: anton $
+ * Last modified: $Date: 2008/02/29 14:34:43 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.36 $
+ * @version $Revision: 1.37 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -112,27 +111,20 @@ public class FormViewer extends IWBaseComponent {
 		
 		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 		HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
-		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 		
 		XFormsSessionManager sessionManager = getXFormsSessionManager();
-		XFormsSession xformsSession;
-		try {
-			xformsSession = sessionManager.createXFormsSession(request, response, session);
-		} catch (XFormsException e1) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e1);
-		}
+		XFormsSession xformsSession = sessionManager.createXFormsSession();
 		
 		/*
         the XFormsSessionManager is kept in the http-session though it is accessible as singleton. Subsequent
         servlets should access the manager through the http-session attribute as below to ensure the http-session
         is refreshed.
 		 */
-		//HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
+		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 		session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, sessionManager);
 
-		WebAdapter adapter = xformsSession.getAdapter();
-		//xformsSession.setAdapter(adapter);
+		WebAdapter adapter = new FluxAdapter();
+		xformsSession.setAdapter(adapter);
 		try {
 //			setupDocument(context, document);
 			setupAdapter(adapter, document, xformsSession, context);
@@ -162,7 +154,7 @@ public class FormViewer extends IWBaseComponent {
 				
 				UIGenerator uiGenerator = createUIGenerator(context, request, xformsSession);
 				// store WebAdapter in XFormsSession
-				//xformsSession.setAdapter(adapter);
+				xformsSession.setAdapter(adapter);
 				// store UIGenerator in XFormsSession as property
 				xformsSession.setProperty(XFormsSession.UIGENERATOR, uiGenerator);
 				// store queryString as 'referer' in XFormsSession
@@ -398,7 +390,7 @@ public class FormViewer extends IWBaseComponent {
      * @return a specific implementation of XFormsSessionManager (defaults to DefaultXFormsSessionManagerImpl)
 	 */
 	protected XFormsSessionManager getXFormsSessionManager() {
-		return DefaultXFormsSessionManagerImpl.getXFormsSessionManager();
+		return DefaultXFormsSessionManagerImpl.getInstance();
 	}
 	
 	public void setSessionKey(String sessionKey) {
