@@ -19,9 +19,9 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/03/03 13:12:56 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/03 13:21:20 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -43,14 +43,14 @@ public class XFormsToTask implements ViewToTask {
 		List<View> forms = new ArrayList<View>();
 		ProcRoleIdentityMgmntBean actorBean = (ProcRoleIdentityMgmntBean) WFUtil.getBeanInstance("actorBindingManager");
 		String bindFormId = null;
-		if(actorBean.getTaskId() != null) {
-			String task = actorBean.getTaskId()[0];
-			ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBind(new Long(task).longValue(), viewType);
-			
-			if(vtb != null) {
-				bindFormId = vtb.getViewIdentifier();
-			}
-		}
+//		if(actorBean.getTaskId() != null) {
+//			String task = actorBean.getTaskId()[0];
+//			ViewTaskBind vtb = getJbpmBindsDao().getViewTaskBind(new Long(task).longValue(), viewType);
+//			
+//			if(vtb != null) {
+//				bindFormId = vtb.getViewIdentifier();
+//			}
+//		}
 		for(Iterator<SelectItem> it = list.iterator(); it.hasNext(); ) {
 			SelectItem form = it.next();
 			String formId = (String) form.getValue();
