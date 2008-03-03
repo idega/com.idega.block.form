@@ -43,9 +43,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/02/08 07:54:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/03 06:50:06 $ by $Author: alexis $
  */
 public class FormsSlidePersistence implements PersistenceManager {
 
@@ -494,6 +494,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 	public String generateFormId(String name) {
 
+		name = name.replaceAll("-", CoreConstants.UNDER);
 		String result = name+CoreConstants.MINUS+new Date();
 		String formId = result.replaceAll(" |:|\n", CoreConstants.UNDER).toLowerCase();
 		
