@@ -7,10 +7,11 @@ import java.util.List;
 import javax.faces.model.SelectItem;
 
 import org.jbpm.taskmgmt.def.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.jbpm.data.ViewTaskBind;
-import com.idega.jbpm.data.dao.BpmBindsDAO;
+import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
@@ -19,15 +20,15 @@ import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/03/04 20:56:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/11 11:47:55 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
 	private ViewFactory viewFactory;
 	private PersistenceManager xformsPersistenceManager;
-	private BpmBindsDAO jbpmBindsDao; 
+	private BPMDAO jbpmBindsDao; 
 	
 	public PersistenceManager getXformsPersistenceManager() {
 		return xformsPersistenceManager;
@@ -117,11 +118,12 @@ public class XFormsToTask implements ViewToTask {
 		this.viewFactory = viewFactory;
 	}
 
-	public BpmBindsDAO getJbpmBindsDao() {
+	public BPMDAO getJbpmBindsDao() {
 		return jbpmBindsDao;
 	}
 
-	public void setJbpmBindsDao(BpmBindsDAO jbpmBindsDao) {
+	@Autowired
+	public void setJbpmBindsDao(BPMDAO jbpmBindsDao) {
 		this.jbpmBindsDao = jbpmBindsDao;
 	}
 }
