@@ -40,12 +40,13 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
+import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/03 06:50:06 $ by $Author: alexis $
+ * Last modified: $Date: 2008/03/21 15:54:02 $ by $Author: anton $
  */
 public class FormsSlidePersistence implements PersistenceManager {
 
@@ -90,8 +91,10 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 			InputStream is = webdav_resource.getMethodData();
 			
-			if(doc_builder == null)
-				doc_builder = BlockFormUtil.getDocumentBuilder();
+			//DOMUtil.parseInputStream(in, namespaces, validating)
+			//DOMUtil.prettyPrintDOM(DOC)
+			if(doc_builder == null || true)
+				doc_builder = XmlUtil.getDocumentBuilder();//BlockFormUtil.getDocumentBuilder();
 			
 			document = doc_builder.parse(is);
 		}
@@ -99,6 +102,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 			logger.log(Level.SEVERE, "Error loading form from Webdav: " + formId, e);
 		}
 		catch (SAXException e) {
+			
+			e.printStackTrace();
 			logger.warning("Could not parse form document: " + formId);
 		}
 		catch (ParserConfigurationException e) {
@@ -158,9 +163,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 		try {
 			IWSlideService service_bean = getIWSlideService();
+//			DOMUtil.prettyPrintDOM(document);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			DOMUtil.prettyPrintDOM(document, out);
 			InputStream is = new ByteArrayInputStream(out.toByteArray());
+//			System.out.println();
+			
 			service_bean.uploadFileAndCreateFoldersFromStringAsRoot(path_to_file, file_name, is, "text/xml", false);
 			
 //			if(lock_relevant) {
@@ -493,7 +501,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 
 	public String generateFormId(String name) {
-
 		name = name.replaceAll("-", CoreConstants.UNDER);
 		String result = name+CoreConstants.MINUS+new Date();
 		String formId = result.replaceAll(" |:|\n", CoreConstants.UNDER).toLowerCase();
