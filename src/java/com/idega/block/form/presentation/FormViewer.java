@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.38 2008/03/21 15:54:02 anton Exp $ Created on
+ * $Id: FormViewer.java,v 1.39 2008/03/22 11:27:23 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.myfaces.renderkit.html.util.AddResource;
+import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
 import org.chiba.web.IWBundleStarter;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
@@ -38,6 +40,8 @@ import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
+import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.webface.WFUtil;
 
 import org.chiba.web.WebAdapter;
@@ -48,10 +52,10 @@ import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/03/21 15:54:02 $ by $Author: anton $
+ * Last modified: $Date: 2008/03/22 11:27:23 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.38 $
+ * @version $Revision: 1.39 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -77,11 +81,10 @@ public class FormViewer extends IWBaseComponent {
 	protected void initializeComponent(FacesContext context) {
 		
 		super.initializeComponent(context);
-		
 		initializeXForms(context);
 	}
 	
-	private void initializeXForms(FacesContext context) {
+	protected Document resolveXFormsDocument(FacesContext context) {
 		
 		Document document = xDoc;
 		
@@ -89,17 +92,27 @@ public class FormViewer extends IWBaseComponent {
 			
 			String formId = getFormId(context);
 			
-			if(formId == null || formId.equals(""))
-				return;
+			if(formId == null || formId.equals(CoreConstants.EMPTY))
+				return null;
 				
 			PersistenceManager persistenceManager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
 			document = persistenceManager.loadFormNoLock(formId);
 			
 			if (document == null) {
 				log.log(Level.SEVERE, "Could not load the form for id: " + formId);
-				return;
+				return null;
 			}
 		}
+		
+		return document;
+	}
+	
+	protected void initializeXForms(FacesContext context) {
+		
+		Document document = resolveXFormsDocument(context);
+		
+		if(document == null)
+			return;
 		
 		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 		HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
@@ -109,7 +122,7 @@ public class FormViewer extends IWBaseComponent {
 		XFormsSession xformsSession = null;
 		
 		try {
-			sessionManager = getXFormsSessionManager();
+			sessionManager = getXFormsSessionManager(session);
 			//get IdegaXFormsSessionBase instance
 			xformsSession = sessionManager.createXFormsSession(request, response, session);
 		}catch (XFormsConfigException e2) {
@@ -119,8 +132,6 @@ public class FormViewer extends IWBaseComponent {
 			throw new RuntimeException(e1);
 		}
 		
-		session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, sessionManager);
-
 		WebAdapter adapter = xformsSession.getAdapter();
 		//xformsSession.setAdapter(adapter);
 		try {
@@ -168,6 +179,15 @@ public class FormViewer extends IWBaseComponent {
 			return;
 		}
 	}
+	
+//	AddResource resource = AddResourceFactory.getInstance(context);
+//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, CoreUtil.getCoreBundle().getVirtualPathWithFileNameString(CACHE_JS_SRC));
+//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, web2_business.getBundleURIToMootoolsLib());
+//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, web2_business.getBundleURIToJQueryLib());
+//	resource.addInlineScriptAtPosition(context, AddResource.HEADER_BEGIN, "jQuery.noConflict();");
+//	
+//	IWBundle bundle = iwma.getBundle(IW_BUNDLE_IDENTIFIER);
+//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, bundle.getVirtualPathWithFileNameString(ELIGHT_JS_SRC));
 
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
@@ -177,7 +197,7 @@ public class FormViewer extends IWBaseComponent {
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 			WebAdapter webAdapter = null;
 			try {
-				XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+				XFormsSessionManager manager = getXFormsSessionManager(session);
 				XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
 				
 				HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
@@ -188,7 +208,7 @@ public class FormViewer extends IWBaseComponent {
                 xFormsSession.handleRequest();
 				
            } catch (Exception e) {
-	        	log.log(Level.WARNING, "Error rendering form", e);
+	        	log.log(Level.SEVERE, "Error rendering form", e);
 	        	shutdown(webAdapter, session, getSessionKey());
 			}
 		}
@@ -207,7 +227,7 @@ public class FormViewer extends IWBaseComponent {
 		if(formId == null) {
 			
 			formId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
-			formId = "".equals(formId) ? null : formId;
+			formId = CoreConstants.EMPTY.equals(formId) ? null : formId;
 			setFormId(formId);
 		}
 		
@@ -253,38 +273,6 @@ public class FormViewer extends IWBaseComponent {
 		log.fine("Exited during XForms model init");
 	}
 	
-//	protected void setupDocument(FacesContext ctx, Document document) {
-//
-////		TODO: move this to specific form viewer. don't worry about the mess for now
-//		String tiIdPar = getTaskInstanceId() != null ? getTaskInstanceId() : getValueBinding("taskInstanceId") != null ? (String)getValueBinding("taskInstanceId").getValue(ctx) : (String)ctx.getExternalContext().getRequestParameterMap().get(taskInstanceIdParameter);
-//		
-//		if(tiIdPar == null || tiIdPar.equals(""))
-//			return;
-//		
-////		check if task id parses as long
-//		long tiId = Long.parseLong(tiIdPar);
-//		
-//		try {
-//			XPathFactory factory = XPathFactory.newInstance();
-//			XPath xpath = factory.newXPath();
-//			
-//			NamespaceContextImpl nmspCtx = new NamespaceContextImpl();
-//			nmspCtx.addPrefix("xf", "http://www.w3.org/2002/xforms");
-//			xpath.setNamespaceContext(nmspCtx);
-//			
-//			XPathExpression exp = xpath.compile("//xf:instance[@id='data-instance']");
-//			
-//			Node instance = (Node)exp.evaluate(document, XPathConstants.NODE);
-//			VariablesHandler vh = (VariablesHandler)WFUtil.getBeanInstance("process_xforms_variablesHandler");
-//			vh.populate(tiId, instance);
-//			
-//		} catch (XPathException e) {
-//			throw new RuntimeException("Could not compile XPath expression: " + e.getMessage(), e);
-//		}
-//		
-//		BlockFormUtil.appendToSubmissionsActions(document, "?taskId="+tiIdPar);
-//	}
-
 	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
 		adapter.setXFormsSession(xforms_session);
 		adapter.setXForms(document);
@@ -324,8 +312,17 @@ public class FormViewer extends IWBaseComponent {
 		this.xDoc = xDoc;
 	}
 	
-	protected XFormsSessionManager getXFormsSessionManager() throws XFormsConfigException {
-		return DefaultXFormsSessionManagerImpl.createXFormsSessionManager(IdegaXFormSessionManagerImpl.class.getName());
+	protected XFormsSessionManager getXFormsSessionManager(HttpSession session) throws XFormsConfigException {
+		
+		XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+		
+		if(manager == null) {
+		
+			manager = DefaultXFormsSessionManagerImpl.createXFormsSessionManager(IdegaXFormSessionManagerImpl.class.getName());
+			session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, manager);
+		}
+			
+		return manager;
 	}
 	
 	public void setSessionKey(String sessionKey) {
