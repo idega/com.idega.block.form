@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.40 2008/03/26 09:25:12 arunas Exp $ Created on
+ * $Id: FormViewer.java,v 1.41 2008/03/26 15:54:47 anton Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -9,6 +9,7 @@
  */
 package com.idega.block.form.presentation;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,10 +54,10 @@ import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/03/26 09:25:12 $ by $Author: arunas $
+ * Last modified: $Date: 2008/03/26 15:54:47 $ by $Author: anton $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.40 $
+ * @version $Revision: 1.41 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -285,7 +286,7 @@ public class FormViewer extends IWBaseComponent {
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
-		adapter.setUploadDestination(FileUploads.UPLOADS_PATH + xforms_session.getKey());
+		adapter.setUploadDestination(FileUploads.UPLOADS_PATH);
 		// storeCookies(request, adapter);
 	}
 
