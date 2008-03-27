@@ -16,9 +16,9 @@ import com.idega.jbpm.def.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/27 14:13:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 16:18:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -32,8 +32,7 @@ public class FilesConverter implements DataConverter {
 		String variableName = ctx.getAttribute(mappingAtt);
 		
 		List<File> files = getUploadsManager().getFiles(variableName, ctx);
-		return files.isEmpty() ? null : files.iterator().next();
-		///return files;
+		return files;
 	}
 	public Element revert(Object o, Element e) {
 	
