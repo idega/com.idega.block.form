@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.41 2008/03/26 15:54:47 anton Exp $ Created on
+ * $Id: FormViewer.java,v 1.42 2008/03/27 14:13:12 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -9,7 +9,6 @@
  */
 package com.idega.block.form.presentation;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,9 +20,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.myfaces.renderkit.html.util.AddResource;
-import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
 import org.chiba.web.IWBundleStarter;
+import org.chiba.web.WebAdapter;
+import org.chiba.web.session.XFormsSession;
+import org.chiba.web.session.XFormsSessionManager;
+import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
@@ -37,27 +38,21 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
-import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploads;
+import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.util.CoreConstants;
-import com.idega.util.CoreUtil;
 import com.idega.webface.WFUtil;
-
-import org.chiba.web.WebAdapter;
-import org.chiba.web.session.XFormsSession;
-import org.chiba.web.session.XFormsSessionManager;
-import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/03/26 15:54:47 $ by $Author: anton $
+ * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.41 $
+ * @version $Revision: 1.42 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -286,7 +281,7 @@ public class FormViewer extends IWBaseComponent {
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
-		adapter.setUploadDestination(FileUploads.UPLOADS_PATH);
+		adapter.setUploadDestination(FileUploadManager.getUPLOADSPATH());
 		// storeCookies(request, adapter);
 	}
 

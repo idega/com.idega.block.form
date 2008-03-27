@@ -4,16 +4,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.idega.jbpm.def.VariableDataType;
+import com.idega.util.CoreConstants;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/10/14 10:51:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:13:10 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service
 public class CollectionConverter implements DataConverter {
 
 	public Object convert(Element o) {
@@ -24,10 +31,10 @@ public class CollectionConverter implements DataConverter {
 		
 		List<String> values = new ArrayList<String>();
 		
-		if(txt == null || txt.equals(""))
+		if(txt == null || txt.equals(CoreConstants.EMPTY))
 			return values;
 		
-		String[] splitted = txt.split(" ");
+		String[] splitted = txt.split(CoreConstants.SPACE);
 		values.addAll(Arrays.asList(splitted));
 		
 		return values;
@@ -59,15 +66,19 @@ public class CollectionConverter implements DataConverter {
 		
 		for (String value : values) {
 
-			if(value == null || value.trim().equals(""))
+			if(value == null || value.trim().equals(CoreConstants.EMPTY))
 				continue;
 			
 			sb.append(value);
-			sb.append(" ");
+			sb.append(CoreConstants.SPACE);
 		}
 		
 		e.appendChild(e.getOwnerDocument().createTextNode(sb.toString().trim()));
 		
 		return e;
+	}
+	
+	public VariableDataType getDataType() {
+		return VariableDataType.LIST;
 	}
 }

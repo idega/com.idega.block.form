@@ -13,6 +13,7 @@ import org.jbpm.graph.def.ProcessDefinition;
 import org.w3c.dom.Node;
 
 import com.idega.block.form.process.XFormsView;
+import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
 import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.jbpm.IdegaJbpmContext;
 import com.idega.jbpm.exe.BPMFactory;
@@ -24,12 +25,13 @@ import com.idega.webface.WFUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/02/07 18:18:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
+	public static final String variablesUploadManagerBeanIdentifier = "variablesUploadManager";
 	private static final String bpmFactoryBeanIdentifier = "bpmFactory";
 	private static final String xformsViewBeanIdentifier = "process_xforms_viewFactory";
 	private static final String jbpmContextBeanIdentifier = "idegaJbpmContext";
@@ -87,6 +89,9 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
 		} finally {
 			ijCtx.closeAndCommit(ctx);
 		}
+		
+		FileUploadManager uploadManager = (FileUploadManager)WFUtil.getBeanInstance(variablesUploadManagerBeanIdentifier);
+		uploadManager.cleanup(submissionInstance);
     	
     	return null;
     }

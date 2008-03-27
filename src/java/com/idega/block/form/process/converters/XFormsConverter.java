@@ -5,80 +5,67 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathException;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.idega.jbpm.def.VariableDataType;
 import com.idega.jbpm.exe.Converter;
 import com.idega.util.CoreConstants;
+import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2007/11/15 09:23:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:13:11 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service
 public class XFormsConverter implements Converter {
 
+//	TODO: move this mapping att to some public place
 	private static final String MAPPING_ATT = "mapping";
-	
-	private XPathExpression exp;
-	
-	public XFormsConverter() {
-		
-		try {
-			XPathFactory factory = XPathFactory.newInstance();
-			XPath xpath = factory.newXPath();
-			exp = xpath.compile(new StringBuilder("//*[@").append(MAPPING_ATT).append("]").toString());
-			
-		} catch (XPathException e) {
-			throw new RuntimeException("Could not compile XPath expression: " + e.getMessage(), e);
-		}
-	}
+	private DataConvertersFactory convertersFactory;
+	final private XPathUtil mappingXPUT = new XPathUtil("//*[@mapping]");
 	
 	public Map<String, Object> convert(Object submissionData) {
 
 		Node sdNode = (Node)submissionData;
 		
-		try {
-			NodeList result;
-			
-			synchronized (exp) {
-				result = (NodeList)exp.evaluate(sdNode, XPathConstants.NODESET);
-			}
-			
-			if(result.getLength() == 0)
-				return null;
-			
-			Map<String, Object> variables = new HashMap<String, Object>();
-			
-			for (int i = 0; i < result.getLength(); i++) {
-				
-				Element element = (Element)result.item(i);
-				String mapping = element.getAttribute(MAPPING_ATT);
-				
-				Object variableValue = getConvertersFactory().createConverter(getDataType(mapping)).convert(element);
-				
-				if(variableValue != null)
-					variables.put(mapping, variableValue);
-			}
-			
-			return variables;
-			
-		} catch (XPathException e) {
-			throw new RuntimeException("Could not evaluate XPath expression: " + e.getMessage(), e);
+		NodeList result;
+		
+		synchronized (mappingXPUT) {
+			result = mappingXPUT.getNodeset(sdNode);
 		}
+		
+		if(result.getLength() == 0)
+			return null;
+		
+		Map<String, Object> variables = new HashMap<String, Object>();
+		
+		for (int i = 0; i < result.getLength(); i++) {
+			
+			Element element = (Element)result.item(i);
+			String mapping = element.getAttribute(MAPPING_ATT);
+			
+			Object variableValue = getConvertersFactory().createConverter(getDataType(mapping)).convert(element);
+			
+			if(variableValue != null)
+				variables.put(mapping, variableValue);
+		}
+		
+		return variables;
 	}
 	
-	protected String getDataType(String mapping) {
+	protected VariableDataType getDataType(String mapping) {
 		
-		return mapping.contains(CoreConstants.COLON) ? mapping.substring(0, mapping.indexOf(CoreConstants.COLON)) : "string";
+		String strRepr = mapping.contains(CoreConstants.COLON) ? mapping.substring(0, mapping.indexOf(CoreConstants.COLON)) : "string";
+		return VariableDataType.getByStringRepresentation(strRepr);
 	}
 
 	public Object revert(Map<String, Object> variables, Object submissionData) {
@@ -87,34 +74,29 @@ public class XFormsConverter implements Converter {
 			return submissionData;
 		
 		Node sdNode = (Node)submissionData;
-		try {
-			NodeList result;
-			
-			synchronized (exp) {
-				result = (NodeList)exp.evaluate(sdNode, XPathConstants.NODESET);
-			}
-			
-			if(result.getLength() == 0)
-				return null;
-			
-			for (int i = 0; i < result.getLength(); i++) {
-				
-				Element element = (Element)result.item(i);
-				String mapping = element.getAttribute(MAPPING_ATT);
-				
-				if(variables.containsKey(mapping)) {
-					
-					Object o = variables.get(mapping);
-					if(o != null)
-						getConvertersFactory().createConverter(getDataType(mapping)).revert(o, element);
-				}
-			}
-			
-			return sdNode;
-			
-		} catch (XPathException e) {
-			throw new RuntimeException("Could not evaluate XPath expression: " + e.getMessage(), e);
+		NodeList result;
+		
+		synchronized (mappingXPUT) {
+			result = mappingXPUT.getNodeset(sdNode);
 		}
+		
+		if(result.getLength() == 0)
+			return null;
+		
+		for (int i = 0; i < result.getLength(); i++) {
+			
+			Element element = (Element)result.item(i);
+			String mapping = element.getAttribute(MAPPING_ATT);
+			
+			if(variables.containsKey(mapping)) {
+				
+				Object o = variables.get(mapping);
+				if(o != null)
+					getConvertersFactory().createConverter(getDataType(mapping)).revert(o, element);
+			}
+		}
+		
+		return sdNode;
 	}
 	
 	public static void main(String[] args) {
@@ -142,12 +124,11 @@ public class XFormsConverter implements Converter {
 		}
 	}
 	
-	private DataConvertersFactory convertersFactory;
-
 	public DataConvertersFactory getConvertersFactory() {
 		return convertersFactory;
 	}
 
+	@Autowired
 	public void setConvertersFactory(DataConvertersFactory convertersFactory) {
 		this.convertersFactory = convertersFactory;
 	}

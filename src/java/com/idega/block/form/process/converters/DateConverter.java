@@ -6,16 +6,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.idega.jbpm.def.VariableDataType;
+
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2007/10/14 10:51:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:13:11 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Service
 public class DateConverter implements DataConverter {
 	
 	private SimpleDateFormat dateFormatter;
@@ -64,5 +70,9 @@ public class DateConverter implements DataConverter {
 		e.appendChild(txtNode);
 		
 		return e;
+	}
+	
+	public VariableDataType getDataType() {
+		return VariableDataType.DATE;
 	}
 }

@@ -15,14 +15,12 @@ import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
-import com.idega.jbpm.presentation.beans.IdentityMgmntBean;
-import com.idega.webface.WFUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/03/11 11:47:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
  */
 public class XFormsToTask implements ViewToTask {
 	
@@ -42,7 +40,7 @@ public class XFormsToTask implements ViewToTask {
 	public List<View> getAllViewsForViewType(String viewType) {
 		List<SelectItem> list = getXformsPersistenceManager().getForms();
 		List<View> forms = new ArrayList<View>();
-		IdentityMgmntBean actorBean = (IdentityMgmntBean) WFUtil.getBeanInstance("actorBindingManager");
+		//IdentityMgmntBean actorBean = (IdentityMgmntBean) WFUtil.getBeanInstance("actorBindingManager");
 		String bindFormId = null;
 //		if(actorBean.getTaskId() != null) {
 //			String task = actorBean.getTaskId()[0];

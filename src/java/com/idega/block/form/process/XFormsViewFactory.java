@@ -1,5 +1,7 @@
 package com.idega.block.form.process;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.impl.DefaultViewFactoryImpl;
@@ -8,9 +10,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/02/07 13:53:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
  */
 public class XFormsViewFactory extends DefaultViewFactoryImpl {
 
@@ -59,6 +61,7 @@ public class XFormsViewFactory extends DefaultViewFactoryImpl {
 		return converter;
 	}
 
+	@Autowired
 	public void setConverter(Converter converter) {
 		this.converter = converter;
 	}

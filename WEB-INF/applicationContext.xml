@@ -3,14 +3,8 @@
 
 <beans>
 	<bean id="xformsPersistenceManager" class="com.idega.block.form.business.FormsSlidePersistence" scope="singleton" />
-	<bean id="process_xforms_converter" class="com.idega.block.form.process.converters.XFormsConverter" scope="singleton">
-		<property name="convertersFactory" ref="process_xforms_dataConvertersFactory" />
-	</bean>
-	<bean id="process_xforms_dataConvertersFactory" class="com.idega.block.form.process.converters.DataConvertersFactory" scope="singleton" />
-    
 	<bean id="process_xforms_viewFactory" class="com.idega.block.form.process.XFormsViewFactory" scope="singleton">
         <property name="documentManagerFactory" ref="xformsDocumentManagerFact" />
-        <property name="converter" ref="process_xforms_converter" />
     </bean>
     
 	<bean id="process_xforms_viewToTask" class="com.idega.block.form.process.XFormsToTask" scope="singleton">
