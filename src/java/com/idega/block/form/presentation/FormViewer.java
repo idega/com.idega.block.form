@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.43 2008/04/01 14:28:00 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.44 2008/04/01 17:17:59 anton Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -46,13 +46,16 @@ import com.idega.presentation.IWBaseComponent;
 import com.idega.util.CoreConstants;
 import com.idega.webface.WFUtil;
 
+import org.apache.myfaces.renderkit.html.util.AddResource;
+import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
+
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/04/01 14:28:00 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/01 17:17:59 $ by $Author: anton $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.43 $
+ * @version $Revision: 1.44 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -105,6 +108,10 @@ public class FormViewer extends IWBaseComponent {
 	}
 	
 	protected void initializeXForms(FacesContext context) {
+	
+		AddResource resource = AddResourceFactory.getInstance(context);
+		resource.addStyleSheet(context, AddResource.HEADER_BEGIN, "/content" + IWBundleStarter.SLIDE_STYLES_PATH + IWBundleStarter.CHIBA_CSS);
+	
 		
 		Document document = resolveXFormsDocument(context);
 		
@@ -176,15 +183,6 @@ public class FormViewer extends IWBaseComponent {
 			return;
 		}
 	}
-	
-//	AddResource resource = AddResourceFactory.getInstance(context);
-//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, CoreUtil.getCoreBundle().getVirtualPathWithFileNameString(CACHE_JS_SRC));
-//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, web2_business.getBundleURIToMootoolsLib());
-//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, web2_business.getBundleURIToJQueryLib());
-//	resource.addInlineScriptAtPosition(context, AddResource.HEADER_BEGIN, "jQuery.noConflict();");
-//	
-//	IWBundle bundle = iwma.getBundle(IW_BUNDLE_IDENTIFIER);
-//	resource.addJavaScriptAtPosition(context, AddResource.HEADER_BEGIN, bundle.getVirtualPathWithFileNameString(ELIGHT_JS_SRC));
 
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
