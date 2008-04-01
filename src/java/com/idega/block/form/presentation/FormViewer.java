@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.42 2008/03/27 14:13:12 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.43 2008/04/01 14:28:00 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -49,10 +49,10 @@ import com.idega.webface.WFUtil;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/01 14:28:00 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.42 $
+ * @version $Revision: 1.43 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -281,7 +281,7 @@ public class FormViewer extends IWBaseComponent {
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
-		adapter.setUploadDestination(FileUploadManager.getUPLOADSPATH());
+		adapter.setUploadDestination(FileUploadManager.UPLOADS_PATH);
 		// storeCookies(request, adapter);
 	}
 
