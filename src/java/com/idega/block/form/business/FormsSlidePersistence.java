@@ -44,9 +44,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/03/21 15:54:02 $ by $Author: anton $
+ * Last modified: $Date: 2008/04/02 19:16:42 $ by $Author: civilis $
  */
 public class FormsSlidePersistence implements PersistenceManager {
 
@@ -91,10 +91,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 			InputStream is = webdav_resource.getMethodData();
 			
-			//DOMUtil.parseInputStream(in, namespaces, validating)
-			//DOMUtil.prettyPrintDOM(DOC)
 			if(doc_builder == null || true)
-				doc_builder = XmlUtil.getDocumentBuilder();//BlockFormUtil.getDocumentBuilder();
+				doc_builder = XmlUtil.getDocumentBuilder();
 			
 			document = doc_builder.parse(is);
 		}
@@ -153,23 +151,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 		saveForm(form_id, document, true);
 	}
 
-	protected void saveForm(String formId, Document document, boolean lock_relevant) throws Exception {
+	protected void saveForm(String formId, Document document, boolean lockRelevant) throws Exception {
 
 		if(formId == null || document == null)
 			throw new NullPointerException("formId or document not provided");
 		
-		String path_to_file = new StringBuilder(FORMS_PATH).append(BlockFormUtil.slash).append(formId).append(BlockFormUtil.slash).toString();
-		String file_name = formId + FORMS_FILE_EXTENSION;
+		String pathToFile = new StringBuilder(FORMS_PATH).append(BlockFormUtil.slash).append(formId).append(BlockFormUtil.slash).toString();
+		String fileName = formId + FORMS_FILE_EXTENSION;
 
 		try {
-			IWSlideService service_bean = getIWSlideService();
-//			DOMUtil.prettyPrintDOM(document);
+			IWSlideService slideService = getIWSlideService();
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			DOMUtil.prettyPrintDOM(document, out);
 			InputStream is = new ByteArrayInputStream(out.toByteArray());
-//			System.out.println();
-			
-			service_bean.uploadFileAndCreateFoldersFromStringAsRoot(path_to_file, file_name, is, "text/xml", false);
+			slideService.uploadFileAndCreateFoldersFromStringAsRoot(pathToFile, fileName, is, "text/xml", false);
 			
 //			if(lock_relevant) {
 //				
@@ -182,26 +177,23 @@ public class FormsSlidePersistence implements PersistenceManager {
 //					logger.info("form is locked");
 //			}
 			
-			WebdavResource webdav_res = service_bean.getWebdavResourceAuthenticatedAsRoot(path_to_file);
+			WebdavResource formWebdavRes = slideService.getWebdavResourceAuthenticatedAsRoot(pathToFile+fileName);
 			String formTitle = BlockFormUtil.getDefaultFormTitle(document);
+			setFormTitleProperty(formWebdavRes, formTitle);
 			
 			// ensure formNames is initialized
-			List<SelectItem> loaded_form_names = getForms();
+			List<SelectItem> loadedFormNames = getForms(false);
 			
-			SelectItem f = findFormName(formId);
-			if (f != null) {				
-				if (!formTitle.equals(f.getLabel())) {
-					f.setLabel(formTitle);
-					setFormTitleProperty(webdav_res, formTitle);
-				}
+			if(loadedFormNames != null) {
+				
+				for (SelectItem f : loadedFormNames)
+					
+					if (formId.equals(f.getValue())) {
+						loadedFormNames.add(f);
+						break;
+					}
 			}
-			else {
-				setFormTitleProperty(webdav_res, formTitle);
-				f = new AvailableFormBean(formId, formTitle);
-				loaded_form_names.add(f);
-			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Exception occured while saving document to webdav directory: "+formId, e);
 			throw e;
 		}
@@ -277,16 +269,16 @@ public class FormsSlidePersistence implements PersistenceManager {
 			resource.proppatchMethod(FORM_NAME_PROPERTY_NAME, formTitle, true);
 		}
 	}
-
-	public List<SelectItem> getForms() {
+	
+	public synchronized List<SelectItem> getForms() {
 		
-		if(formNames == null) {
-			synchronized (FormsSlidePersistence.class) {
-				if(formNames == null) {
-					formNames = loadAvailableForms();
-				}
-			}
-		}
+		return getForms(true);
+	}
+
+	public List<SelectItem> getForms(boolean load) {
+		
+		if(load && formNames == null)
+			formNames = loadAvailableForms();
 		
 		return formNames;
 	}
