@@ -14,6 +14,7 @@ import com.idega.documentmanager.business.Document;
 import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.documentmanager.util.FormManagerUtil;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.exe.Converter;
 import com.idega.util.CoreConstants;
@@ -21,9 +22,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * 
- * Last modified: $Date: 2008/02/07 18:18:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/02 19:17:50 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -106,7 +107,7 @@ public class XFormsView implements View {
 
 		try {
 			DocumentManager documentManager = getDocumentManagerFactory()
-					.newDocumentManager(FacesContext.getCurrentInstance());
+					.newDocumentManager(IWMainApplication.getIWMainApplication(FacesContext.getCurrentInstance()));
 			Document form = documentManager.openForm(formId);
 
 			setFormDocument(form);

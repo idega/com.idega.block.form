@@ -6,12 +6,4 @@
 	<bean id="process_xforms_viewFactory" class="com.idega.block.form.process.XFormsViewFactory" scope="singleton">
         <property name="documentManagerFactory" ref="xformsDocumentManagerFact" />
     </bean>
-    
-	<bean id="process_xforms_viewToTask" class="com.idega.block.form.process.XFormsToTask" scope="singleton">
-		<!--  <property name="jbpmConfiguration" ref="defaultJbpmConfiguration" />-->
-		<!--  <property name="hibernateResources" ref="idegaHibernateResources" />-->
-		<property name="xformsPersistenceManager" ref="xformsPersistenceManager" />
-		<!--  <property name="jbpmProcessBusiness" ref="jbpmProcessBusiness" />-->
-        <property name="viewFactory" ref="process_xforms_viewFactory" />
-	</bean>
 </beans>

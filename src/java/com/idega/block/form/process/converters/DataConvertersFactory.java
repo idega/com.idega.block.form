@@ -12,9 +12,9 @@ import com.idega.jbpm.def.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/27 14:13:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/02 19:17:50 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository
@@ -28,16 +28,6 @@ public class DataConvertersFactory {
 	}
 
 	public synchronized DataConverter createConverter(VariableDataType dataType) {
-
-//		ConverterDataType cdt = ConverterDataType.valueOf(dataType.toUpperCase());
-//		
-//		if(converters.containsKey(cdt))
-//			return converters.get(cdt);
-//		
-//		DataConverter converter = cdt.getConverter();
-//		converters.put(cdt, converter);
-//		return converter;
-		
 		return getDataConverters().get(dataType);
 	}
 
@@ -49,7 +39,6 @@ public class DataConvertersFactory {
 	public void setInjDataConverters(List<DataConverter> injDataConverters) {
 		
 		final Map<VariableDataType, DataConverter> dataConverters = getDataConverters();
-		System.out.println("injecting data converters:"+injDataConverters);
 		
 		for (DataConverter dataConverter : injDataConverters) {
 			

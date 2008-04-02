@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.faces.model.SelectItem;
 
 import org.jbpm.taskmgmt.def.Task;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.jbpm.data.ViewTaskBind;
@@ -15,13 +18,17 @@ import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.View;
 import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
+import com.idega.jbpm.def.ViewToTaskType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/02 19:17:49 $ by $Author: civilis $
  */
+@ViewToTaskType("xforms")
+@Scope("singleton")
+@Service("process_xforms_viewToTask")
 public class XFormsToTask implements ViewToTask {
 	
 	private ViewFactory viewFactory;
@@ -32,6 +39,7 @@ public class XFormsToTask implements ViewToTask {
 		return xformsPersistenceManager;
 	}
 
+	@Resource(name="xformsPersistenceManager")
 	public void setXformsPersistenceManager(
 			PersistenceManager xformsPersistenceManager) {
 		this.xformsPersistenceManager = xformsPersistenceManager;
@@ -112,6 +120,7 @@ public class XFormsToTask implements ViewToTask {
 		return viewFactory;
 	}
 
+	@Resource(name="process_xforms_viewFactory")
 	public void setViewFactory(ViewFactory viewFactory) {
 		this.viewFactory = viewFactory;
 	}

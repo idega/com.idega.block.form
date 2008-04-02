@@ -20,6 +20,7 @@ import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.component.ButtonArea;
 import com.idega.documentmanager.business.component.Page;
 import com.idega.documentmanager.component.beans.LocalizedStringBean;
+import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.webface.WFUtil;
 
@@ -68,7 +69,7 @@ public class SDataPreview extends IWBaseComponent {
 		try {
 			
 			DocumentManagerFactory docManagerFact = (DocumentManagerFactory)WFUtil.getBeanInstance("xformsDocumentManagerFact");
-			doc = adjustDocumentForPreview(resource_path, doc, docManagerFact.newDocumentManager(context));
+			doc = adjustDocumentForPreview(resource_path, doc, docManagerFact.newDocumentManager(IWMainApplication.getIWMainApplication(context)));
 			FormViewer form_viewer = new FormViewer();
 			form_viewer.setXFormsDocument(doc);
 			form_viewer.setRendered(true);
