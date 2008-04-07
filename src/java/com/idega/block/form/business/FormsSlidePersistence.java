@@ -44,9 +44,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/02 19:16:42 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/07 13:13:00 $ by $Author: alexis $
  */
 public class FormsSlidePersistence implements PersistenceManager {
 
@@ -186,12 +186,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			if(loadedFormNames != null) {
 				
+				boolean formInList = false;
+				
 				for (SelectItem f : loadedFormNames)
 					
 					if (formId.equals(f.getValue())) {
-						loadedFormNames.add(f);
+						f.setLabel(formTitle);
+						formInList = true;
 						break;
 					}
+				
+				if(!formInList) {
+					loadedFormNames.add(new SelectItem(formId, formTitle));
+				}
+				
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Exception occured while saving document to webdav directory: "+formId, e);
