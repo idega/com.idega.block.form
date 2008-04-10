@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.13 2007/10/15 16:13:16 civilis Exp $ Created on
+ * $Id: FormListViewer.java,v 1.14 2008/04/10 01:06:12 civilis Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
-import javax.faces.model.SelectItem;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
+import com.idega.documentmanager.business.PersistedForm;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
@@ -36,10 +36,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2007/10/15 16:13:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -57,14 +57,15 @@ public class FormListViewer extends IWBaseComponent {
 		try {
 			
 			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
-			List<SelectItem> forms = persistence_manager.getForms();
-			IWContext iw_ctx = IWContext.getInstance();
+			List<PersistedForm> forms = persistence_manager.getStandaloneForms();
+			IWContext iwc = IWContext.getIWContext(context);
 			
-			for (SelectItem f : forms) {
+			for (PersistedForm persistedForm : forms) {
+				
 				ListItem li = new ListItem();
-				Link a = new Link(f.getLabel());
-				a.setURL(getDetailsViewerPath(iw_ctx));
-				a.addParameter("formId", (String) f.getValue());
+				Link a = new Link(persistedForm.getDisplayName());
+				a.setURL(getDetailsViewerPath(iwc));
+				a.addParameter("formId", persistedForm.getFormId().toString());
 				li.add(a);
 				ul.add(li);
 			}

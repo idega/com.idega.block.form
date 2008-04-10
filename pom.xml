@@ -67,5 +67,11 @@
       <artifactId>jsr250-api</artifactId>
       <version>1.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.common</groupId>
+      <artifactId>google-collect</artifactId>
+      <version>${com.google.common-google-collect-version}</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
 </project>

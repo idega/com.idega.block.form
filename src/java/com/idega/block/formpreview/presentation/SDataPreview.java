@@ -57,6 +57,7 @@ public class SDataPreview extends IWBaseComponent {
 	public void encodeChildren(FacesContext context) throws IOException {
 		super.encodeChildren(context);
 		
+		/*
 		if(formid_provided == null || submitted_data_id_provided == null)
 			return;
 		
@@ -78,6 +79,7 @@ public class SDataPreview extends IWBaseComponent {
 		} catch (Exception e) {
 			logger.error("Error while adjusting document for preview", e);
 		}
+		*/
 	}
 	
 	@Override

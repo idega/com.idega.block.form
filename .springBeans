@@ -4,7 +4,6 @@
 		<configExtension>xml</configExtension>
 	</configExtensions>
 	<configs>
-		<config>WEB-INF/applicationContext.xml</config>
 	</configs>
 	<configSets>
 		<configSet>
@@ -12,9 +11,7 @@
 			<allowBeanDefinitionOverriding>true</allowBeanDefinitionOverriding>
 			<incomplete>false</incomplete>
 			<configs>
-				<config>/com.idega.documentmanager/WEB-INF/applicationContext.xml</config>
 				<config>/org.jboss.jbpm/WEB-INF/applicationContext.xml</config>
-				<config>WEB-INF/applicationContext.xml</config>
 			</configs>
 		</configSet>
 	</configSets>

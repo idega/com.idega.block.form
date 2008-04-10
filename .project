@@ -3,7 +3,6 @@
 	<name>com.idega.block.form</name>
 	<comment>idegaWeb Form block is a component for management of XForms-based forms</comment>
 	<projects>
-		<project>is.idega.idegaweb.egov.cases</project>
 		<project>org.jboss.jbpm</project>
 	</projects>
 	<buildSpec>

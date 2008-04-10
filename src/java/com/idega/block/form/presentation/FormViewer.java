@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.44 2008/04/01 17:17:59 anton Exp $ Created on
+ * $Id: FormViewer.java,v 1.45 2008/04/10 01:06:12 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -39,6 +39,7 @@ import org.w3c.dom.events.EventTarget;
 
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
+import com.idega.documentmanager.business.PersistedFormDocument;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
@@ -52,10 +53,10 @@ import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/04/01 17:17:59 $ by $Author: anton $
+ * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.44 $
+ * @version $Revision: 1.45 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -96,12 +97,8 @@ public class FormViewer extends IWBaseComponent {
 				return null;
 				
 			PersistenceManager persistenceManager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
-			document = persistenceManager.loadFormNoLock(formId);
-			
-			if (document == null) {
-				log.log(Level.SEVERE, "Could not load the form for id: " + formId);
-				return null;
-			}
+			PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
+			document = formDocument.getXformsDocument();
 		}
 		
 		return document;

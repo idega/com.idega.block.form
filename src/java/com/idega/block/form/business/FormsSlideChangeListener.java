@@ -39,9 +39,10 @@ public class FormsSlideChangeListener implements IWSlideChangeListener {
 			))
 			return;
 		
-		SelectItem form_name = getFormsSlidePersistence().findFormName(formId);
-		if(form_name != null)
-			getFormsSlidePersistence().getForms().remove(form_name);
+//		TODO:
+//		SelectItem form_name = getFormsSlidePersistence().findFormName(formId);
+//		if(form_name != null)
+//			getFormsSlidePersistence().getForms().remove(form_name);
 	}
 	
 	private FormsSlidePersistence getFormsSlidePersistence() {

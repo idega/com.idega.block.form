@@ -1,5 +1,7 @@
 package com.idega.block.form.process;
 
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.faces.application.Application;
@@ -13,6 +15,7 @@ import com.idega.block.form.presentation.FormViewer;
 import com.idega.documentmanager.business.Document;
 import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
+import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.def.View;
@@ -22,9 +25,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * 
- * Last modified: $Date: 2008/04/02 19:17:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -32,7 +35,9 @@ public class XFormsView implements View {
 
 	private String viewId;
 	private boolean submitable = true;
+	private String displayName;
 	private DocumentManagerFactory documentManagerFactory;
+	private PersistenceManager persistenceManager;
 	private Document form;
 	private Converter converter;
 	private Map<String, String> parameters;
@@ -100,17 +105,20 @@ public class XFormsView implements View {
 		if (form != null)
 			return form;
 
-		String formId = getViewId();
-
-		if (formId == null || CoreConstants.EMPTY.equals(formId))
+		if (getViewId() == null || CoreConstants.EMPTY.equals(getViewId()))
 			throw new NullPointerException("View id not set");
+		
+		Long formId = new Long(getViewId());
 
 		try {
 			DocumentManager documentManager = getDocumentManagerFactory()
 					.newDocumentManager(IWMainApplication.getIWMainApplication(FacesContext.getCurrentInstance()));
 			Document form = documentManager.openForm(formId);
-
-			setFormDocument(form);
+			
+			if(form != null) {
+			
+				setFormDocument(form);
+			}
 
 			return form;
 
@@ -166,5 +174,35 @@ public class XFormsView implements View {
 
 		parameters = new URIUtil(action).getParameters();
 		variables = getConverter().convert(submissionInstance);
+	}
+
+	public String getDisplayName() {
+		
+		if(displayName == null) {
+			
+			try {
+				Document document = getFormDocument();
+				displayName = document.getFormTitle().getString(new Locale("en"));
+				
+			} catch (Exception e) {
+				displayName = null;
+			}
+		}
+		
+		return displayName;
+	}
+
+	public PersistenceManager getPersistenceManager() {
+		return persistenceManager;
+	}
+
+	public void setPersistenceManager(PersistenceManager persistenceManager) {
+		this.persistenceManager = persistenceManager;
+	}
+
+	public Date getDateCreated() {
+	
+//		TODO: implement
+		return new Date();
 	}
 }

@@ -6,35 +6,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.faces.model.SelectItem;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpException;
-import org.apache.webdav.lib.PropertyName;
 import org.apache.webdav.lib.WebdavResource;
 import org.apache.webdav.lib.WebdavResources;
 import org.chiba.xml.dom.DOMUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
-import com.idega.block.form.bean.AvailableFormBean;
 import com.idega.block.form.business.util.BlockFormUtil;
+import com.idega.block.form.data.XForm;
+import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.chiba.web.xml.xforms.connector.webdav.WebdavSubmissionHandler;
+import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.documentmanager.business.FormLockException;
+import com.idega.documentmanager.business.PersistedForm;
+import com.idega.documentmanager.business.PersistedFormDocument;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.SubmittedDataBean;
+import com.idega.documentmanager.business.XFormPersistenceType;
+import com.idega.documentmanager.business.XFormState;
+import com.idega.documentmanager.component.FormDocument;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
@@ -44,93 +48,89 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/04/07 13:13:00 $ by $Author: alexis $
+ * Last modified: $Date: 2008/04/10 01:06:11 $ by $Author: civilis $
  */
+@Scope("singleton")
+@Repository("xformsPersistenceManager")
+@XFormPersistenceType("slide")
 public class FormsSlidePersistence implements PersistenceManager {
 
 	private static final long serialVersionUID = 1790429880309352062L;
+	
+	private static final String slideStorageType = "slide";
+	private static final String standaloneFormType = "standalone";
 
-	private static final Logger logger = Logger.getLogger(FormsSlidePersistence.class.getName());
+	private final Logger logger;
 	private IWApplicationContext iwac;
+	private XFormsDAO xformsDAO;
 
 	public static final String FORMS_PATH = "/files/forms";
+	public static final String STANDALONE_FORMS_PATH = FORMS_PATH+"/standalone";
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
 	public static final String SUBMITTED_DATA_PATH = WebdavSubmissionHandler.SUBMITTED_DATA_PATH;
 
-	public static final PropertyName FORM_NAME_PROPERTY_NAME = new PropertyName("FB:", "FormName");
+	private DocumentManagerFactory documentManagerFactory;
+	
+	public FormsSlidePersistence() {
+		logger = Logger.getLogger(getClass().getName());
+	}
+	
+	protected Logger getLogger() {
+		return logger;
+	}
+	
+	protected String getFormResourcePath(String formType, String formIdentifier, boolean withFile) {
+		
+		StringBuilder b = new StringBuilder(FORMS_PATH).append(BlockFormUtil.slash).
+		append(formType).append(BlockFormUtil.slash)
+		.append(formIdentifier)
+		.append(BlockFormUtil.slash);
+		
+		if(withFile) {
+			b = b
+			.append(formIdentifier)
+			.append(FORMS_FILE_EXTENSION);
+		}
+		return b.toString();
+	}
+	
+	
+	@Transactional(readOnly=true)
+	public PersistedFormDocument loadForm(Long formId) {
+		
+		XForm xform = getXformsDAO().find(XForm.class, formId);
+		
+		String formPath = xform.getFormStorageIdentifier();
+		
+		Document xformsDoc = loadXFormsDocument(formPath);
+		
+		PersistedFormDocument formDoc = new PersistedFormDocument();
+		formDoc.setFormId(formId);
+		formDoc.setFormType(xform.getFormType());
+		formDoc.setXformsDocument(xformsDoc);
+		
+		return formDoc;
+	}
+	
+	protected Document loadXFormsDocument(String formPath) {
+	
+		try {
+			WebdavExtendedResource xformRes = getWebdavExtendedResource(formPath);
 
-	private static List<SelectItem> formNames;
-	private DocumentBuilder doc_builder;
-	
-	public Document loadFormNoLock(String form_id) {
-		
-		try {
-			return loadForm(form_id, false);
+			if(!xformRes.exists())
+				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: "+formPath);
 			
-		} catch (FormLockException e) {
-			logger.warning("Form Lock exception caught");
-			return null;
-		}
-	}
-	
-	public Document loadFormAndLock(String form_id) throws FormLockException {
-		
-		return loadForm(form_id, true);
-	}
-	
-	protected Document loadForm(String formId, boolean lock_relevant) throws FormLockException {
-		Document document = null;
-		try {
+			InputStream is = xformRes.getMethodData();
+			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
+			Document xformsDoc = docBuilder.parse(is);
+			return xformsDoc;
 			
-			WebdavExtendedResource webdav_resource = loadFormResource(formId, lock_relevant);
-			
-			if(webdav_resource == null)
-				return null;
-
-			InputStream is = webdav_resource.getMethodData();
-			
-			if(doc_builder == null || true)
-				doc_builder = XmlUtil.getDocumentBuilder();
-			
-			document = doc_builder.parse(is);
-		}
-		catch (IOException e) {
-			logger.log(Level.SEVERE, "Error loading form from Webdav: " + formId, e);
-		}
-		catch (SAXException e) {
-			
-			e.printStackTrace();
-			logger.warning("Could not parse form document: " + formId);
-		}
-		catch (ParserConfigurationException e) {
-			logger.severe("Could not create Xerces document builder");
-		}
-		return document;
-	}
-	
-	protected WebdavExtendedResource loadFormResource(String form_id, boolean lock_relevant) throws FormLockException {
-		
-		try {
-			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getFormResourcePath(form_id));
-			
-			if (!webdav_resource.exists()) {
-				logger.log(Level.WARNING, "Form " + form_id + " does not exist");
-				return null;
-			}
-			
-//			if(lock_relevant && webdav_resource.isLocked())
-//				throw new FormLockException(form_id, "Form with an id: "+form_id+" is locked");
-//			
-//			if(lock_relevant)
-//				webdav_resource.lockMethodNoTimeout();
-			
-			return webdav_resource;
-			
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Error loading form from Webdav: " + form_id, e);
-			return null;
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -147,85 +147,194 @@ public class FormsSlidePersistence implements PersistenceManager {
 		}
 	}
 	
-	public void saveForm(String form_id, Document document) throws Exception {
-		saveForm(form_id, document, true);
-	}
-
-	protected void saveForm(String formId, Document document, boolean lockRelevant) throws Exception {
-
-		if(formId == null || document == null)
-			throw new NullPointerException("formId or document not provided");
-		
-		String pathToFile = new StringBuilder(FORMS_PATH).append(BlockFormUtil.slash).append(formId).append(BlockFormUtil.slash).toString();
-		String fileName = formId + FORMS_FILE_EXTENSION;
+	protected void saveExistingXFormsDocumentToSlide(Document xformsDoc, String path) {
 
 		try {
-			IWSlideService slideService = getIWSlideService();
+			WebdavExtendedResource xformRes = getWebdavExtendedResource(path);
+
+			if(!xformRes.exists())
+				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: "+path);
+			
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			DOMUtil.prettyPrintDOM(document, out);
+			DOMUtil.prettyPrintDOM(xformsDoc, out);
 			InputStream is = new ByteArrayInputStream(out.toByteArray());
-			slideService.uploadFileAndCreateFoldersFromStringAsRoot(pathToFile, fileName, is, "text/xml", false);
-			
-//			if(lock_relevant) {
-//				
-//				WebdavExtendedResource wextr = getWebdavExtendedResource(path_to_file+file_name);
-//				
-//				if(!wextr.isLocked()) {
-//					logger.info("form is not locked");
-//					wextr.lockMethodNoTimeout();
-//				} else
-//					logger.info("form is locked");
-//			}
-			
-			WebdavResource formWebdavRes = slideService.getWebdavResourceAuthenticatedAsRoot(pathToFile+fileName);
-			String formTitle = BlockFormUtil.getDefaultFormTitle(document);
-			setFormTitleProperty(formWebdavRes, formTitle);
-			
-			// ensure formNames is initialized
-			List<SelectItem> loadedFormNames = getForms(false);
-			
-			if(loadedFormNames != null) {
-				
-				boolean formInList = false;
-				
-				for (SelectItem f : loadedFormNames)
-					
-					if (formId.equals(f.getValue())) {
-						f.setLabel(formTitle);
-						formInList = true;
-						break;
-					}
-				
-				if(!formInList) {
-					loadedFormNames.add(new SelectItem(formId, formTitle));
-				}
-				
-			}
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Exception occured while saving document to webdav directory: "+formId, e);
+			xformRes.putMethod(is);
+			is.close();
+		
+		} catch (IllegalArgumentException e) {
 			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 	
-	public void duplicateForm(String form_id, String new_title_for_default_locale) throws Exception {
+	protected String saveXFormsDocumentToSlide(Document xformsDoc, String formIdentifier, String formType) {
 		
-		Document xforms_doc = loadFormNoLock(form_id);
+		try {
+			String formResourcePath = getFormResourcePath(formType, formIdentifier, true);
+			
+			String pathToFileFolder = getFormResourcePath(formType, formIdentifier, false);;
+			String fileName = formIdentifier + FORMS_FILE_EXTENSION;
+			
+			IWSlideService slideService = getIWSlideService();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			DOMUtil.prettyPrintDOM(xformsDoc, out);
+			InputStream is = new ByteArrayInputStream(out.toByteArray());
+			slideService.uploadFileAndCreateFoldersFromStringAsRoot(pathToFileFolder, fileName, is, "text/xml", false);
+			is.close();
+			
+			return formResourcePath;
+			
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@Transactional(readOnly=false)
+	public PersistedFormDocument saveForm(FormDocument document) throws IllegalAccessException {
+
+		if(document == null)
+			throw new NullPointerException("FormDocument not provided");
 		
-		if(new_title_for_default_locale == null)
-			new_title_for_default_locale = "copy_"+BlockFormUtil.getDefaultFormTitle(xforms_doc);
+		Long formId = document.getFormId();
+		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
+		PersistedFormDocument formDocument = new PersistedFormDocument();
 		
-		BlockFormUtil.putDefaultTitle(xforms_doc, new_title_for_default_locale);
+		if(formId == null) {
+			
+			String formSlideId = generateFormId(defaultFormName);
+			String formType = document.getFormType() == null ? standaloneFormType : document.getFormType();
+			
+			Document xformsDocument = document.getContext().getXformsXmlDoc();
+			
+			String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType);
+			
+			Integer version = 1;
+			
+			XForm xform = new XForm();
+			xform.setDisplayName(defaultFormName);
+			xform.setDateCreated(new Date());
+			xform.setFormState(XFormState.FLUX);
+			xform.setFormStorageIdentifier(formPath);
+			xform.setFormStorageType(slideStorageType);
+			xform.setFormType(formType);
+			xform.setVersion(version);
+			
+			getXformsDAO().persist(xform);
+			formId = xform.getFormId();
+			
+			formDocument.setFormId(formId);
+			formDocument.setFormType(formType);
+			formDocument.setXformsDocument(xformsDocument);
+			
+		} else {
+			
+			XForm xform = getXformsDAO().find(XForm.class, formId);
+			
+			if(xform.getFormState() == XFormState.FIRM)
+				throw new IllegalAccessException("Tried to save firm form. Once form made simple, it cannot be modified. Form id: "+formId);
+			
+			String formPath = xform.getFormStorageIdentifier();
+			Document xformsDocument = document.getContext().getXformsXmlDoc();
+			saveExistingXFormsDocumentToSlide(xformsDocument, formPath);
+			
+			xform.setDisplayName(defaultFormName);
+			xform.setVersion(xform.getVersion()+1);
+			getXformsDAO().merge(xform);
+			
+			formDocument.setFormId(formId);
+			formDocument.setFormType(xform.getFormType());
+			formDocument.setXformsDocument(xformsDocument);
+		}
 		
-		form_id = generateFormId(new_title_for_default_locale);
-		saveForm(form_id, xforms_doc, false);
+		return formDocument;
+	}
+	
+	@Transactional(readOnly=false)
+	public PersistedFormDocument takeForm(Long formId) {
+		
+		XForm xform = getXformsDAO().find(XForm.class, formId);
+		PersistedFormDocument formDocument = new PersistedFormDocument();
+		
+		Document xformsDocument;
+		
+		if(xform.getFormState() == XFormState.FIRM) {
+		
+			getLogger().log(Level.WARNING, "TakeForm on firm form. Is this the expected behavior?");
+			
+			xformsDocument = loadXFormsDocument(xform.getFormStorageIdentifier());
+			
+		} else if(xform.getFormState() == XFormState.FLUX) {
+		
+//			making firm
+			
+			XForm existingFirmXForm = getXformsDAO().getXFormByParentVersion(xform.getFormId(), xform.getVersion(), XFormState.FIRM);
+			
+			if(existingFirmXForm != null) {
+				
+				xformsDocument = loadXFormsDocument(existingFirmXForm.getFormStorageIdentifier());
+				xform = existingFirmXForm;
+				
+			} else {
+				
+				xformsDocument = loadXFormsDocument(xform.getFormStorageIdentifier());
+				String formSlideId = generateFormId(xform.getDisplayName());
+				String formType = xform.getFormType();
+				
+				String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType);
+				
+				XForm newFirmForm = new XForm();
+				newFirmForm.setDateCreated(xform.getDateCreated());
+				newFirmForm.setDisplayName(xform.getDisplayName());
+				newFirmForm.setFormParent(xform.getFormId());
+				newFirmForm.setFormState(XFormState.FIRM);
+				newFirmForm.setFormStorageType(slideStorageType);
+				newFirmForm.setFormStorageIdentifier(formPath);
+				newFirmForm.setFormType(formType);
+				newFirmForm.setVersion(xform.getVersion());
+				
+				xform = newFirmForm;
+				
+			}
+		} else
+			throw new IllegalStateException("XForm state not supported by slide persistence manager. State: "+xform.getFormState());
+		
+		
+		formDocument.setFormId(xform.getFormId());
+		formDocument.setFormType(xform.getFormType());
+		formDocument.setXformsDocument(xformsDocument);
+		
+		return formDocument;
+	}
+	
+	public void duplicateForm(String formId, String new_title_for_default_locale) throws Exception {
+		
+		if(true)
+			throw new UnsupportedOperationException("Not supported yet, make this call from document manager");
+
+//		Document xformsDoc = loadFormNoLock(formId);
+//		com.idega.documentmanager.business.Document document = getDocumentManagerFactory().newDocumentManager(iwma).openForm(xformsDoc);
+		
+//		if(newTitle == null)
+//			newTitle = new LocalizedStringBean("copy_"+document.getFormTitle().getString(new Locale("en")));
+		
+//		BlockFormUtil.putDefaultTitle(xformsDoc, newTitleForDefaultLocale);
+//		
+//		formId = generateFormId(newTitleForDefaultLocale);
+//		saveForm(formId, xformsDoc, false);
 	}
 	
 	public void removeForm(String form_id, boolean remove_submitted_data) throws FormLockException, Exception {
 		
+		if(true)
+			throw new UnsupportedOperationException();
+		
+		/*
 		if(form_id == null || form_id.equals(""))
 			throw new NullPointerException("Form id not provided");
 		
-		WebdavExtendedResource resource = loadFormResource(form_id, true);
+		WebdavResource simpleResource = loadFormResource(FORMS_PATH, form_id, true);
+		WebdavExtendedResource resource = getWebdavExtendedResource(simpleResource.getPath());
 		
 		if(resource == null)
 			throw new Exception("Form with id: "+form_id+" couldn't be loaded from webdav");
@@ -262,127 +371,28 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		if(e != null)
 			throw e;
+			*/
 	}
 
-	/**
-	 * Sets form title as webdav resource's property
-	 * 
-	 * @param resource
-	 * @param formTitle
-	 * @throws HttpException
-	 * @throws IOException
-	 */
-	private void setFormTitleProperty(WebdavResource resource, String formTitle) throws HttpException, IOException {
-		if (formTitle != null) {
-			resource.proppatchMethod(FORM_NAME_PROPERTY_NAME, formTitle, true);
+	public List<PersistedForm> getStandaloneForms() {
+
+		String formType = standaloneFormType;
+		String formStorageType = slideStorageType;
+		
+		List<XForm> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType);
+		
+		ArrayList<PersistedForm> forms = new ArrayList<PersistedForm>(xforms.size());
+		
+		for (XForm form : xforms) {
+			
+			PersistedForm pform = new PersistedForm();
+			pform.setDateCreated(form.getDateCreated());
+			pform.setFormId(form.getFormId());
+			pform.setDisplayName(form.getDisplayName());
+			forms.add(pform);
 		}
-	}
-	
-	public synchronized List<SelectItem> getForms() {
-		
-		return getForms(true);
-	}
-
-	public List<SelectItem> getForms(boolean load) {
-		
-		if(load && formNames == null)
-			formNames = loadAvailableForms();
-		
-		return formNames;
-	}
-
-	protected List<SelectItem> loadAvailableForms() {
-
-		long start = System.currentTimeMillis();
-		
-		List<SelectItem> forms = Collections.synchronizedList(new ArrayList<SelectItem>());
-		try {
-			IWSlideService service = getIWSlideService();
-
-			WebdavResource root = service.getWebdavResourceAuthenticatedAsRoot(FORMS_PATH);
-			WebdavResources form_folders = root.getChildResources();
-			
-			@SuppressWarnings("unchecked")
-			Enumeration<WebdavResource> folders = form_folders.getResources();
-			
-			Vector<PropertyName> props = new Vector<PropertyName>(1);
-			props.add(FORM_NAME_PROPERTY_NAME);
-			
-			while (folders.hasMoreElements()) {
-				WebdavResource folder = folders.nextElement();
-				
-				String formId = folder.getDisplayName();
-				
-				WebdavResources rs = folder.getChildResources();
-				WebdavResource r = rs.getResource(folder.getName() + BlockFormUtil.slash + formId + FORMS_FILE_EXTENSION);
-				if (r == null) {
-					continue;
-				}
-				
-				@SuppressWarnings("unchecked")
-				Enumeration<String> propValues = folder.propfindMethod(folder.getPath(), props);
-				
-				String formTitle = null;
-				
-				if(propValues.hasMoreElements()) {					
-					formTitle = (String)propValues.nextElement();
-					
-					if(formTitle.equals("")) {
-						formTitle = null;
-					}
-				}
-				
-				if (formTitle == null) {
-					Document document = loadFormAndLock(formId);
-					if (document == null) {
-						continue;
-					}
-					formTitle = BlockFormUtil.getDefaultFormTitle(document);
-
-					if (formTitle == null) {
-						// if this form is not built with formbuilder, just take text content of title
-						Node title = document.getElementsByTagName(BlockFormUtil.title_tag).item(0);
-						if (title != null) {
-							formTitle = DOMUtil.getTextNodeAsString(title);
-						}
-					}
-			
-					if (formTitle != null) {
-						// set title for future
-						setFormTitleProperty(r, formTitle);
-					}
-					else {
-						formTitle = formId;
-					}
-				}
-
-				AvailableFormBean f = new AvailableFormBean(formId, formTitle);
-				forms.add(f);
-			}
-			
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "Error during loading available forms", e);
-		}
-		
-		long end = System.currentTimeMillis();
-		logger.info("Available forms list loaded in: "+(end-start));
 		
 		return forms;
-	}
-
-	/**
-	 * Constructs a path from given formId
-	 * @return A string like /files/forms/f1/f1.xhtml
-	 */
-	protected String getFormResourcePath(String formId) {
-		return 
-			new StringBuilder(FORMS_PATH)
-			.append(BlockFormUtil.slash)
-			.append(formId)
-			.append(BlockFormUtil.slash)
-			.append(formId)
-			.append(FORMS_FILE_EXTENSION)
-			.toString();
 	}
 
 	public String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
@@ -430,10 +440,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		InputStream is = webdav_resource.getMethodData();
 		
-		if(doc_builder == null)
-			doc_builder = BlockFormUtil.getDocumentBuilder();
-		
-		Document submitted_data = doc_builder.parse(is);
+		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
+		Document submitted_data = docBuilder.parse(is);
 		
 		return submitted_data;
 	}
@@ -461,8 +469,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		@SuppressWarnings("unchecked")
 		Enumeration<WebdavResource> resources = child_resources.getResources();
 		
-		if(doc_builder == null)
-			doc_builder = BlockFormUtil.getDocumentBuilder();
+		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 		
 		List<SubmittedDataBean> submitted_data = new ArrayList<SubmittedDataBean>();
 		
@@ -476,7 +483,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			try {
 				
 				InputStream is = webdav_resource.getMethodData();
-				Document submitted_data_doc = doc_builder.parse(is);
+				Document submitted_data_doc = docBuilder.parse(is);
 				
 				SubmittedDataBean data_bean = new SubmittedDataBean();
 				data_bean.setSubmittedDataElement(submitted_data_doc.getDocumentElement());
@@ -491,16 +498,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return submitted_data;
 	}
 	
-	public SelectItem findFormName(String formId) {
-		for (SelectItem f : getForms()) {
-			if (formId.equals(f.getValue())) {
-				return f;
-			}
-		}
-		return null;
-	}
-
-	public String generateFormId(String name) {
+	protected String generateFormId(String name) {
 		name = name.replaceAll("-", CoreConstants.UNDER);
 		String result = name+CoreConstants.MINUS+new Date();
 		String formId = result.replaceAll(" |:|\n", CoreConstants.UNDER).toLowerCase();
@@ -523,17 +521,38 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		if(true)
 			return;
+		/*
 		try {
-			WebdavExtendedResource webdav_resource = loadFormResource(form_id, false);
+			WebdavResource webdavResource = loadFormResource(FORMS_PATH, form_id, false);
 			
-			if(webdav_resource == null || !webdav_resource.isLocked())
+			if(webdavResource == null || !webdavResource.isLocked())
 				return;
 			
-			webdav_resource.unlockMethod();
+			webdavResource.unlockMethod();
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Error loading form from Webdav: " + form_id, e);
 		} catch (FormLockException e) {
 			logger.log(Level.WARNING, "FormLockException caught while loading form when lock is irrelevant for form id: "+form_id);
 		}
+		*/
+	}
+
+	public DocumentManagerFactory getDocumentManagerFactory() {
+		return documentManagerFactory;
+	}
+
+	@Autowired
+	public void setDocumentManagerFactory(
+			DocumentManagerFactory documentManagerFactory) {
+		this.documentManagerFactory = documentManagerFactory;
+	}
+
+	public XFormsDAO getXformsDAO() {
+		return xformsDAO;
+	}
+
+	@Autowired
+	public void setXformsDAO(XFormsDAO xformsDAO) {
+		this.xformsDAO = xformsDAO;
 	}
 }
