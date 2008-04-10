@@ -25,9 +25,9 @@ import com.idega.jbpm.def.ViewToTaskType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/04/10 01:06:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 14:04:51 $ by $Author: civilis $
  */
 @ViewToTaskType("xforms")
 @Scope("singleton")
@@ -53,14 +53,13 @@ public class XFormsToTask implements ViewToTask {
 	public Multimap<Long, TaskView> getAllViewsByProcessDefinitions(Collection<Long> processDefinitionsIds) {
 		
 		List<Object[]> procTaskViews = getBPMDAO().getProcessTasksViewsInfos(processDefinitionsIds, XFormsView.VIEW_TYPE);
-		Multimap<Long, TaskView> pdsViews = new HashMultimap<Long, TaskView>();
+		HashMultimap<Long, TaskView> pdsViews = new HashMultimap<Long, TaskView>();
 		
 		for (Object[] objects : procTaskViews) {
 			
-			//ProcessDefinition procDef = (ProcessDefinition)objects[0];
 			Task task = (Task)objects[0];
 			String viewIdentifier = (String)objects[1];
-			
+
 			TaskView view = getViewFactory().getTaskView(task);
 			view.setViewId(viewIdentifier);
 			

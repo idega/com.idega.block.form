@@ -25,13 +25,14 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * 
- * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/10 14:04:51 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
 	public static final String VIEW_TYPE = "xforms";
+	public static final String FORM_TYPE = "bpm";
 
 	private String viewId;
 	private boolean submitable = true;
@@ -97,7 +98,7 @@ public class XFormsView implements View {
 		if (!isSubmitable())
 			form.setReadonly(true);
 
-		viewId = form.getId();
+		viewId = form.getFormId().toString();
 	}
 
 	protected Document getFormDocument() {
