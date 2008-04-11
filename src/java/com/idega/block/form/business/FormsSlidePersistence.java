@@ -30,7 +30,6 @@ import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.chiba.web.xml.xforms.connector.webdav.WebdavSubmissionHandler;
-import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.documentmanager.business.FormLockException;
 import com.idega.documentmanager.business.PersistedForm;
 import com.idega.documentmanager.business.PersistedFormDocument;
@@ -48,13 +47,13 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/04/10 01:06:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
  */
 @Scope("singleton")
-@Repository("xformsPersistenceManager")
 @XFormPersistenceType("slide")
+@Repository("xformsPersistenceManager")
 public class FormsSlidePersistence implements PersistenceManager {
 
 	private static final long serialVersionUID = 1790429880309352062L;
@@ -71,8 +70,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
 	public static final String SUBMITTED_DATA_PATH = WebdavSubmissionHandler.SUBMITTED_DATA_PATH;
 
-	private DocumentManagerFactory documentManagerFactory;
-	
 	public FormsSlidePersistence() {
 		logger = Logger.getLogger(getClass().getName());
 	}
@@ -535,16 +532,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 			logger.log(Level.WARNING, "FormLockException caught while loading form when lock is irrelevant for form id: "+form_id);
 		}
 		*/
-	}
-
-	public DocumentManagerFactory getDocumentManagerFactory() {
-		return documentManagerFactory;
-	}
-
-	@Autowired
-	public void setDocumentManagerFactory(
-			DocumentManagerFactory documentManagerFactory) {
-		this.documentManagerFactory = documentManagerFactory;
 	}
 
 	public XFormsDAO getXformsDAO() {

@@ -15,19 +15,19 @@ import com.idega.block.form.presentation.FormViewer;
 import com.idega.documentmanager.business.Document;
 import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
-import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.jbpm.def.View;
+import com.idega.jbpm.def.ViewToTask;
 import com.idega.jbpm.exe.Converter;
 import com.idega.util.CoreConstants;
 import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * 
- * Last modified: $Date: 2008/04/10 14:04:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -38,11 +38,19 @@ public class XFormsView implements View {
 	private boolean submitable = true;
 	private String displayName;
 	private DocumentManagerFactory documentManagerFactory;
-	private PersistenceManager persistenceManager;
 	private Document form;
 	private Converter converter;
 	private Map<String, String> parameters;
 	private Map<String, Object> variables;
+	private ViewToTask viewToTask;
+
+	public ViewToTask getViewToTask() {
+		return viewToTask;
+	}
+
+	public void setViewToTask(ViewToTask viewToTask) {
+		this.viewToTask = viewToTask;
+	}
 
 	public Converter getConverter() {
 		return converter;
@@ -193,17 +201,19 @@ public class XFormsView implements View {
 		return displayName;
 	}
 
-	public PersistenceManager getPersistenceManager() {
-		return persistenceManager;
-	}
-
-	public void setPersistenceManager(PersistenceManager persistenceManager) {
-		this.persistenceManager = persistenceManager;
-	}
-
 	public Date getDateCreated() {
 	
 //		TODO: implement
 		return new Date();
+	}
+
+	public void takeView() {
+		
+		Document formDocument = getFormDocument();
+		
+		DocumentManager docMan = getDocumentManagerFactory().newDocumentManager(IWMainApplication.getIWMainApplication(FacesContext.getCurrentInstance()));
+		formDocument = docMan.takeForm(formDocument.getFormId());
+		
+		setFormDocument(formDocument);
 	}
 }

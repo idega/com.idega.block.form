@@ -25,9 +25,9 @@ import com.idega.webface.WFUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
@@ -69,11 +69,11 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
         	
         	ProcessDefinition processDefinition;
         	
-        	if(parameters.containsKey(ProcessConstants.PROCESS_DEFINITION_ID)) {
+        	if(parameters.containsKey(ProcessConstants.START_PROCESS)) {
         		
-        		long pdId = Long.parseLong(parameters.get(ProcessConstants.PROCESS_DEFINITION_ID));
-        		processDefinition = ctx.getGraphSession().getProcessDefinition(pdId);
-        		bpmFactory.getProcessManager(processDefinition.getId()).startProcess(processDefinition.getId(), casesXFormsView);
+        		long tskInstId = Long.parseLong(parameters.get(ProcessConstants.TASK_INSTANCE_ID));
+        		processDefinition = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
+        		bpmFactory.getProcessManager(processDefinition.getId()).startProcess(tskInstId, casesXFormsView);
         		
         	} else if(parameters.containsKey(ProcessConstants.TASK_INSTANCE_ID)) {
         		

@@ -1,7 +1,7 @@
 package com.idega.block.form.business;
 
-import javax.faces.model.SelectItem;
 import org.apache.slide.event.ContentEvent;
+
 import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.slide.business.IWContentEvent;
 import com.idega.slide.business.IWSlideChangeListener;
