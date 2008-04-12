@@ -12,7 +12,6 @@ import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.w3c.dom.Node;
 
-import com.idega.block.form.process.XFormsView;
 import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
 import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.jbpm.IdegaJbpmContext;
@@ -25,9 +24,9 @@ import com.idega.webface.WFUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/12 21:58:59 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
@@ -56,7 +55,7 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
     	}
     	
     	BPMFactory bpmFactory = (BPMFactory)WFUtil.getBeanInstance(bpmFactoryBeanIdentifier);
-    	XFormsViewFactory xfvFact = (XFormsViewFactory)WFUtil.getBeanInstance(xformsViewBeanIdentifier);
+    	IXFormViewFactory xfvFact = (IXFormViewFactory)WFUtil.getBeanInstance(xformsViewBeanIdentifier);
     	XFormsView casesXFormsView = xfvFact.getXFormsView();
     	casesXFormsView.setSubmission(submission, submissionInstance);
     	
