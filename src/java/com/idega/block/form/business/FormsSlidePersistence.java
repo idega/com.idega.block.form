@@ -47,9 +47,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/12 01:51:01 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -81,9 +81,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	protected String getFormResourcePath(String formType, String formIdentifier, boolean withFile) {
 		
 		StringBuilder b = new StringBuilder(FORMS_PATH).append(BlockFormUtil.slash).
-		append(formType).append(BlockFormUtil.slash)
-		.append(formIdentifier)
-		.append(BlockFormUtil.slash);
+		append(formType).append(BlockFormUtil.slash);
 		
 		if(withFile) {
 			b = b
@@ -170,7 +168,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		try {
 			String formResourcePath = getFormResourcePath(formType, formIdentifier, true);
 			
-			String pathToFileFolder = getFormResourcePath(formType, formIdentifier, false);;
+			String pathToFileFolder = getFormResourcePath(formType, formIdentifier, false);
 			String fileName = formIdentifier + FORMS_FILE_EXTENSION;
 			
 			IWSlideService slideService = getIWSlideService();
@@ -289,6 +287,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 				newFirmForm.setFormStorageIdentifier(formPath);
 				newFirmForm.setFormType(formType);
 				newFirmForm.setVersion(xform.getVersion());
+				
+				getXformsDAO().persist(newFirmForm);
 				
 				xform = newFirmForm;
 				
