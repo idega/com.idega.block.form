@@ -18,9 +18,9 @@ import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/04/10 01:06:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/17 01:49:39 $ by $Author: civilis $
  */
 @Entity
 @Table(name="XFORMS")
@@ -37,31 +37,31 @@ public class XForm implements Serializable {
 	public static final String getByParentVersion = "XForm.getByParentVersion";
 	
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="ID_", nullable=false, unique=true)
+	@Column(name="FORM_ID")
 	private Long formId;
 	
 	public static final String formParentProperty = "formParent";
-	@Column(name="PARENT")
+	@Column(name="FORM_PARENT")
 	private Long formParent;
 	
-	@Column(name="STORAGE_IDENTIFIER", nullable=false)
+	@Column(name="FORM_STORAGE_IDENTIFIER", nullable=false)
 	private String formStorageIdentifier;
 	
 	public static final String formStorageTypeProperty = "formStorageType";
-	@Column(name="STORAGE_TYPE", nullable=false)
+	@Column(name="FORM_STORAGE_TYPE", nullable=false)
 	private String formStorageType;
 	
 	public static final String formTypeProperty = "formType";
-	@Column(name="TYPE", nullable=false)
+	@Column(name="FORM_TYPE", nullable=false)
 	private String formType;
 	
 	public static final String formStateProperty = "formState";
-	@Column(name="STATE", nullable=false)
+	@Column(name="FORM_STATE", nullable=false)
 	@Enumerated(EnumType.STRING)
 	private XFormState formState;
 	
 	public static final String versionProperty = "version";
-	@Column(name="VERSION", nullable=false)
+	@Column(name="FORM_VERSION", nullable=false)
 	private Integer version;
 	
 	@Column(name="DATE_CREATED")
