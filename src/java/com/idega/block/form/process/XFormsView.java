@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  * 
- * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/21 05:02:08 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -120,8 +120,10 @@ public class XFormsView implements View {
 		Long formId = new Long(getViewId());
 
 		try {
-			DocumentManager documentManager = getDocumentManagerFactory()
-					.newDocumentManager(IWMainApplication.getIWMainApplication(FacesContext.getCurrentInstance()));
+			FacesContext fctx = FacesContext.getCurrentInstance();
+			IWMainApplication iwma = fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
+			
+			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(iwma);
 			Document form = documentManager.openForm(formId);
 			
 			if(form != null) {
@@ -150,12 +152,14 @@ public class XFormsView implements View {
 
 	public void populateParameters(Map<String, String> parameters) {
 		getFormDocument().getParametersManager().cleanUpdate(parameters);
-
 	}
 
 	public void populateVariables(Map<String, Object> variables) {
+		
 		getConverter().revert(variables,
 				getFormDocument().getSubmissionInstanceElement());
+		
+		this.variables = variables;
 	}
 
 	public Map<String, String> resolveParameters() {
@@ -175,7 +179,7 @@ public class XFormsView implements View {
 		throw new UnsupportedOperationException(
 				"Resolving variables from form not supported yet.");
 	}
-
+	
 	public void setSubmission(Submission submission, Node submissionInstance) {
 
 		String action = submission.getElement().getAttribute(
@@ -211,7 +215,10 @@ public class XFormsView implements View {
 		
 		Document formDocument = getFormDocument();
 		
-		DocumentManager docMan = getDocumentManagerFactory().newDocumentManager(IWMainApplication.getIWMainApplication(FacesContext.getCurrentInstance()));
+		FacesContext fctx = FacesContext.getCurrentInstance();
+		IWMainApplication iwma = fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
+		
+		DocumentManager docMan = getDocumentManagerFactory().newDocumentManager(iwma);
 		formDocument = docMan.takeForm(formDocument.getFormId());
 		
 		setFormDocument(formDocument);
