@@ -7,22 +7,15 @@ import java.util.Locale;
 import javax.faces.context.FacesContext;
 import javax.faces.el.ValueBinding;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.idega.block.form.business.util.BlockFormUtil;
-import com.idega.block.form.presentation.FormViewer;
 import com.idega.documentmanager.business.DocumentManager;
-import com.idega.documentmanager.business.DocumentManagerFactory;
-import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.component.ButtonArea;
 import com.idega.documentmanager.business.component.Page;
 import com.idega.documentmanager.component.beans.LocalizedStringBean;
-import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
-import com.idega.webface.WFUtil;
 
 /**
  * Component's responsibility is to provide view form's of submitted data in readonly format.<br /><br /> 
@@ -39,14 +32,14 @@ import com.idega.webface.WFUtil;
  */
 public class SDataPreview extends IWBaseComponent {
 	
-	private static Log logger = LogFactory.getLog(SDataPreview.class);
+	//private static Log logger = LogFactory.getLog(SDataPreview.class);
 	
 	public static final String FORM_VIEWER = "FORM_VIEWER";
 	public static final String form_identifier = "form_identifier";
 	public static final String submitted_data_identifier = "submitted_data_identifier";
 	
-	private String formid_provided;
-	private String submitted_data_id_provided;
+	//private String formid_provided;
+	//private String submitted_data_id_provided;
 		
 	@Override
 	public boolean getRendersChildren() {
@@ -114,8 +107,8 @@ public class SDataPreview extends IWBaseComponent {
 		if(submitted_data_identifier == null)
 			return false;
 		
-		formid_provided = form_identifier;
-		submitted_data_id_provided = submitted_data_identifier;
+		//formid_provided = form_identifier;
+		//submitted_data_id_provided = submitted_data_identifier;
 		return true;
 	}
 	
