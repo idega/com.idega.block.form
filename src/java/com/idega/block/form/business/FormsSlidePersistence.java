@@ -47,9 +47,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  *
- * Last modified: $Date: 2008/04/12 01:51:01 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/24 23:29:23 $ by $Author: laddi $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -463,7 +463,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		WebdavResources child_resources = form_folder.getChildResources();
 		
-		@SuppressWarnings("unchecked")
 		Enumeration<WebdavResource> resources = child_resources.getResources();
 		
 		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
@@ -504,8 +503,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		StringBuilder correctFormId = new StringBuilder(formId.length());
 		
 		for (int i = 0; i < chars.length; i++) {
-			
-			int charId = (int)chars[i];
+			int charId = chars[i];
 			
 			if((charId > 47 && charId < 58) || charId == 45 || charId == 95 || (charId > 96 && charId < 123))
 				correctFormId.append(chars[i]);

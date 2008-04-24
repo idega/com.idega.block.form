@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.45 2008/04/10 01:06:12 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.46 2008/04/24 23:29:22 laddi Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.myfaces.renderkit.html.util.AddResource;
+import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
 import org.chiba.web.IWBundleStarter;
 import org.chiba.web.WebAdapter;
 import org.chiba.web.session.XFormsSession;
@@ -28,8 +30,8 @@ import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
+import org.chiba.xml.xforms.XFormsConstants;
 import org.chiba.xml.xforms.config.XFormsConfigException;
-import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -47,16 +49,13 @@ import com.idega.presentation.IWBaseComponent;
 import com.idega.util.CoreConstants;
 import com.idega.webface.WFUtil;
 
-import org.apache.myfaces.renderkit.html.util.AddResource;
-import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
-
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/24 23:29:22 $ by $Author: laddi $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.45 $
+ * @version $Revision: 1.46 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -74,6 +73,7 @@ public class FormViewer extends IWBaseComponent {
 		super();
 	}
 
+	@Override
 	public String getRendererType() {
 		return null;
 	}
@@ -231,6 +231,7 @@ public class FormViewer extends IWBaseComponent {
 		this.formId = formId;
 	}
 
+	@Override
 	public Object saveState(FacesContext ctx) {
 		Object values[] = new Object[4];
 		values[0] = super.saveState(ctx);
@@ -241,6 +242,7 @@ public class FormViewer extends IWBaseComponent {
 		return values;
 	}
 
+	@Override
 	public void restoreState(FacesContext ctx, Object state) {
 		Object values[] = (Object[]) state;
 		super.restoreState(ctx, values[0]);
@@ -271,7 +273,7 @@ public class FormViewer extends IWBaseComponent {
 		
 		Map<String, String> servletMap = new HashMap<String, String>();
 		servletMap.put(WebAdapter.SESSION_ID, xforms_session.getKey());
-		adapter.setContextParam(Submission.SUBMISSION, servletMap);
+		adapter.setContextParam(XFormsConstants.SUBMISSION, servletMap);
 
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);

@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.14 2008/04/10 01:06:12 civilis Exp $ Created on
+ * $Id: FormListViewer.java,v 1.15 2008/04/24 23:29:23 laddi Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -36,10 +36,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/24 23:29:23 $ by $Author: laddi $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  */
 public class FormListViewer extends IWBaseComponent {
 
@@ -50,12 +50,11 @@ public class FormListViewer extends IWBaseComponent {
 	/* (non-Javadoc)
 	 * @see com.idega.presentation.IWBaseComponent#initializeComponent(javax.faces.context.FacesContext)
 	 */
+	@Override
 	protected void initializeComponent(FacesContext context) {
-		
 		Lists ul = new Lists();
 
 		try {
-			
 			PersistenceManager persistence_manager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
 			List<PersistedForm> forms = persistence_manager.getStandaloneForms();
 			IWContext iwc = IWContext.getIWContext(context);
@@ -74,7 +73,6 @@ public class FormListViewer extends IWBaseComponent {
 			logger.error("Error while loading form list", e);
 		}
 		
-		@SuppressWarnings("unchecked")
 		List<UIComponent> children = getChildren();
 		children.add(ul);
 	}
@@ -88,6 +86,7 @@ public class FormListViewer extends IWBaseComponent {
 		this.detailsViewerPath = detailsViewerPath;
 	}
 
+	@Override
 	public Object saveState(FacesContext ctx) {
 		Object values[] = new Object[2];
 		values[0] = super.saveState(ctx);
@@ -95,6 +94,7 @@ public class FormListViewer extends IWBaseComponent {
 		return values;
 	}
 
+	@Override
 	public void restoreState(FacesContext ctx, Object state) {
 		Object values[] = (Object[]) state;
 		super.restoreState(ctx, values[0]);

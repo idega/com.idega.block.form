@@ -13,7 +13,7 @@ import com.idega.slide.business.IWSlideChangeListener;
  */
 public class FormsSlideChangeListener implements IWSlideChangeListener {
 	
-	private FormsSlidePersistence forms_slide_persistence;
+	//private FormsSlidePersistence forms_slide_persistence;
 
 	public void onSlideChange(IWContentEvent contentEvent) {
 
@@ -45,7 +45,7 @@ public class FormsSlideChangeListener implements IWSlideChangeListener {
 //			getFormsSlidePersistence().getForms().remove(form_name);
 	}
 	
-	private FormsSlidePersistence getFormsSlidePersistence() {
+	/*private FormsSlidePersistence getFormsSlidePersistence() {
 		
 //		TODO: make this a spring managed bean and inject PersistenceManager
 		
@@ -53,5 +53,5 @@ public class FormsSlideChangeListener implements IWSlideChangeListener {
 			forms_slide_persistence = new FormsSlidePersistence();
 
 		return forms_slide_persistence;
-	}
+	}*/
 }

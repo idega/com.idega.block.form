@@ -24,9 +24,9 @@ import com.idega.webface.WFUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/04/12 21:58:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/24 23:29:23 $ by $Author: laddi $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
@@ -35,7 +35,6 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
 	private static final String xformsViewBeanIdentifier = "process_xforms_viewFactory";
 	private static final String jbpmContextBeanIdentifier = "idegaJbpmContext";
     
-	@SuppressWarnings("unchecked")
     public Map submit(Submission submission, Node submissionInstance) throws XFormsException {
 		
     	//method - post, replace - none

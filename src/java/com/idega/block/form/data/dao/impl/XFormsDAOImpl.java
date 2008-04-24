@@ -13,9 +13,9 @@ import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/04/24 23:29:23 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Repository
@@ -24,7 +24,6 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
 	public List<XForm> getAllXFormsByTypeAndStorageType(String formType, String formStorageType) {
 		
-		@SuppressWarnings("unchecked")
 		List<XForm> xforms = getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
 		.setParameter(XForm.formTypeProperty, formType)
 		.setParameter(XForm.formStorageTypeProperty, formStorageType)
@@ -34,8 +33,6 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 	}
 	
 	public XForm getXFormByParentVersion(Long parentFormId, Integer version, XFormState state) {
-		
-		@SuppressWarnings("unchecked")
 		List<XForm> xforms = getEntityManager().createNamedQuery(XForm.getByParentVersion)
 		.setParameter(XForm.formParentProperty, parentFormId)
 		.setParameter(XForm.versionProperty, version)
