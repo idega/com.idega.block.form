@@ -90,7 +90,14 @@ public class XFormDownloadServlet extends HttpServlet {
 		}
 		
 		InputStream streamToPdf = null;
-		if (formInPdf == null) {
+		if (formInPdf != null) {
+			try {
+				streamToPdf = formInPdf.getMethodData();
+			} catch (HttpException e) {
+			} catch (IOException e) {
+			}
+		}
+		if (streamToPdf == null) {
 			FormViewer viewer = new FormViewer();
 			viewer.setFormId(formId);
 	
@@ -103,15 +110,6 @@ public class XFormDownloadServlet extends HttpServlet {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}
-		}
-		else {
-			try {
-				streamToPdf = formInPdf.getMethodData();
-			} catch (HttpException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 		
