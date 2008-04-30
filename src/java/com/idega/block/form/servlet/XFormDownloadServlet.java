@@ -80,7 +80,7 @@ public class XFormDownloadServlet extends HttpServlet {
 		String pathToForm = pathInSlide + pdfName;
 		WebdavResource formInPdf = null;
 		try {
-			formInPdf = slide.getWebdavResourceAuthenticatedAsRoot(pathToForm);
+			formInPdf = slide.getWebdavResourceAuthenticatedAsRoot(CoreConstants.WEBDAV_SERVLET_URI + pathToForm);
 		} catch (HttpException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
