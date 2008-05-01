@@ -1,39 +1,24 @@
 package com.idega.block.form.process;
 
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.chiba.xml.xforms.connector.AbstractConnector;
 import org.chiba.xml.xforms.connector.SubmissionHandler;
 import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
-import org.jbpm.JbpmContext;
-import org.jbpm.graph.def.ProcessDefinition;
 import org.w3c.dom.Node;
 
-import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
-import com.idega.documentmanager.util.FormManagerUtil;
-import com.idega.jbpm.IdegaJbpmContext;
-import com.idega.jbpm.exe.BPMFactory;
-import com.idega.jbpm.exe.ProcessConstants;
-import com.idega.util.URIUtil;
 import com.idega.webface.WFUtil;
 
 /**
- * TODO: move all this logic to spring bean
- * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/04/24 23:29:23 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
 	public static final String variablesUploadManagerBeanIdentifier = "variablesUploadManager";
-	private static final String bpmFactoryBeanIdentifier = "bpmFactory";
-	private static final String xformsViewBeanIdentifier = "process_xforms_viewFactory";
-	private static final String jbpmContextBeanIdentifier = "idegaJbpmContext";
     
     public Map submit(Submission submission, Node submissionInstance) throws XFormsException {
 		
@@ -53,44 +38,8 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
     		//insert (post)
     	}
     	
-    	BPMFactory bpmFactory = (BPMFactory)WFUtil.getBeanInstance(bpmFactoryBeanIdentifier);
-    	IXFormViewFactory xfvFact = (IXFormViewFactory)WFUtil.getBeanInstance(xformsViewBeanIdentifier);
-    	XFormsView casesXFormsView = xfvFact.getXFormsView();
-    	casesXFormsView.setSubmission(submission, submissionInstance);
     	
-    	IdegaJbpmContext ijCtx = (IdegaJbpmContext)WFUtil.getBeanInstance(jbpmContextBeanIdentifier);
-    	JbpmContext ctx = ijCtx.createJbpmContext();
-    	
-    	try {
-    		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
-        	Map<String, String> parameters = new URIUtil(action).getParameters();
-        	
-        	ProcessDefinition processDefinition;
-        	
-        	if(parameters.containsKey(ProcessConstants.START_PROCESS)) {
-        		
-        		long tskInstId = Long.parseLong(parameters.get(ProcessConstants.TASK_INSTANCE_ID));
-        		processDefinition = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
-        		bpmFactory.getProcessManager(processDefinition.getId()).startProcess(tskInstId, casesXFormsView);
-        		
-        	} else if(parameters.containsKey(ProcessConstants.TASK_INSTANCE_ID)) {
-        		
-        		long tskInstId = Long.parseLong(parameters.get(ProcessConstants.TASK_INSTANCE_ID));
-        		processDefinition = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
-        		bpmFactory.getProcessManager(processDefinition.getId()).submitTaskInstance(tskInstId, casesXFormsView);
-
-        	} else {
-            	
-        		Logger.getLogger(XFormsBPMSubmissionHandler.class.getName()).log(Level.SEVERE, "Couldn't handle submission. No action associated with the submission action: "+action);
-        	}
-			
-		} finally {
-			ijCtx.closeAndCommit(ctx);
-		}
-		
-		FileUploadManager uploadManager = (FileUploadManager)WFUtil.getBeanInstance(variablesUploadManagerBeanIdentifier);
-		uploadManager.cleanup(submissionInstance);
-    	
-    	return null;
+    	XFormsBPMSubmissionHandlerBean handlerBean = (XFormsBPMSubmissionHandlerBean)WFUtil.getBeanInstance(XFormsBPMSubmissionHandlerBean.beanIdentifier);
+    	return handlerBean.handle(submission, submissionInstance);
     }
 }

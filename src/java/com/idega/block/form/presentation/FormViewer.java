@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.46 2008/04/24 23:29:22 laddi Exp $ Created on
+ * $Id: FormViewer.java,v 1.47 2008/05/01 15:34:47 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -40,7 +40,7 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
-import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
+import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
 import com.idega.documentmanager.business.PersistedFormDocument;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
@@ -52,10 +52,10 @@ import com.idega.webface.WFUtil;
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/04/24 23:29:22 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.46 $
+ * @version $Revision: 1.47 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -278,7 +278,7 @@ public class FormViewer extends IWBaseComponent {
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
-		adapter.setUploadDestination(FileUploadManager.UPLOADS_PATH);
+		adapter.setUploadDestination(XFormTmpFileResolverImpl.UPLOADS_PATH);
 		// storeCookies(request, adapter);
 	}
 

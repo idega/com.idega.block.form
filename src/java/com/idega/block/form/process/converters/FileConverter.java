@@ -1,7 +1,7 @@
 package com.idega.block.form.process.converters;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -10,28 +10,30 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 
-import com.idega.chiba.web.upload.UploadManagerType;
-import com.idega.chiba.web.xml.xforms.connector.webdav.FileUploadManager;
+import com.idega.core.file.tmp.TmpFileResolver;
+import com.idega.core.file.tmp.TmpFileResolverType;
+import com.idega.core.file.tmp.TmpFilesManager;
 import com.idega.jbpm.def.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/03/27 14:13:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class FileConverter implements DataConverter {
 	
-	private FileUploadManager uploadsManager;
+	private TmpFilesManager uploadsManager;
+	private TmpFileResolver uploadResourceResolver;
 	private static final String mappingAtt = "mapping";
 
 	public Object convert(Element ctx) {
 		
 		String variableName = ctx.getAttribute(mappingAtt);
 		
-		List<File> files = getUploadsManager().getFiles(variableName, ctx);
+		Collection<File> files = getUploadsManager().getFiles(variableName, ctx, getUploadResourceResolver());
 		return files.isEmpty() ? null : files.iterator().next();
 	}
 	public Element revert(Object o, Element e) {
@@ -44,13 +46,24 @@ public class FileConverter implements DataConverter {
 		return VariableDataType.FILE;
 	}
 	
-	public FileUploadManager getUploadsManager() {
+	public TmpFilesManager getUploadsManager() {
 		return uploadsManager;
 	}
 	
 	@Autowired
-	@UploadManagerType("variables")
-	public void setUploadsManager(FileUploadManager uploadsManager) {
+	public void setUploadsManager(TmpFilesManager uploadsManager) {
 		this.uploadsManager = uploadsManager;
+	}
+	public TmpFileResolver getUploadResourceResolver() {
+		return uploadResourceResolver;
+	}
+	
+	
+//	@Autowired
+//	@UploadResourceResolverType("xformVariables")
+	@Autowired
+	public void setUploadResourceResolver(@TmpFileResolverType("xformVariables")
+			TmpFileResolver uploadResourceResolver) {
+		this.uploadResourceResolver = uploadResourceResolver;
 	}
 }

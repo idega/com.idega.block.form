@@ -2,6 +2,7 @@ package com.idega.block.form.process.converters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.context.annotation.Scope;
@@ -15,9 +16,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/04/24 23:29:22 $ by $Author: laddi $
+ * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -59,7 +60,8 @@ public class CollectionConverter implements DataConverter {
 		for (Node node : childs2Remove)
 			e.removeChild(node);
 
-		List<String> values = (List<String>)o;
+		@SuppressWarnings("unchecked")
+		Collection<String> values = (Collection<String>)o;
 		
 		StringBuilder sb = new StringBuilder();
 		
