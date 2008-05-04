@@ -1,7 +1,5 @@
 package com.idega.block.form.process;
 
-import javax.annotation.Resource;
-
 import org.jbpm.taskmgmt.def.Task;
 import org.jbpm.taskmgmt.exe.TaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,22 +9,20 @@ import org.springframework.stereotype.Service;
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
 import com.idega.jbpm.def.View;
-import com.idega.jbpm.def.ViewFactory;
 import com.idega.jbpm.def.ViewToTask;
 import com.idega.jbpm.def.ViewToTaskType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2008/04/11 01:25:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:11:10 $ by $Author: civilis $
  */
 @ViewToTaskType("xforms")
 @Scope("singleton")
 @Service("process_xforms_viewToTask")
 public class XFormsToTask implements ViewToTask {
 	
-	private ViewFactory viewFactory;
 	private BPMDAO BPMDAO; 
 	
 	public Long getTask(String viewId) {
@@ -67,15 +63,6 @@ public class XFormsToTask implements ViewToTask {
 			getBPMDAO().persist(vtb);
 	}
 	
-	public ViewFactory getViewFactory() {
-		return viewFactory;
-	}
-
-	@Resource(name="process_xforms_viewFactory")
-	public void setViewFactory(ViewFactory viewFactory) {
-		this.viewFactory = viewFactory;
-	}
-
 	public BPMDAO getBPMDAO() {
 		return BPMDAO;
 	}

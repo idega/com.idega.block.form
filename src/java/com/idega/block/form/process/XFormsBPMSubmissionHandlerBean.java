@@ -26,9 +26,9 @@ import com.idega.util.URIUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:11:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(XFormsBPMSubmissionHandlerBean.beanIdentifier)
@@ -61,13 +61,15 @@ public class XFormsBPMSubmissionHandlerBean {
         		
         		long tskInstId = Long.parseLong(parameters.get(ProcessConstants.TASK_INSTANCE_ID));
         		processDefinition = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
-        		bpmFactory.getProcessManager(processDefinition.getId()).startProcess(tskInstId, casesXFormsView);
+        		casesXFormsView.setTaskInstanceId(tskInstId);
+        		bpmFactory.getProcessManager(processDefinition.getId()).getProcessDefinition(processDefinition.getId()).startProcess(casesXFormsView);
         		
         	} else if(parameters.containsKey(ProcessConstants.TASK_INSTANCE_ID)) {
         		
         		long tskInstId = Long.parseLong(parameters.get(ProcessConstants.TASK_INSTANCE_ID));
         		processDefinition = ctx.getTaskInstance(tskInstId).getProcessInstance().getProcessDefinition();
-        		bpmFactory.getProcessManager(processDefinition.getId()).submitTaskInstance(tskInstId, casesXFormsView);
+        		casesXFormsView.setTaskInstanceId(tskInstId);
+        		bpmFactory.getProcessManager(processDefinition.getId()).getTaskInstance(tskInstId).submit(casesXFormsView);
 
         	} else {
             	

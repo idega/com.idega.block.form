@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  * 
- * Last modified: $Date: 2008/04/21 05:02:08 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/04 18:11:10 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -35,6 +35,7 @@ public class XFormsView implements View {
 	public static final String FORM_TYPE = "bpm";
 
 	private String viewId;
+	private Long taskInstanceId;
 	private boolean submitable = true;
 	private String displayName;
 	private DocumentManagerFactory documentManagerFactory;
@@ -222,5 +223,13 @@ public class XFormsView implements View {
 		formDocument = docMan.takeForm(formDocument.getFormId());
 		
 		setFormDocument(formDocument);
+	}
+
+	public Long getTaskInstanceId() {
+		return taskInstanceId;
+	}
+
+	public void setTaskInstanceId(Long taskInstanceId) {
+		this.taskInstanceId = taskInstanceId;
 	}
 }
