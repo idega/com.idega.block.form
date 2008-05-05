@@ -16,9 +16,9 @@ import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/05 16:31:04 $ by $Author: laddi $
  */
 @Scope("singleton")
 @Service
@@ -60,7 +60,6 @@ public class CollectionConverter implements DataConverter {
 		for (Node node : childs2Remove)
 			e.removeChild(node);
 
-		@SuppressWarnings("unchecked")
 		Collection<String> values = (Collection<String>)o;
 		
 		StringBuilder sb = new StringBuilder();
