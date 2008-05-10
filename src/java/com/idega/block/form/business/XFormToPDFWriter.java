@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.faces.component.UIComponent;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.HttpException;
@@ -21,6 +22,7 @@ import com.idega.graphics.generator.business.PDFGenerator;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
+import com.idega.jbpm.exe.ProcessArtifacts;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
@@ -30,12 +32,13 @@ import com.idega.util.FileUtil;
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.3 $
- * Last modified: 2008.05.10 10:04:23 by: valdas
+ * @version $Revision: 1.4 $
+ * Last modified: $Date: 2008/05/10 17:15:50 $ by $Author: valdas $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	
 	public static final String XFORM_ID_PARAMETER = "XFormIdToDownload";
+	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstnaceId";
 	public static final String PATH_IN_SLIDE_PARAMETER = "pathInSlideForXFormPDF";
 	public static final String DO_NOT_CHECK_EXISTENCE_OF_XFORM_IN_PDF_PARAMETER = "doNotCheckExistence";
 	
@@ -43,9 +46,10 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 	
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
+		String taskInstanceId = iwc.getParameter(TASK_INSTANCE_ID_PARAMETER);
 		String formId = iwc.getParameter(XFORM_ID_PARAMETER);
-		if (formId == null) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unknown xform's id - nothing to download");
+		if (taskInstanceId == null && formId == null) {
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Do not know what to download: taskInstanceId and formId are nulls");
 			return;
 		}
 		
@@ -73,13 +77,13 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 			checkExistence = Boolean.valueOf(iwc.getParameter(DO_NOT_CHECK_EXISTENCE_OF_XFORM_IN_PDF_PARAMETER));
 		}
 		
-		if (!getXForm(iwc, formId, pathInSlide, checkExistence)) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to get XForm with id: " + formId);
+		if (!getXForm(iwc, taskInstanceId, formId, pathInSlide, checkExistence)) {
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to get 'XForm' with id: " + taskInstanceId == null ? formId : taskInstanceId);
 			return;
 		}
 	}
 	
-	private boolean getXForm(IWContext iwc, String formId, String pathInSlide, boolean checkExistence) {
+	private boolean getXForm(IWContext iwc, String taskInstanceId, String formId, String pathInSlide, boolean checkExistence) {
 		IWSlideService slide = null;
 		try {
 			slide = (IWSlideService) IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
@@ -95,14 +99,14 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 		
 		if (!checkExistence) {
 			//	Generating PDF for XForm despite PDF already exists or not. If exists - it will be overridden
-			if (!generatePDF(iwc, slide, formId, pathInSlide, pdfName, pathToForm)) {
+			if (!generatePDF(iwc, slide, taskInstanceId, formId, pathInSlide, pdfName, pathToForm)) {
 				return false;
 			}
 		}
 		else if (setXForm(slide, pathToForm)) {
 			if (xformInPDF == null || !xformInPDF.exists()) {
 				//	XForm in PDF doesn't exist - trying to generate it
-				if (!generatePDF(iwc, slide, formId, pathInSlide, pdfName, pathToForm)) {
+				if (!generatePDF(iwc, slide, taskInstanceId, formId, pathInSlide, pdfName, pathToForm)) {
 					return false;
 				}
 			}
@@ -117,10 +121,37 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 		return true;
 	}
 	
-	private boolean generatePDF(IWContext iwc, IWSlideService slide, String formId, String pathInSlide, String pdfName, String pathToForm) {
-		FormViewer viewer = new FormViewer();
-		viewer.setFormId(formId);
+	private UIComponent getComponentToRender(IWContext iwc, String taskInstanceId, String formId) {
+		UIComponent viewer = null;
+		if (taskInstanceId != null && !CoreConstants.EMPTY.equals(taskInstanceId)) {
+			ProcessArtifacts bean = (ProcessArtifacts) SpringBeanLookup.getInstance().getSpringBean(iwc.getServletContext(), CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS);
+			if (bean == null) {
+				return null;
+			}
+			try {
+				return bean.getViewInUIComponent(Long.valueOf(taskInstanceId));
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		else if (formId != null && !CoreConstants.EMPTY.equals(formId)) {
+			viewer = new FormViewer();
+			((FormViewer) viewer).setFormId(formId);
+		}
+		
+		return viewer;
+	}
 	
+	private boolean generatePDF(IWContext iwc, IWSlideService slide, String taskInstanceId, String formId, String pathInSlide, String pdfName, String pathToForm) {
+		UIComponent viewer = getComponentToRender(iwc, taskInstanceId, formId);
+		if (viewer == null) {
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to get viewer for " + taskInstanceId == null ? "xform: " + formId : "taskInstance: " +
+					taskInstanceId);
+			return false;
+		}
+		
 		PDFGenerator generator = (PDFGenerator) SpringBeanLookup.getInstance().getSpringBean(iwc.getServletContext(), CoreConstants.SPRING_BEAN_NAME_PDF_GENERATOR);
 		if (generator == null) {
 			return false;
@@ -129,7 +160,8 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 			return setXForm(slide, pathToForm);
 		}
 		
-		Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to get XForm with id: " + formId);
+		Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to generate PDF for " + taskInstanceId == null ? "xform: " + formId: "taskInstance: " +
+				taskInstanceId);
 		return false;
 	}
 
