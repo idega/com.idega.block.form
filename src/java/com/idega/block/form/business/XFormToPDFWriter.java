@@ -30,7 +30,7 @@ import com.idega.util.FileUtil;
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version '$Revision '
+ * @version $Revision: 1.3 $
  * Last modified: 2008.05.10 10:04:23 by: valdas
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
