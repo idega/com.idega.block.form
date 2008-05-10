@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.47 2008/05/01 15:34:47 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.48 2008/05/10 17:13:15 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.myfaces.renderkit.html.util.AddResource;
-import org.apache.myfaces.renderkit.html.util.AddResourceFactory;
 import org.chiba.web.IWBundleStarter;
 import org.chiba.web.WebAdapter;
 import org.chiba.web.session.XFormsSession;
@@ -46,16 +44,20 @@ import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
+import com.idega.presentation.IWContext;
+import com.idega.presentation.Layer;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
+import com.idega.util.PresentationUtil;
 import com.idega.webface.WFUtil;
 
 /**
  * TODO: remake this component completely
  * 
- * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/10 17:13:15 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.47 $
+ * @version $Revision: 1.48 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -105,10 +107,15 @@ public class FormViewer extends IWBaseComponent {
 	}
 	
 	protected void initializeXForms(FacesContext context) {
-	
-		AddResource resource = AddResourceFactory.getInstance(context);
-		resource.addStyleSheet(context, AddResource.HEADER_BEGIN, "/content" + IWBundleStarter.SLIDE_STYLES_PATH + IWBundleStarter.CHIBA_CSS);
-	
+		String styleSheet = "/content" + IWBundleStarter.SLIDE_STYLES_PATH + IWBundleStarter.CHIBA_CSS;
+		if (CoreUtil.isSingleComponentRenderingProcess(context)) {
+			Layer styleSheetContainer = new Layer();
+			styleSheetContainer.add(PresentationUtil.getStyleSheetSourceLine(styleSheet));
+			add(styleSheetContainer);
+		}
+		else {
+			PresentationUtil.addStyleSheetToHeader(IWContext.getIWContext(context), styleSheet);
+		}
 		
 		Document document = resolveXFormsDocument(context);
 		
