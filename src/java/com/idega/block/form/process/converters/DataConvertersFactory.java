@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
-import com.idega.jbpm.def.VariableDataType;
+import com.idega.jbpm.variables.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/04/02 19:17:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository

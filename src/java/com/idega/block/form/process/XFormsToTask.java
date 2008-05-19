@@ -8,15 +8,15 @@ import org.springframework.stereotype.Service;
 
 import com.idega.jbpm.data.ViewTaskBind;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.def.View;
-import com.idega.jbpm.def.ViewToTask;
-import com.idega.jbpm.def.ViewToTaskType;
+import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewToTask;
+import com.idega.jbpm.view.ViewToTaskType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  *
- * Last modified: $Date: 2008/05/04 18:11:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 @ViewToTaskType("xforms")
 @Scope("singleton")

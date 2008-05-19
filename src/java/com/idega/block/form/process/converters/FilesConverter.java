@@ -3,13 +3,11 @@ package com.idega.block.form.process.converters;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.chiba.xml.dom.DOMUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -18,18 +16,18 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.idega.core.file.data.ExtendedFile;
-import com.idega.core.file.tmp.TmpFilesManager;
-import com.idega.core.file.tmp.TmpFileResolverType;
 import com.idega.core.file.tmp.TmpFileResolver;
+import com.idega.core.file.tmp.TmpFileResolverType;
+import com.idega.core.file.tmp.TmpFilesManager;
 import com.idega.jbpm.variables.VariableDataType;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:54:02 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service

@@ -13,13 +13,13 @@ import org.w3c.dom.Element;
 import com.idega.core.file.tmp.TmpFileResolver;
 import com.idega.core.file.tmp.TmpFileResolverType;
 import com.idega.core.file.tmp.TmpFilesManager;
-import com.idega.jbpm.def.VariableDataType;
+import com.idega.jbpm.variables.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/01 15:34:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service

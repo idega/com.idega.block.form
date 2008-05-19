@@ -13,20 +13,20 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.jbpm.data.dao.BPMDAO;
-import com.idega.jbpm.def.TaskView;
-import com.idega.jbpm.def.View;
-import com.idega.jbpm.def.ViewFactory;
-import com.idega.jbpm.def.ViewFactoryType;
-import com.idega.jbpm.def.ViewToTask;
-import com.idega.jbpm.def.ViewToTaskType;
-import com.idega.jbpm.exe.Converter;
+import com.idega.jbpm.variables.Converter;
+import com.idega.jbpm.view.TaskView;
+import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewFactory;
+import com.idega.jbpm.view.ViewFactoryType;
+import com.idega.jbpm.view.ViewToTask;
+import com.idega.jbpm.view.ViewToTaskType;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/04/12 21:58:59 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @ViewFactoryType("xforms")

@@ -17,17 +17,17 @@ import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.idegaweb.IWMainApplication;
-import com.idega.jbpm.def.View;
-import com.idega.jbpm.def.ViewToTask;
-import com.idega.jbpm.exe.Converter;
+import com.idega.jbpm.variables.Converter;
+import com.idega.jbpm.view.View;
+import com.idega.jbpm.view.ViewToTask;
 import com.idega.util.CoreConstants;
 import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  * 
- * Last modified: $Date: 2008/05/04 18:11:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:41 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 

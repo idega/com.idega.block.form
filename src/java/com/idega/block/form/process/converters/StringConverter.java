@@ -9,14 +9,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.idega.jbpm.def.VariableDataType;
+import com.idega.jbpm.variables.VariableDataType;
 import com.idega.util.CoreConstants;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/27 14:13:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service

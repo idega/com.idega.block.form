@@ -22,7 +22,7 @@ import com.idega.graphics.generator.business.PDFGenerator;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
-import com.idega.jbpm.exe.ProcessArtifacts;
+import com.idega.jbpm.artifacts.presentation.ProcessArtifacts;
 import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
@@ -32,8 +32,8 @@ import com.idega.util.FileUtil;
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.4 $
- * Last modified: $Date: 2008/05/10 17:15:50 $ by $Author: valdas $
+ * @version $Revision: 1.5 $
+ * Last modified: $Date: 2008/05/19 13:53:41 $ by $Author: civilis $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	

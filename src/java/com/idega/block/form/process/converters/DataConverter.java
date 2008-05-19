@@ -2,13 +2,13 @@ package com.idega.block.form.process.converters;
 
 import org.w3c.dom.Element;
 
-import com.idega.jbpm.def.VariableDataType;
+import com.idega.jbpm.variables.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/03/27 14:13:11 $ by $Author: civilis $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 public interface DataConverter {
 
