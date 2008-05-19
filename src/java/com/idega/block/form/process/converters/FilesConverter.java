@@ -21,15 +21,15 @@ import com.idega.core.file.data.ExtendedFile;
 import com.idega.core.file.tmp.TmpFilesManager;
 import com.idega.core.file.tmp.TmpFileResolverType;
 import com.idega.core.file.tmp.TmpFileResolver;
-import com.idega.jbpm.def.VariableDataType;
+import com.idega.jbpm.variables.VariableDataType;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/12 23:12:00 $ by $Author: anton $
+ * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
