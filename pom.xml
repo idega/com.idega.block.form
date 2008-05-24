@@ -65,7 +65,7 @@
     <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>jsr250-api</artifactId>
-      <version>1.0</version>
+      <version>${javax.annotation-jsr250-api-version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.common</groupId>
