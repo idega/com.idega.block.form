@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.faces.application.Application;
 import javax.faces.component.UIComponent;
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,8 +33,8 @@ import com.idega.util.FileUtil;
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.5 $
- * Last modified: $Date: 2008/05/19 13:53:41 $ by $Author: civilis $
+ * @version $Revision: 1.6 $
+ * Last modified: $Date: 2008/05/24 14:11:37 $ by $Author: valdas $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	
@@ -137,7 +138,8 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 			}
 		}
 		else if (formId != null && !CoreConstants.EMPTY.equals(formId)) {
-			viewer = new FormViewer();
+			Application application = iwc.getApplication();
+			viewer = application.createComponent(FormViewer.COMPONENT_TYPE);
 			((FormViewer) viewer).setFormId(formId);
 		}
 		
