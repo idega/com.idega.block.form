@@ -33,8 +33,8 @@ import com.idega.util.FileUtil;
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.6 $
- * Last modified: $Date: 2008/05/24 14:11:37 $ by $Author: valdas $
+ * @version $Revision: 1.7 $
+ * Last modified: $Date: 2008/05/25 15:38:01 $ by $Author: valdas $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	
@@ -95,7 +95,9 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 			return false;
 		}
 		
-		String pdfName = "Form_" + formId + ".pdf";
+		String prefix = formId == null ? taskInstanceId : formId;
+		prefix = prefix == null ? String.valueOf(System.currentTimeMillis()) : prefix;
+		String pdfName = new StringBuilder("Form_").append(prefix).append(".pdf").toString();
 		String pathToForm = pathInSlide + pdfName;
 		
 		if (!checkExistence) {
