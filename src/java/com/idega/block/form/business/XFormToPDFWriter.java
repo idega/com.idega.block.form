@@ -33,13 +33,13 @@ import com.idega.util.FileUtil;
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.7 $
- * Last modified: $Date: 2008/05/25 15:38:01 $ by $Author: valdas $
+ * @version $Revision: 1.8 $
+ * Last modified: $Date: 2008/05/30 12:06:15 $ by $Author: valdas $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	
 	public static final String XFORM_ID_PARAMETER = "XFormIdToDownload";
-	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstnaceId";
+	public static final String TASK_INSTANCE_ID_PARAMETER = "taskInstanceId";
 	public static final String PATH_IN_SLIDE_PARAMETER = "pathInSlideForXFormPDF";
 	public static final String DO_NOT_CHECK_EXISTENCE_OF_XFORM_IN_PDF_PARAMETER = "doNotCheckExistence";
 	
