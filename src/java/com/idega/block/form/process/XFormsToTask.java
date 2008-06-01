@@ -14,9 +14,9 @@ import com.idega.jbpm.view.ViewToTaskType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  *
- * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/01 16:58:47 $ by $Author: civilis $
  */
 @ViewToTaskType("xforms")
 @Scope("singleton")
@@ -74,7 +74,7 @@ public class XFormsToTask implements ViewToTask {
 
 	public void bind(View view, TaskInstance taskInstance) {
 		
-		ViewTaskBind vtb = getBPMDAO().getViewTaskBind(taskInstance.getId(), XFormsView.VIEW_TYPE);
+		ViewTaskBind vtb = getBPMDAO().getViewTaskBindByTaskInstance(taskInstance.getId(), XFormsView.VIEW_TYPE);
 		
 		boolean newVtb = false;
 		
