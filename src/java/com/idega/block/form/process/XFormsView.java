@@ -25,9 +25,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  * 
- * Last modified: $Date: 2008/05/19 13:53:41 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/13 08:02:42 $ by $Author: anton $
  */
 public class XFormsView implements View {
 
@@ -231,5 +231,19 @@ public class XFormsView implements View {
 
 	public void setTaskInstanceId(Long taskInstanceId) {
 		this.taskInstanceId = taskInstanceId;
+	}
+
+	public String getDisplayName(Locale locale) {
+		if(displayName == null) {
+			try {
+				Document document = getFormDocument();
+				displayName = document.getFormTitle().getString(locale);
+				
+			} catch (Exception e) {
+				displayName = null;
+			}
+		}
+		
+		return displayName;
 	}
 }
