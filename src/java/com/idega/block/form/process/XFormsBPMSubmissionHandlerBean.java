@@ -17,7 +17,7 @@ import com.idega.core.file.tmp.TmpFilesManager;
 import com.idega.core.file.tmp.TmpFileResolverType;
 import com.idega.core.file.tmp.TmpFileResolver;
 import com.idega.documentmanager.util.FormManagerUtil;
-import com.idega.jbpm.IdegaJbpmContext;
+import com.idega.jbpm.BPMContext;
 import com.idega.jbpm.exe.BPMFactory;
 import com.idega.jbpm.exe.ProcessConstants;
 import com.idega.util.URIUtil;
@@ -26,9 +26,9 @@ import com.idega.util.URIUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/05/04 18:11:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/16 13:00:10 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service(XFormsBPMSubmissionHandlerBean.beanIdentifier)
@@ -38,7 +38,7 @@ public class XFormsBPMSubmissionHandlerBean {
 	
 	private BPMFactory bpmFactory;
 	private IXFormViewFactory xfvFact;
-	private IdegaJbpmContext idegaJbpmContext;
+	private BPMContext idegaJbpmContext;
 	private TmpFilesManager fileUploadManager;
 	private TmpFileResolver uploadedResourceResolver;
     
@@ -103,12 +103,12 @@ public class XFormsBPMSubmissionHandlerBean {
 		this.xfvFact = xfvFact;
 	}
 	
-	public IdegaJbpmContext getIdegaJbpmContext() {
+	public BPMContext getIdegaJbpmContext() {
 		return idegaJbpmContext;
 	}
 
     @Autowired
-	public void setIdegaJbpmContext(IdegaJbpmContext idegaJbpmContext) {
+	public void setIdegaJbpmContext(BPMContext idegaJbpmContext) {
 		this.idegaJbpmContext = idegaJbpmContext;
 	}
 
