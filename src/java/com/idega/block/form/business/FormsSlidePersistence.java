@@ -26,10 +26,10 @@ import org.w3c.dom.Document;
 
 import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.block.form.data.XForm;
+import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.chiba.web.xml.xforms.connector.webdav.WebdavSubmissionHandler;
 import com.idega.documentmanager.business.FormLockException;
 import com.idega.documentmanager.business.PersistedForm;
 import com.idega.documentmanager.business.PersistedFormDocument;
@@ -47,9 +47,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  *
- * Last modified: $Date: 2008/04/24 23:29:23 $ by $Author: laddi $
+ * Last modified: $Date: 2008/06/17 12:17:49 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -60,6 +60,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	private static final String slideStorageType = "slide";
 	private static final String standaloneFormType = "standalone";
+	private static final String submissionFileName = "submission.xml";
 
 	private final Logger logger;
 	private IWApplicationContext iwac;
@@ -68,7 +69,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	public static final String FORMS_PATH = "/files/forms";
 	public static final String STANDALONE_FORMS_PATH = FORMS_PATH+"/standalone";
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
-	public static final String SUBMITTED_DATA_PATH = WebdavSubmissionHandler.SUBMITTED_DATA_PATH;
+	public static final String SUBMITTED_DATA_PATH = "/files/forms/submissions";
 
 	public FormsSlidePersistence() {
 		logger = Logger.getLogger(getClass().getName());
@@ -129,18 +130,18 @@ public class FormsSlidePersistence implements PersistenceManager {
 		}
 	}
 	
-	protected WebdavExtendedResource loadSubmittedDataFolderResource(String form_id) {
-		
-		try {
-			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getSubmittedDataResourcePath(form_id, ""));
-
-			return !webdav_resource.exists() ? null : webdav_resource;
-			
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Error loading form submitted data folder from Webdav: " + form_id, e);
-			return null;
-		}
-	}
+//	protected WebdavExtendedResource loadSubmittedDataFolderResource(String form_id) {
+//		
+//		try {
+//			WebdavExtendedResource webdav_resource = getWebdavExtendedResource(getSubmittedDataResourcePath(form_id, ""));
+//
+//			return !webdav_resource.exists() ? null : webdav_resource;
+//			
+//		} catch (IOException e) {
+//			logger.log(Level.SEVERE, "Error loading form submitted data folder from Webdav: " + form_id, e);
+//			return null;
+//		}
+//	}
 	
 	protected void saveExistingXFormsDocumentToSlide(Document xformsDoc, String path) {
 
@@ -445,6 +446,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 	public List<SubmittedDataBean> listSubmittedData(String formId) throws Exception {
 		
+		if(true)
+			throw new UnsupportedOperationException("Not supported yet, implement with new submission storage");
 		if(formId == null)
 			throw new NullPointerException("Form identifier is not set");
 		
@@ -463,6 +466,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		WebdavResources child_resources = form_folder.getChildResources();
 		
+		@SuppressWarnings("unchecked")
 		Enumeration<WebdavResource> resources = child_resources.getResources();
 		
 		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
@@ -492,6 +496,55 @@ public class FormsSlidePersistence implements PersistenceManager {
 			}
 		}
 		return submitted_data;
+	}
+	
+	/**
+	 * Stores submitted data: inputStream file and attachments in slide, and meta data in XFORMS_SUBMISSIONS
+	 * 
+	 * @param formId - not null
+	 * @param is - not null
+	 * @param identifier - could be null, would be generated some random identifier
+	 * @throws IOException
+	 */
+	@Transactional(readOnly=false)
+	public void saveSubmittedData(Long formId, InputStream is, String identifier) throws IOException {
+
+		if(formId == null || is == null)
+			throw new IllegalArgumentException("Not enough arguments. FormId="+formId+", is="+is);
+		
+		if(identifier == null || CoreConstants.EMPTY.equals(identifier)) {
+//			TODO: generate some random identifier
+			throw new UnsupportedOperationException("Empty identifier not supported yet");
+		}
+		
+//		path equals SUBMITTED_DATA_PATH + formId + identifier, 
+//		so we get something similar like /files/forms/submissions/123/P-xx/submission.xml, 
+//		and files at /files/forms/submissions/123/P-xx/uploads/file1.doc
+		String path = 
+			new StringBuilder(SUBMITTED_DATA_PATH)
+			.append(CoreConstants.SLASH)
+			.append(formId)
+			.append(CoreConstants.SLASH)
+			.append(identifier)
+			.append(CoreConstants.SLASH)
+			.toString();
+			
+		IWSlideService service = getIWSlideService();
+		service.uploadFileAndCreateFoldersFromStringAsRoot(path, submissionFileName, is, "text/xml", false);
+		
+		XForm xform = getXformsDAO().find(XForm.class, formId);
+		
+		if(xform == null)
+			throw new RuntimeException("No xform found for formId provided="+formId);
+		
+		XFormSubmission xformSubmission = new XFormSubmission();
+		xformSubmission.setDateSubmitted(new Date());
+		xformSubmission.setSubmissionIdentifier(identifier);
+		xformSubmission.setSubmissionStorageIdentifier(path);
+		xformSubmission.setSubmissionStorageType(slideStorageType);
+		xformSubmission.setXform(xform);
+		
+		getXformsDAO().persist(xformSubmission);
 	}
 	
 	protected String generateFormId(String name) {
