@@ -2,25 +2,29 @@ package com.idega.block.form.data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/04/17 01:49:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/17 12:18:07 $ by $Author: civilis $
  */
 @Entity
 @Table(name="XFORMS")
@@ -69,6 +73,9 @@ public class XForm implements Serializable {
 	
 	@Column(name="DISPLAY_NAME")
 	private String displayName;
+	
+	@OneToMany(mappedBy=XFormSubmission.xformProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
+	private List<XFormSubmission> xformSubmissions;
 	
 	public String getFormStorageType() {
 		return formStorageType;
@@ -123,5 +130,11 @@ public class XForm implements Serializable {
 	}
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
+	}
+	public List<XFormSubmission> getXformSubmissions() {
+		return xformSubmissions;
+	}
+	public void setXformSubmissions(List<XFormSubmission> xformSubmissions) {
+		this.xformSubmissions = xformSubmissions;
 	}
 }
