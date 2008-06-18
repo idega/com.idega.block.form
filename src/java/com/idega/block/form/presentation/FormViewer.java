@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.48 2008/05/10 17:13:15 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.49 2008/06/18 07:58:36 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -31,6 +31,7 @@ import org.chiba.xml.events.XMLEvent;
 import org.chiba.xml.xforms.XFormsConstants;
 import org.chiba.xml.xforms.config.XFormsConfigException;
 import org.chiba.xml.xforms.exception.XFormsException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.events.Event;
@@ -41,6 +42,7 @@ import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
 import com.idega.documentmanager.business.PersistedFormDocument;
 import com.idega.documentmanager.business.PersistenceManager;
+import com.idega.documentmanager.business.XFormPersistenceType;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
@@ -49,30 +51,33 @@ import com.idega.presentation.Layer;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.PresentationUtil;
-import com.idega.webface.WFUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
- * TODO: remake this component completely
- * 
- * Last modified: $Date: 2008/05/10 17:13:15 $ by $Author: valdas $
+ * Last modified: $Date: 2008/06/18 07:58:36 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.48 $
+ * @version $Revision: 1.49 $
  */
 public class FormViewer extends IWBaseComponent {
 
 	public static final String COMPONENT_TYPE = "FormViewer";
+	public static final String formIdParam 				= "formId";
+	public static final String submissionIdParam 		= "submissionId";
+	public static final String formviewerPageType 		= "formsviewer";
 	
 	protected static final Logger log =   Logger.getLogger(FormViewer.class.getName());
-//	private static final String taskInstanceIdParameter = "taskInstanceId";
 
+	private PersistenceManager persistenceManager;
 	private String formId;
+	private String submissionId;
+	
 	private Document xDoc;
 	private String sessionKey;
-	private String taskInstanceId;
 
 	public FormViewer() {
 		super();
+		ELUtil.getInstance().autowire(this);
 	}
 
 	@Override
@@ -95,12 +100,25 @@ public class FormViewer extends IWBaseComponent {
 			
 			String formId = getFormId(context);
 			
-			if(formId == null || formId.equals(CoreConstants.EMPTY))
-				return null;
+			if(formId != null && !CoreConstants.EMPTY.equals(formId)) {
+			
+				PersistenceManager persistenceManager = getPersistenceManager();
+				PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
+				document = formDocument.getXformsDocument();
+			} else {
 				
-			PersistenceManager persistenceManager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
-			PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
-			document = formDocument.getXformsDocument();
+				String submissionId = getSubmissionId(context);
+				
+				if(submissionId != null && !CoreConstants.EMPTY.equals(submissionId)) {
+				
+					PersistenceManager persistenceManager = getPersistenceManager();
+					PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(new Long(submissionId));
+					document = formDocument.getXformsDocument();
+				}
+			}
+				
+//			PersistenceManager persistenceManager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
+			
 		}
 		
 		return document;
@@ -191,7 +209,7 @@ public class FormViewer extends IWBaseComponent {
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		
-		if (getFormId(context) != null || xDoc != null) {
+		if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
 			
 			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 			WebAdapter webAdapter = null;
@@ -225,7 +243,7 @@ public class FormViewer extends IWBaseComponent {
 		
 		if(formId == null) {
 			
-			formId = getValueBinding("formId") != null ? (String)getValueBinding("formId").getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get("formId");
+			formId = getValueBinding(formIdParam) != null ? (String)getValueBinding(formIdParam).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(formIdParam);
 			formId = CoreConstants.EMPTY.equals(formId) ? null : formId;
 			setFormId(formId);
 		}
@@ -244,7 +262,6 @@ public class FormViewer extends IWBaseComponent {
 		values[0] = super.saveState(ctx);
 		values[1] = formId;
 		values[2] = sessionKey;
-		values[3] = taskInstanceId;
 		
 		return values;
 	}
@@ -255,7 +272,6 @@ public class FormViewer extends IWBaseComponent {
 		super.restoreState(ctx, values[0]);
 		formId = (String) values[1];
 		sessionKey = (String) values[2];
-		taskInstanceId = (String) values[3];
 	}
 
 	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session,
@@ -333,11 +349,35 @@ public class FormViewer extends IWBaseComponent {
 		return sessionKey;
 	}
 
-	public String getTaskInstanceId() {
-		return taskInstanceId;
+	public String getSubmissionId(FacesContext context) {
+
+		String submissionId = getSubmissionId();
+		
+		if(submissionId == null) {
+			
+			submissionId = getValueBinding(submissionIdParam) != null ? (String)getValueBinding(submissionIdParam).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(submissionIdParam);
+			submissionId = CoreConstants.EMPTY.equals(submissionId) ? null : submissionId;
+			setSubmissionId(submissionId);
+		}
+		
+		return submissionId;
 	}
 
-	public void setTaskInstanceId(String taskInstanceId) {
-		this.taskInstanceId = taskInstanceId;
+	public String getSubmissionId() {
+		return submissionId;
+	}
+
+	public void setSubmissionId(String submissionId) {
+		this.submissionId = submissionId;
+	}
+
+	public PersistenceManager getPersistenceManager() {
+		return persistenceManager;
+	}
+
+	@Autowired
+	@XFormPersistenceType("slide")
+	public void setPersistenceManager(PersistenceManager persistenceManager) {
+		this.persistenceManager = persistenceManager;
 	}
 }
