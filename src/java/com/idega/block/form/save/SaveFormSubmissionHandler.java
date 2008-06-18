@@ -17,7 +17,6 @@ import org.chiba.xml.xforms.connector.AbstractConnector;
 import org.chiba.xml.xforms.connector.SubmissionHandler;
 import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
-import org.dom4j.dom.DOMText;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -44,9 +43,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/06/18 10:58:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 13:17:50 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -89,9 +88,27 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
 //                		TODO: generate form identifier if not present in the submission (some default node)
         				submissionIdentifier = String.valueOf(System.currentTimeMillis());
         			}
+
+//        			checking if submission already contains submissionId - therefore we're reusing existing submissionId
+        			u = new XPathUtil(".//saveFormData/submissionId");
+        			el = (Element)u.getNode(instance);
+        			String submissionIdStr = el != null ? el.getTextContent() : null;
+        			
+        			if(StringUtil.isEmpty(submissionIdStr))
+        				submissionIdStr = null;
+
+//        			TODO: works incorrectly now, should store submission id, probably create submission instance before saving or smth
+        			Long submissionId = submissionIdStr != null ? new Long(submissionIdStr) : null;
         			
         			InputStream is = getISFromXML(instance);
-        			Long submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
+        			
+        			if(submissionId != null) {
+        				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
+        			} else {
+        				submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
+        			}
+        			
+        			el.setTextContent(submissionId.toString());
         			
 //        			resolving url to formviewer and setting submission param
         			IWContext iwc = IWContext.getCurrentInstance();
@@ -102,11 +119,8 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         			uriUtil.setParameter(FormViewer.submissionIdParam, String.valueOf(submissionId));
         			url = uriUtil.getUri();
         			
-//        			TODO: check if link exists, and is correct - reuse
 //            		placing link and saved form identifier in response
-        			u = new XPathUtil(".//saveFormData/submissionId");
-        			el = (Element)u.getNode(instance);
-        			el.setTextContent(String.valueOf(submissionId));
+        			
         			u = new XPathUtil(".//saveFormData/formIdentifier");
         			el = (Element)u.getNode(instance);
         			el.setTextContent(submissionIdentifier);
@@ -167,8 +181,7 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     				
     			} else {
     				
-    				System.out.println("Either is not provided: email="+email+", link="+link);
-    				//throw new IllegalArgumentException("Either is not provided: email="+email+", link="+link);
+    				throw new IllegalArgumentException("Either is not provided: email="+email+", link="+link);
     			}
         	}
     	}
