@@ -29,19 +29,21 @@ import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 import com.idega.util.expression.ELUtil;
 import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/18 07:59:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 08:47:12 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
 	public static final String SUBMITTED_DATA_PATH = "/files/forms/submissions";
+	private static final String sendFormLinkEmailParam = "SEND_SAVED_FORM_LINK";
 	
 	private PersistenceManager persistenceManager;
 	
@@ -49,69 +51,106 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     	
     	checkSubmissionActions(submission);
     	
-    	String formId = FormManagerUtil.getFormId(instance);
+    	System.out.println("replace="+submission.getReplace());
     	
-    	if(formId != null && !CoreConstants.EMPTY.equals(formId)) {
+    	if(submission.getReplace().equals("instance")) {
     		
-    		ELUtil.getInstance().autowire(this);
-    		Long fid = new Long(formId);
+//    		stage 1 -> save submission and generate link
     		
-//    		TODO: check, if form is in firm state, if not - take it
-    		
-    		try {
-//    			trying to find form identifier from standard node (@nodeType='formIdentifier')
-    			XPathUtil u = new XPathUtil(".//*[@nodeType='formIdentifier']");
-    			Element el = (Element)u.getNode(instance);
-    			
-    			final String submissionIdentifier;
-    			
-    			if(el != null)
-    				submissionIdentifier = el.getTextContent();
-    			else {
+    		String formId = FormManagerUtil.getFormId(instance);
+        	
+        	if(formId != null && !CoreConstants.EMPTY.equals(formId)) {
+        		
+        		ELUtil.getInstance().autowire(this);
+        		Long fid = new Long(formId);
+        		
+//        		TODO: check, if form is in firm state, if not - take it
+        		
+        		try {
+//        			trying to find form identifier from standard node (@nodeType='formIdentifier')
+        			XPathUtil u = new XPathUtil(".//*[@nodeType='formIdentifier']");
+        			Element el = (Element)u.getNode(instance);
+        			
+        			final String submissionIdentifier;
+        			
+        			if(el != null)
+        				submissionIdentifier = el.getTextContent();
+        			else {
 
-//            		TODO: generate form identifier if not present in the submission (some default node)
-    				submissionIdentifier = String.valueOf(System.currentTimeMillis());
+//                		TODO: generate form identifier if not present in the submission (some default node)
+        				submissionIdentifier = String.valueOf(System.currentTimeMillis());
+        			}
+        			
+        			System.out.println("submissionidentifier="+submissionIdentifier);
+        			
+        			InputStream is = getISFromXML(instance);
+        			Long submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
+        			
+        			System.out.println("submissionId="+submissionId);
+
+//        			resolving url to formviewer and setting submission param
+        			IWContext iwc = IWContext.getCurrentInstance();
+        			BuilderService bs = getBuilderService(iwc);
+        			
+        			String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType);
+        			final URIUtil uriUtil = new URIUtil(url);
+        			uriUtil.setParameter(FormViewer.submissionIdParam, String.valueOf(submissionId));
+        			url = uriUtil.getUri();
+        			
+        			System.out.println("url to formviewer="+url);
+        			
+//        			TODO: check if link exists, and is correct - reuse
+//            		placing link and saved form identifier in response
+        			u = new XPathUtil(".//saveFormData/formIdentifier");
+        			el = (Element)u.getNode(instance);
+        			el.setTextContent(submissionIdentifier);
+        			u = new XPathUtil(".//saveFormData/linkToForm");
+        			el = (Element)u.getNode(instance);
+        			el.setTextContent(url);
+        			
+        			is = getISFromXML(instance);
+        			
+        			HashMap<String, Object> response = new HashMap<String, Object>(1);
+
+//        			TODO: what's the non-deprecated way of doing it?
+                    response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, is);
+                    
+                    return response;
+    				
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    				throw new RuntimeException(e);
     			}
-    			
-    			System.out.println("submissionidentifier="+submissionIdentifier);
-    			
-    			InputStream is = getISFromXML(instance);
-    			Long submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
-    			
-    			System.out.println("submissionId="+submissionId);
+        	}
+    		
+    	} else {
+    		
+    		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
+        	Map<String, String> parameters = new URIUtil(action).getParameters();
+        	
+        	if(parameters.containsKey(sendFormLinkEmailParam)) {
 
-//    			resolving url to formviewer and setting submission param
-    			IWContext iwc = IWContext.getCurrentInstance();
-    			BuilderService bs = getBuilderService(iwc);
+//        		stage 2 -> send email with the link
+        		
+        		XPathUtil u = new XPathUtil(".//email");
+    			Element el = (Element)u.getNode(instance);
+    			String email = el != null ? el.getTextContent() : null;
     			
-    			String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType);
-    			final URIUtil uriUtil = new URIUtil(url);
-    			uriUtil.setParameter(FormViewer.submissionIdParam, String.valueOf(submissionId));
-    			url = uriUtil.getUri();
-    			
-    			System.out.println("url to formviewer="+url);
-    			
-//        		placing link and saved form identifier in response
-    			u = new XPathUtil(".//saveFormData/formIdentifier");
+    			u = new XPathUtil(".//link");
     			el = (Element)u.getNode(instance);
-    			el.setTextContent(submissionIdentifier);
-    			u = new XPathUtil(".//saveFormData/linkToForm");
-    			el = (Element)u.getNode(instance);
-    			el.setTextContent(url);
+    			String link = el != null ? el.getTextContent() : null;
     			
-    			is = getISFromXML(instance);
-    			
-    			HashMap<String, Object> response = new HashMap<String, Object>(1);
-
-//    			TODO: what's the non-deprecated way of doing it?
-                response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, is);
-                
-                return response;
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
+    			if(!StringUtil.isEmpty(email) && !StringUtil.isEmpty(link)) {
+    				
+    				System.out.println("would send by email="+email);
+    				System.out.println("would send link="+link);
+    				
+    			} else {
+    				
+    				System.out.println("Either is not provided: email="+email+", link="+link);
+    				//throw new IllegalArgumentException("Either is not provided: email="+email+", link="+link);
+    			}
+        	}
     	}
 
         return null;
@@ -128,7 +167,7 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     	if(!submission.getMethod().equalsIgnoreCase("post"))
     		throw new XFormsException("submission method '" + submission.getMethod() + "' not supported");
     	
-    	if (!submission.getReplace().equals("instance"))
+    	if (!submission.getReplace().equals("instance") && !submission.getReplace().equals("none"))
             throw new XFormsException("submission mode '" + submission.getReplace() + "' not supported");
     }
     
