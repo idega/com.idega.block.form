@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.chiba.xml.dom.DOMUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 13:16:20 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -34,7 +35,7 @@ public class XFormsConverter implements Converter {
 	final private XPathUtil mappingXPUT = new XPathUtil("//*[@mapping]");
 	
 	public Map<String, Object> convert(Object submissionData) {
-
+		DOMUtil.prettyPrintDOM((Node)submissionData);
 		Node sdNode = (Node)submissionData;
 		
 		NodeList result;
