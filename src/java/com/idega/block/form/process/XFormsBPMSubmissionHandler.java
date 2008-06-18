@@ -11,6 +11,7 @@ import org.chiba.xml.xforms.exception.XFormsException;
 import org.jbpm.JbpmContext;
 import org.jbpm.graph.def.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.idega.core.file.tmp.TmpFileResolver;
@@ -25,9 +26,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  *
- * Last modified: $Date: 2008/06/18 08:47:43 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 09:24:45 $ by $Author: civilis $
  */
 public class XFormsBPMSubmissionHandler extends AbstractConnector implements SubmissionHandler {
 	
@@ -65,9 +66,12 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
     	JbpmContext ctx = getBpmContext().createJbpmContext();
     	
     	try {
-//    		TODO: move to params node
-    		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
-        	Map<String, String> parameters = new URIUtil(action).getParameters();
+//    	TODO: unify. see parameters manager and xformview setsubmission
+    		Element paramsEl = FormManagerUtil.getFormParamsElement(submissionInstance);
+    		
+    		//String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
+    		String params = paramsEl != null ? paramsEl.getTextContent() : null;
+        	Map<String, String> parameters = new URIUtil(params).getParameters();
         	
         	ProcessDefinition processDefinition;
         	
@@ -87,7 +91,7 @@ public class XFormsBPMSubmissionHandler extends AbstractConnector implements Sub
 
         	} else {
             	
-        		Logger.getLogger(_XFormsBPMSubmissionHandlerBean.class.getName()).log(Level.SEVERE, "Couldn't handle submission. No action associated with the submission action: "+action);
+        		Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Couldn't handle submission. No action associated with the submission action: "+params);
         	}
 			
 		} finally {

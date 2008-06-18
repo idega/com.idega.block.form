@@ -36,9 +36,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/06/18 08:47:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 09:24:45 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -50,8 +50,6 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     public Map<String, Object> submit(Submission submission, Node instance) throws XFormsException {
     	
     	checkSubmissionActions(submission);
-    	
-    	System.out.println("replace="+submission.getReplace());
     	
     	if(submission.getReplace().equals("instance")) {
     		
@@ -81,13 +79,9 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         				submissionIdentifier = String.valueOf(System.currentTimeMillis());
         			}
         			
-        			System.out.println("submissionidentifier="+submissionIdentifier);
-        			
         			InputStream is = getISFromXML(instance);
         			Long submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
         			
-        			System.out.println("submissionId="+submissionId);
-
 //        			resolving url to formviewer and setting submission param
         			IWContext iwc = IWContext.getCurrentInstance();
         			BuilderService bs = getBuilderService(iwc);
@@ -96,8 +90,6 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         			final URIUtil uriUtil = new URIUtil(url);
         			uriUtil.setParameter(FormViewer.submissionIdParam, String.valueOf(submissionId));
         			url = uriUtil.getUri();
-        			
-        			System.out.println("url to formviewer="+url);
         			
 //        			TODO: check if link exists, and is correct - reuse
 //            		placing link and saved form identifier in response

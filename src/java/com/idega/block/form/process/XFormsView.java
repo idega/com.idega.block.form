@@ -9,6 +9,7 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
 import org.chiba.xml.xforms.core.Submission;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.idega.block.form.presentation.FormViewer;
@@ -25,9 +26,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  * 
- * Last modified: $Date: 2008/06/13 08:02:42 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/18 09:24:45 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -183,10 +184,14 @@ public class XFormsView implements View {
 	
 	public void setSubmission(Submission submission, Node submissionInstance) {
 
-		String action = submission.getElement().getAttribute(
-				FormManagerUtil.action_att);
-
-		parameters = new URIUtil(action).getParameters();
+//		String action = submission.getElement().getAttribute(
+//				FormManagerUtil.action_att);
+		
+//		TODO: use ParametersManager or smth (unify god damnit)
+		
+		Element paramsEl = FormManagerUtil.getFormParamsElement(submissionInstance);
+		
+		parameters = paramsEl == null ? new URIUtil(null).getParameters() : new URIUtil(paramsEl.getTextContent()).getParameters();
 		variables = getConverter().convert(submissionInstance);
 	}
 
