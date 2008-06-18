@@ -30,6 +30,8 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.documentmanager.business.DocumentManager;
+import com.idega.documentmanager.business.DocumentManagerFactory;
 import com.idega.documentmanager.business.FormLockException;
 import com.idega.documentmanager.business.PersistedForm;
 import com.idega.documentmanager.business.PersistedFormDocument;
@@ -47,9 +49,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  *
- * Last modified: $Date: 2008/06/17 12:17:49 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 07:58:09 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -65,6 +67,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	private final Logger logger;
 	private IWApplicationContext iwac;
 	private XFormsDAO xformsDAO;
+	private DocumentManagerFactory documentManagerFactory;
 
 	public static final String FORMS_PATH = "/files/forms";
 	public static final String STANDALONE_FORMS_PATH = FORMS_PATH+"/standalone";
@@ -99,8 +102,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 		
 		String formPath = xform.getFormStorageIdentifier();
-		
-		Document xformsDoc = loadXFormsDocument(formPath);
+		Document xformsDoc = loadXMLResourceFromSlide(formPath);
 		
 		PersistedFormDocument formDoc = new PersistedFormDocument();
 		formDoc.setFormId(formId);
@@ -110,18 +112,63 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return formDoc;
 	}
 	
-	protected Document loadXFormsDocument(String formPath) {
+	@Transactional(readOnly=true)
+	public PersistedFormDocument loadPopulatedForm(Long submissionId) {
+		
+		XFormSubmission xformSubmission = getXformsDAO().find(XFormSubmission.class, submissionId);
+		final PersistedFormDocument formDoc;
+		
+		if(xformSubmission != null) {
+			
+			String submissionPath = xformSubmission.getSubmissionStorageIdentifier();
+			StringBuilder subSB = new StringBuilder(submissionPath);
+			
+			if(!submissionPath.endsWith(CoreConstants.SLASH))
+				subSB.append(CoreConstants.SLASH);
+			
+			subSB.append(submissionFileName);
+			submissionPath = subSB.toString();
+			
+			XForm xform = xformSubmission.getXform();
+			
+			String formPath = xform.getFormStorageIdentifier();
+			Document xformsDoc = loadXMLResourceFromSlide(formPath);
+			
+			Document submissionDoc = loadXMLResourceFromSlide(submissionPath);
+			
+//			TODO: load with submitted data
+			
+			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(null);
+			com.idega.documentmanager.business.Document form = documentManager.openForm(xformsDoc);
+			
+			form.populateSubmissionDataWithXML(submissionDoc, true);
+			xformsDoc = form.getXformsDocument();
+			
+			formDoc = new PersistedFormDocument();
+			formDoc.setFormId(xform.getFormId());
+			formDoc.setFormType(xform.getFormType());
+			formDoc.setXformsDocument(xformsDoc);
+			
+		} else {
+			logger.log(Level.WARNING, "No submission found by submissionId provided="+submissionId);
+			formDoc = null;
+		}
+		
+		return formDoc;
+	}
+	
+	protected Document loadXMLResourceFromSlide(String resourcePath) {
 	
 		try {
-			WebdavExtendedResource xformRes = getWebdavExtendedResource(formPath);
+			WebdavExtendedResource resource = getWebdavExtendedResource(resourcePath);
 
-			if(!xformRes.exists())
-				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: "+formPath);
+			if(!resource.exists())
+				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: "+resourcePath);
 			
-			InputStream is = xformRes.getMethodData();
+			InputStream is = resource.getMethodData();
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
-			Document xformsDoc = docBuilder.parse(is);
-			return xformsDoc;
+			Document resourceDocument = docBuilder.parse(is);
+			return resourceDocument;
 			
 		} catch (RuntimeException e) {
 			throw e;
@@ -258,7 +305,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 			getLogger().log(Level.WARNING, "TakeForm on firm form. Is this the expected behavior?");
 			
-			xformsDocument = loadXFormsDocument(xform.getFormStorageIdentifier());
+			xformsDocument = loadXMLResourceFromSlide(xform.getFormStorageIdentifier());
 			
 		} else if(xform.getFormState() == XFormState.FLUX) {
 		
@@ -268,12 +315,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			if(existingFirmXForm != null) {
 				
-				xformsDocument = loadXFormsDocument(existingFirmXForm.getFormStorageIdentifier());
+				xformsDocument = loadXMLResourceFromSlide(existingFirmXForm.getFormStorageIdentifier());
 				xform = existingFirmXForm;
 				
 			} else {
 				
-				xformsDocument = loadXFormsDocument(xform.getFormStorageIdentifier());
+				xformsDocument = loadXMLResourceFromSlide(xform.getFormStorageIdentifier());
 				String formSlideId = generateFormId(xform.getDisplayName());
 				String formType = xform.getFormType();
 				
@@ -504,10 +551,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 	 * @param formId - not null
 	 * @param is - not null
 	 * @param identifier - could be null, would be generated some random identifier
+	 * @return submitted data id
 	 * @throws IOException
+	 * 
 	 */
 	@Transactional(readOnly=false)
-	public void saveSubmittedData(Long formId, InputStream is, String identifier) throws IOException {
+	public Long saveSubmittedData(Long formId, InputStream is, String identifier) throws IOException {
 
 		if(formId == null || is == null)
 			throw new IllegalArgumentException("Not enough arguments. FormId="+formId+", is="+is);
@@ -545,6 +594,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 		xformSubmission.setXform(xform);
 		
 		getXformsDAO().persist(xformSubmission);
+		
+		return xformSubmission.getSubmissionId();
 	}
 	
 	protected String generateFormId(String name) {
@@ -592,5 +643,15 @@ public class FormsSlidePersistence implements PersistenceManager {
 	@Autowired
 	public void setXformsDAO(XFormsDAO xformsDAO) {
 		this.xformsDAO = xformsDAO;
+	}
+
+	public DocumentManagerFactory getDocumentManagerFactory() {
+		return documentManagerFactory;
+	}
+
+	@Autowired
+	public void setDocumentManagerFactory(
+			DocumentManagerFactory documentManagerFactory) {
+		this.documentManagerFactory = documentManagerFactory;
 	}
 }
