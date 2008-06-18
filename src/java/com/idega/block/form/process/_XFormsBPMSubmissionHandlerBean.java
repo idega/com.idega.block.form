@@ -26,13 +26,13 @@ import com.idega.util.URIUtil;
  * TODO: move all this logic to spring bean
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.1 $
  *
- * Last modified: $Date: 2008/06/16 13:00:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 08:47:43 $ by $Author: civilis $
  */
-@Scope("singleton")
-@Service(XFormsBPMSubmissionHandlerBean.beanIdentifier)
-public class XFormsBPMSubmissionHandlerBean {
+//@Scope("singleton")
+//@Service(_XFormsBPMSubmissionHandlerBean.beanIdentifier)
+public class _XFormsBPMSubmissionHandlerBean {
 	
 	public static final String beanIdentifier = "XFormsBPMSubmissionHandlerBean";
 	
@@ -52,6 +52,7 @@ public class XFormsBPMSubmissionHandlerBean {
     	JbpmContext ctx = getIdegaJbpmContext().createJbpmContext();
     	
     	try {
+//    		TODO: move to params node
     		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
         	Map<String, String> parameters = new URIUtil(action).getParameters();
         	
@@ -73,7 +74,7 @@ public class XFormsBPMSubmissionHandlerBean {
 
         	} else {
             	
-        		Logger.getLogger(XFormsBPMSubmissionHandlerBean.class.getName()).log(Level.SEVERE, "Couldn't handle submission. No action associated with the submission action: "+action);
+        		Logger.getLogger(_XFormsBPMSubmissionHandlerBean.class.getName()).log(Level.SEVERE, "Couldn't handle submission. No action associated with the submission action: "+action);
         	}
 			
 		} finally {
