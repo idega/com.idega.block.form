@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.transform.TransformerException;
 
@@ -15,10 +17,12 @@ import org.chiba.xml.xforms.connector.AbstractConnector;
 import org.chiba.xml.xforms.connector.SubmissionHandler;
 import org.chiba.xml.xforms.core.Submission;
 import org.chiba.xml.xforms.exception.XFormsException;
+import org.dom4j.dom.DOMText;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.presentation.FormViewer;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.builder.business.BuilderService;
@@ -27,8 +31,12 @@ import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.XFormPersistenceType;
 import com.idega.documentmanager.util.FormManagerUtil;
 import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWBundle;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
+import com.idega.util.SendMail;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 import com.idega.util.expression.ELUtil;
@@ -36,9 +44,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/06/18 09:24:45 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 10:58:51 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -50,6 +58,9 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     public Map<String, Object> submit(Submission submission, Node instance) throws XFormsException {
     	
     	checkSubmissionActions(submission);
+    	
+    	System.out.println("replace="+submission.getReplace());
+    	DOMUtil.prettyPrintDOM(instance);
     	
     	if(submission.getReplace().equals("instance")) {
     		
@@ -93,6 +104,9 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         			
 //        			TODO: check if link exists, and is correct - reuse
 //            		placing link and saved form identifier in response
+        			u = new XPathUtil(".//saveFormData/submissionId");
+        			el = (Element)u.getNode(instance);
+        			el.setTextContent(String.valueOf(submissionId));
         			u = new XPathUtil(".//saveFormData/formIdentifier");
         			el = (Element)u.getNode(instance);
         			el.setTextContent(submissionIdentifier);
@@ -134,8 +148,22 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     			
     			if(!StringUtil.isEmpty(email) && !StringUtil.isEmpty(link)) {
     				
+    				IWContext iwc = IWContext.getCurrentInstance();
+    				IWResourceBundle iwrb = getResourceBundle(iwc);
+    				
     				System.out.println("would send by email="+email);
     				System.out.println("would send link="+link);
+    				
+    				String from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, "staff@idega.is");
+    				String host = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, "mail.idega.is");
+    				String subject = iwrb.getLocalizedString("save_form.linkToForm.subject", "Link to your saved form");
+    				String text = iwrb.getLocalizedAndFormattedString("save_form.linkToForm.text", "Link to your saved form: {0}", new Object[] {link});
+    				
+    				try {
+    					SendMail.send(from, email, null, null, host, subject, text);
+    				} catch (javax.mail.MessagingException me) {
+    					Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while sending participant invitation message", me);
+    				}
     				
     			} else {
     				
@@ -179,6 +207,17 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
 			
 		} catch (RemoteException e) {
 			throw new IBORuntimeException(e);
+		}
+	}
+	
+	protected IWResourceBundle getResourceBundle(IWContext iwc) {
+		IWMainApplication app = iwc.getIWMainApplication();
+		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
+		
+		if(bundle != null) {
+			return bundle.getResourceBundle(iwc);
+		} else {
+			return null;
 		}
 	}
 }
