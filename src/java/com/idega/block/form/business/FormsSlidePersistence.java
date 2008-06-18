@@ -49,9 +49,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  *
- * Last modified: $Date: 2008/06/18 07:58:09 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/18 13:18:04 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -566,20 +566,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			throw new UnsupportedOperationException("Empty identifier not supported yet");
 		}
 		
-//		path equals SUBMITTED_DATA_PATH + formId + identifier, 
-//		so we get something similar like /files/forms/submissions/123/P-xx/submission.xml, 
-//		and files at /files/forms/submissions/123/P-xx/uploads/file1.doc
-		String path = 
-			new StringBuilder(SUBMITTED_DATA_PATH)
-			.append(CoreConstants.SLASH)
-			.append(formId)
-			.append(CoreConstants.SLASH)
-			.append(identifier)
-			.append(CoreConstants.SLASH)
-			.toString();
-			
-		IWSlideService service = getIWSlideService();
-		service.uploadFileAndCreateFoldersFromStringAsRoot(path, submissionFileName, is, "text/xml", false);
+		String path = storeSubmissionData(formId.toString(), identifier, is);
 		
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 		
@@ -596,6 +583,50 @@ public class FormsSlidePersistence implements PersistenceManager {
 		getXformsDAO().persist(xformSubmission);
 		
 		return xformSubmission.getSubmissionId();
+	}
+	
+	private String storeSubmissionData(String formId, String identifier, InputStream is) throws IOException {
+
+//		path equals SUBMITTED_DATA_PATH + formId + identifier, 
+//		so we get something similar like /files/forms/submissions/123/P-xx/submission.xml, 
+//		and files at /files/forms/submissions/123/P-xx/uploads/file1.doc
+		String path = 
+			new StringBuilder(SUBMITTED_DATA_PATH)
+			.append(CoreConstants.SLASH)
+			.append(formId)
+			.append(CoreConstants.SLASH)
+			.append(identifier)
+			.append(CoreConstants.SLASH)
+			.toString();
+			
+		IWSlideService service = getIWSlideService();
+		service.uploadFileAndCreateFoldersFromStringAsRoot(path, submissionFileName, is, "text/xml", false);
+		
+		return path;
+	}
+	
+	public Long saveSubmittedDataByExistingSubmission(Long submissionId, Long formId, InputStream is, String identifier) throws IOException {
+
+		XFormSubmission xformSubmission;
+		
+		if(submissionId != null)
+			xformSubmission = getXformsDAO().find(XFormSubmission.class, submissionId);
+		else
+			xformSubmission = null;
+		
+		if(xformSubmission == null) {
+			
+			submissionId = saveSubmittedData(formId, is, identifier);
+		} else {
+		
+			String path = storeSubmissionData(formId.toString(), identifier, is);
+			xformSubmission.setDateSubmitted(new Date());
+			xformSubmission.setSubmissionStorageIdentifier(path);
+			xformSubmission = getXformsDAO().merge(xformSubmission);
+			submissionId = xformSubmission.getSubmissionId();
+		}
+		
+		return submissionId;
 	}
 	
 	protected String generateFormId(String name) {
