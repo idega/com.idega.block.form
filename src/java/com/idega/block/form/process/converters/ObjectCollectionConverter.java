@@ -19,16 +19,15 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:anton@idega.com">Anton Makarov</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/06/19 09:05:22 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/19 09:11:32 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
 public class ObjectCollectionConverter implements DataConverter {
 
 	public Object convert(Element o) {
-	DOMUtil.prettyPrintDOM(o);
 	
 	@SuppressWarnings("unchecked")
 	List<Element> rowNodes = DOMUtil.getChildElements(o);
@@ -85,8 +84,6 @@ public class ObjectCollectionConverter implements DataConverter {
 			
 			e.appendChild(rowElem);
 		}
-		
-		DOMUtil.prettyPrintDOM(e);
 		return e;
 	}
 	
@@ -98,6 +95,7 @@ public class ObjectCollectionConverter implements DataConverter {
 	
 	private Map<String, String> JSONToObj(String jsonIn) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
+		@SuppressWarnings("unchecked")
 		Map<String, String> obj = (Map<String, String>) xstream.fromXML(jsonIn);
 		return obj;
 	}

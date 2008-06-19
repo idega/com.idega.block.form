@@ -21,9 +21,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/06/18 13:16:20 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/19 09:12:52 $ by $Author: anton $
  */
 @Scope("singleton")
 @Service
@@ -35,7 +35,6 @@ public class XFormsConverter implements Converter {
 	final private XPathUtil mappingXPUT = new XPathUtil("//*[@mapping]");
 	
 	public Map<String, Object> convert(Object submissionData) {
-		DOMUtil.prettyPrintDOM((Node)submissionData);
 		Node sdNode = (Node)submissionData;
 		
 		NodeList result;
