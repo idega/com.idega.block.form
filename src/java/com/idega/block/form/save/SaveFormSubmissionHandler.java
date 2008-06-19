@@ -43,9 +43,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/06/18 13:17:50 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/19 09:46:39 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -114,7 +114,7 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         			IWContext iwc = IWContext.getCurrentInstance();
         			BuilderService bs = getBuilderService(iwc);
         			
-        			String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType);
+        			String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
         			final URIUtil uriUtil = new URIUtil(url);
         			uriUtil.setParameter(FormViewer.submissionIdParam, String.valueOf(submissionId));
         			url = uriUtil.getUri();
