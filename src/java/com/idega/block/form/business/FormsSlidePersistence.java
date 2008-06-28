@@ -49,9 +49,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  *
- * Last modified: $Date: 2008/06/18 13:18:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/28 18:57:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -459,12 +459,14 @@ public class FormsSlidePersistence implements PersistenceManager {
 			throw e;
 		}
 	}
-	public synchronized IWApplicationContext getIWApplicationContext(){
+	
+	private synchronized IWApplicationContext getIWApplicationContext() {
+		
 		if(iwac == null)
 			iwac = IWMainApplication.getDefaultIWApplicationContext();
 		
 	    return iwac;
-	  }
+	}
 
 	private WebdavExtendedResource getWebdavExtendedResource(String path) throws HttpException, IOException, RemoteException, IBOLookupException {
 		IWSlideService service = getIWSlideService();
