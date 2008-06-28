@@ -26,6 +26,9 @@ import com.idega.block.form.presentation.FormViewer;
 import com.idega.business.IBORuntimeException;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
+import com.idega.core.file.tmp.TmpFileResolver;
+import com.idega.core.file.tmp.TmpFileResolverType;
+import com.idega.core.file.tmp.TmpFilesModifyStrategy;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.XFormPersistenceType;
 import com.idega.documentmanager.util.FormManagerUtil;
@@ -43,9 +46,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/06/19 09:46:39 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/28 18:59:19 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -53,12 +56,15 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
 	private static final String sendFormLinkEmailParam = "SEND_SAVED_FORM_LINK";
 	
 	private PersistenceManager persistenceManager;
+	@Autowired @TmpFileResolverType("xformVariables")
+	private TmpFileResolver tmpFileResolver;
+	@Autowired @TmpFileResolverType("xformSlide")
+	private TmpFilesModifyStrategy tmpFilesModifyStrategy;
 	
-    public Map<String, Object> submit(Submission submission, Node instance) throws XFormsException {
+	public Map<String, Object> submit(Submission submission, Node instance) throws XFormsException {
     	
     	checkSubmissionActions(submission);
     	
-    	System.out.println("replace="+submission.getReplace());
     	DOMUtil.prettyPrintDOM(instance);
     	
     	if(submission.getReplace().equals("instance")) {
@@ -74,73 +80,14 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         		
 //        		TODO: check, if form is in firm state, if not - take it
         		
-        		try {
-//        			trying to find form identifier from standard node (@nodeType='formIdentifier')
-        			XPathUtil u = new XPathUtil(".//*[@nodeType='formIdentifier']");
-        			Element el = (Element)u.getNode(instance);
-        			
-        			final String submissionIdentifier;
-        			
-        			if(el != null)
-        				submissionIdentifier = el.getTextContent();
-        			else {
+    			String[] submissionMeta = saveSubmission(fid, instance);
+    			
+    			InputStream is = getSavedResponse(submissionMeta[0], submissionMeta[1], instance);
+    			HashMap<String, Object> response = new HashMap<String, Object>(1);
 
-//                		TODO: generate form identifier if not present in the submission (some default node)
-        				submissionIdentifier = String.valueOf(System.currentTimeMillis());
-        			}
-
-//        			checking if submission already contains submissionId - therefore we're reusing existing submissionId
-        			u = new XPathUtil(".//saveFormData/submissionId");
-        			el = (Element)u.getNode(instance);
-        			String submissionIdStr = el != null ? el.getTextContent() : null;
-        			
-        			if(StringUtil.isEmpty(submissionIdStr))
-        				submissionIdStr = null;
-
-//        			TODO: works incorrectly now, should store submission id, probably create submission instance before saving or smth
-        			Long submissionId = submissionIdStr != null ? new Long(submissionIdStr) : null;
-        			
-        			InputStream is = getISFromXML(instance);
-        			
-        			if(submissionId != null) {
-        				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
-        			} else {
-        				submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
-        			}
-        			
-        			el.setTextContent(submissionId.toString());
-        			
-//        			resolving url to formviewer and setting submission param
-        			IWContext iwc = IWContext.getCurrentInstance();
-        			BuilderService bs = getBuilderService(iwc);
-        			
-        			String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
-        			final URIUtil uriUtil = new URIUtil(url);
-        			uriUtil.setParameter(FormViewer.submissionIdParam, String.valueOf(submissionId));
-        			url = uriUtil.getUri();
-        			
-//            		placing link and saved form identifier in response
-        			
-        			u = new XPathUtil(".//saveFormData/formIdentifier");
-        			el = (Element)u.getNode(instance);
-        			el.setTextContent(submissionIdentifier);
-        			u = new XPathUtil(".//saveFormData/linkToForm");
-        			el = (Element)u.getNode(instance);
-        			el.setTextContent(url);
-        			
-        			is = getISFromXML(instance);
-        			
-        			HashMap<String, Object> response = new HashMap<String, Object>(1);
-
-//        			TODO: what's the non-deprecated way of doing it?
-                    response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, is);
-                    
-                    return response;
-    				
-    			} catch (Exception e) {
-    				e.printStackTrace();
-    				throw new RuntimeException(e);
-    			}
+//    			TODO: what's the non-deprecated way of doing it?
+    	        response.put(ChibaAdapter.SUBMISSION_RESPONSE_STREAM, is);
+                return response;
         	}
     		
     	} else {
@@ -151,43 +98,128 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
         	if(parameters.containsKey(sendFormLinkEmailParam)) {
 
 //        		stage 2 -> send email with the link
-        		
-        		XPathUtil u = new XPathUtil(".//email");
-    			Element el = (Element)u.getNode(instance);
-    			String email = el != null ? el.getTextContent() : null;
-    			
-    			u = new XPathUtil(".//link");
-    			el = (Element)u.getNode(instance);
-    			String link = el != null ? el.getTextContent() : null;
-    			
-    			if(!StringUtil.isEmpty(email) && !StringUtil.isEmpty(link)) {
-    				
-    				IWContext iwc = IWContext.getCurrentInstance();
-    				IWResourceBundle iwrb = getResourceBundle(iwc);
-    				
-    				System.out.println("would send by email="+email);
-    				System.out.println("would send link="+link);
-    				
-    				String from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, "staff@idega.is");
-    				String host = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, "mail.idega.is");
-    				String subject = iwrb.getLocalizedString("save_form.linkToForm.subject", "Link to your saved form");
-    				String text = iwrb.getLocalizedAndFormattedString("save_form.linkToForm.text", "Link to your saved form: {0}", new Object[] {link});
-    				
-    				try {
-    					SendMail.send(from, email, null, null, host, subject, text);
-    				} catch (javax.mail.MessagingException me) {
-    					Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while sending participant invitation message", me);
-    				}
-    				
-    			} else {
-    				
-    				throw new IllegalArgumentException("Either is not provided: email="+email+", link="+link);
-    			}
+        		sendSavedFormLink(instance);
         	}
     	}
 
         return null;
     }
+    
+    protected String[] saveSubmission(Long fid, Node instance) {
+		
+//		TODO: check, if form is in firm state, if not - take it
+		
+		try {
+
+//			trying to find form identifier from standard node (@nodeType='formIdentifier')
+			XPathUtil u = new XPathUtil(".//*[@nodeType='formIdentifier']");
+			Element el = (Element)u.getNode(instance);
+			
+			final String submissionIdentifier;
+			
+			if(el != null)
+				submissionIdentifier = el.getTextContent();
+			else {
+				submissionIdentifier = String.valueOf(System.currentTimeMillis());
+			}
+
+//			checking if submission already contains submissionId - therefore we're reusing existing submissionId
+			u = new XPathUtil(".//saveFormData/submissionId");
+			el = (Element)u.getNode(instance);
+			String submissionIdStr = el != null ? el.getTextContent() : null;
+			
+			if(StringUtil.isEmpty(submissionIdStr))
+				submissionIdStr = null;
+
+//			TODO: works incorrectly now, should store submission id, probably create submission instance before saving or smth
+			Long submissionId = submissionIdStr != null ? new Long(submissionIdStr) : null;
+			
+//			storing uploaded files to persistent location
+			getTmpFileResolver().replaceAllFiles(instance, getTmpFilesModifyStrategy());
+			
+			InputStream is = getISFromXML(instance);
+			
+			if(submissionId != null) {
+				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
+			} else {
+				
+				submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
+				
+				
+				el.setTextContent(submissionId.toString());
+				is = getISFromXML(instance);
+				
+//				restore with new modified submission data
+				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
+			}
+			
+			return new String[] {submissionId.toString(), submissionIdentifier};
+			
+		} catch (Exception e) {
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while saving submission", e);
+			throw new RuntimeException(e);
+		}
+	}
+    
+    protected InputStream getSavedResponse(String submissionId, String submissionIdentifier, Node instance) {
+		
+    	try {
+//    		resolving url to formviewer and setting submission param
+    		IWContext iwc = IWContext.getCurrentInstance();
+    		BuilderService bs = getBuilderService(iwc);
+    		
+    		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
+    		final URIUtil uriUtil = new URIUtil(url);
+    		uriUtil.setParameter(FormViewer.submissionIdParam, submissionId);
+    		url = uriUtil.getUri();
+    		
+//    		placing link and saved form identifier in response
+    		
+    		XPathUtil u = new XPathUtil(".//saveFormData/formIdentifier");
+    		Element el = (Element)u.getNode(instance);
+    		el.setTextContent(submissionIdentifier);
+    		u = new XPathUtil(".//saveFormData/linkToForm");
+    		el = (Element)u.getNode(instance);
+    		el.setTextContent(url);
+    		
+    		InputStream is = getISFromXML(instance);
+    		return is;
+			
+		} catch (Exception e) {
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while creating response input stream", e);
+			throw new RuntimeException(e);
+		}
+	}
+    
+    protected void sendSavedFormLink(Node instance) {
+		
+    	XPathUtil u = new XPathUtil(".//email");
+		Element el = (Element)u.getNode(instance);
+		String email = el != null ? el.getTextContent() : null;
+		
+		u = new XPathUtil(".//link");
+		el = (Element)u.getNode(instance);
+		String link = el != null ? el.getTextContent() : null;
+		
+		if(!StringUtil.isEmpty(email) && !StringUtil.isEmpty(link)) {
+			
+			IWContext iwc = IWContext.getCurrentInstance();
+			IWResourceBundle iwrb = getResourceBundle(iwc);
+			
+			String from = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, "staff@idega.is");
+			String host = iwc.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, "mail.idega.is");
+			String subject = iwrb.getLocalizedString("save_form.linkToForm.subject", "Link to your saved form");
+			String text = iwrb.getLocalizedAndFormattedString("save_form.linkToForm.text", "Link to your saved form: {0}", new Object[] {link});
+			
+			try {
+				SendMail.send(from, email, null, null, host, subject, text);
+			} catch (javax.mail.MessagingException me) {
+				Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while sending participant invitation message", me);
+			}
+		} else {
+			throw new IllegalArgumentException("Either is not provided: email="+email+", link="+link);
+		}
+	}
     
     private InputStream getISFromXML(Node node) throws TransformerException {
     	
@@ -232,5 +264,13 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
 		} else {
 			return null;
 		}
+	}
+	
+	public TmpFileResolver getTmpFileResolver() {
+		return tmpFileResolver;
+	}
+
+	public TmpFilesModifyStrategy getTmpFilesModifyStrategy() {
+		return tmpFilesModifyStrategy;
 	}
 }
