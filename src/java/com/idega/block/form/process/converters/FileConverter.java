@@ -1,6 +1,6 @@
 package com.idega.block.form.process.converters;
 
-import java.io.File;
+import java.net.URI;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,9 +17,9 @@ import com.idega.jbpm.variables.VariableDataType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/05/19 13:53:40 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/28 18:58:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -33,8 +33,8 @@ public class FileConverter implements DataConverter {
 		
 		String variableName = ctx.getAttribute(mappingAtt);
 		
-		Collection<File> files = getUploadsManager().getFiles(variableName, ctx, getUploadResourceResolver());
-		return files.isEmpty() ? null : files.iterator().next();
+		Collection<URI> filesUris = getUploadsManager().getFilesUris(variableName, ctx, getUploadResourceResolver());
+		return filesUris.isEmpty() ? null : filesUris.iterator().next();
 	}
 	public Element revert(Object o, Element e) {
 	
@@ -58,9 +58,6 @@ public class FileConverter implements DataConverter {
 		return uploadResourceResolver;
 	}
 	
-	
-//	@Autowired
-//	@UploadResourceResolverType("xformVariables")
 	@Autowired
 	public void setUploadResourceResolver(@TmpFileResolverType("xformVariables")
 			TmpFileResolver uploadResourceResolver) {

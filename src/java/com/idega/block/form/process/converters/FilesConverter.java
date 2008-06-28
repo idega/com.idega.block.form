@@ -1,7 +1,7 @@
 package com.idega.block.form.process.converters;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,9 +25,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/05/19 13:54:02 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/28 18:58:54 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -41,13 +41,14 @@ public class FilesConverter implements DataConverter {
 		
 		String variableName = ctx.getAttribute(mappingAtt);
 		
-		Collection<File> files = getUploadsManager().getFiles(variableName, ctx, getUploadResourceResolver());
+		Collection<URI> filesUris = getUploadsManager().getFilesUris(variableName, ctx, getUploadResourceResolver());
 		Collection<ExtendedFile> filesAndDescriptions = new ArrayList<ExtendedFile>();
 		
-		for(File file : files) {
-			String path = file.getPath();
+		for(URI fileUri : filesUris) {
+			
+			String path = fileUri.getPath();
 			String description = getDescriptionByUri(variableName, ctx, path);
-			ExtendedFile exFile = new ExtendedFile(file, description);
+			ExtendedFile exFile = new ExtendedFile(fileUri, description);
 			filesAndDescriptions.add(exFile);
 		}
 		
