@@ -49,9 +49,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.16 $
  *
- * Last modified: $Date: 2008/06/28 18:57:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/30 13:35:16 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -84,8 +84,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	protected String getFormResourcePath(String formType, String formIdentifier, boolean withFile) {
 		
-		StringBuilder b = new StringBuilder(FORMS_PATH).append(BlockFormUtil.slash).
-		append(formType).append(BlockFormUtil.slash);
+		StringBuilder b = new StringBuilder(FORMS_PATH).append(CoreConstants.SLASH).
+		append(formType).append(CoreConstants.SLASH);
 		
 		if(withFile) {
 			b = b
@@ -443,9 +443,9 @@ public class FormsSlidePersistence implements PersistenceManager {
 	public String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
 		return 
 			new StringBuilder(SUBMITTED_DATA_PATH)
-			.append(BlockFormUtil.slash)
+			.append(CoreConstants.SLASH)
 			.append(formId)
-			.append(BlockFormUtil.slash)
+			.append(CoreConstants.SLASH)
 			.append(submittedDataFilename)
 			.toString();
 	}
@@ -502,7 +502,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		WebdavResource form_folder = getWebdavExtendedResource(
 				new StringBuilder(SUBMITTED_DATA_PATH)
-				.append(BlockFormUtil.slash)
+				.append(CoreConstants.SLASH)
 				.append(formId)
 				.toString()
 		);
