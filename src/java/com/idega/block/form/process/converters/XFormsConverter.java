@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.chiba.xml.dom.DOMUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -21,9 +20,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/06/19 09:12:52 $ by $Author: anton $
+ * Last modified: $Date: 2008/06/30 13:36:12 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
