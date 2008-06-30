@@ -1,8 +1,6 @@
 package com.idega.block.form.process.converters;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -20,14 +18,13 @@ import com.idega.core.file.tmp.TmpFileResolver;
 import com.idega.core.file.tmp.TmpFileResolverType;
 import com.idega.core.file.tmp.TmpFilesManager;
 import com.idega.jbpm.variables.VariableDataType;
-import com.idega.util.CoreConstants;
 import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/06/28 18:58:54 $ by $Author: civilis $
+ * Last modified: $Date: 2008/06/30 13:36:01 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -36,6 +33,11 @@ public class FilesConverter implements DataConverter {
 	private TmpFilesManager uploadsManager;
 	private TmpFileResolver uploadResourceResolver;
 	private static final String mappingAtt = "mapping";
+	private final XPathUtil entriesXPUT;
+	
+	public FilesConverter() {
+		entriesXPUT = new XPathUtil("./entry");
+	}
 
 	public Object convert(Element ctx) {
 		
@@ -46,8 +48,7 @@ public class FilesConverter implements DataConverter {
 		
 		for(URI fileUri : filesUris) {
 			
-			String path = fileUri.getPath();
-			String description = getDescriptionByUri(variableName, ctx, path);
+			String description = getDescriptionByUri(variableName, ctx, fileUri);
 			ExtendedFile exFile = new ExtendedFile(fileUri, description);
 			filesAndDescriptions.add(exFile);
 		}
@@ -55,48 +56,41 @@ public class FilesConverter implements DataConverter {
 		return filesAndDescriptions;
 	}
 	
-	private String getDescriptionByUri(String identifier, Object resource, String uri) {
-		String desc = null;
+	private String getDescriptionByUri(String identifier, Object resource, URI uri) {
 		
 		if(!(resource instanceof Node)) {	
 			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Wrong resource provided. Expected of type "+Node.class.getName()+", but got "+resource.getClass().getName());
 			return null;
 		}
-		XPathUtil entriesXPUT = new XPathUtil("./entry");
+		
+		String desc = null;
 		
 		Node instance = (Node)resource;
 		Element node = getUploadsElement(identifier, instance);
 		NodeList entries;
 		
-		synchronized (entriesXPUT) {
-			entries = entriesXPUT.getNodeset(node);
-		}
+		entries = entriesXPUT.getNodeset(node);
 		
 		if(entries != null) {
+			
+			String uriStrMatch = uri.toString();
+			
 			for (int i = 0; i < entries.getLength(); i++) {
+				
 				String uriStr = entries.item(i).getChildNodes().item(0).getTextContent();
 		    	
-		    	if(!CoreConstants.EMPTY.equals(uriStr) && !CoreConstants.DOUBLENEWLINE.equals(uriStr)) {
-		    		
-		    		if(uriStr.startsWith("file:"))
-		    			uriStr = uriStr.substring("file:".length());
-		    		
-		    		try {
-						uriStr = URLDecoder.decode(uriStr, "UTF-8");
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
+				if(uriStrMatch.equals(uriStr)) {
 					
-					if(uriStr.equals(uri)) {
-						Node descNode = entries.item(i).getChildNodes().item(1);
-						if(descNode != null) {
-							desc = descNode.getTextContent();
-							break;
-						}
+					Node descNode = entries.item(i).getChildNodes().item(1);
+					
+					if(descNode != null) {
+						desc = descNode.getTextContent();
+						break;
 					}
-		    	}
+				}
 			}
 		}
+		
 		return desc;
 	}
 	
