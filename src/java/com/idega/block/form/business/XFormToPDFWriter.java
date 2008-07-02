@@ -17,7 +17,6 @@ import org.apache.webdav.lib.WebdavResource;
 import com.idega.block.form.presentation.FormViewer;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.business.SpringBeanLookup;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.graphics.generator.business.PDFGenerator;
 import com.idega.idegaweb.IWMainApplication;
@@ -28,13 +27,14 @@ import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.FileUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.8 $
- * Last modified: $Date: 2008/05/30 12:06:15 $ by $Author: valdas $
+ * @version $Revision: 1.9 $
+ * Last modified: $Date: 2008/07/02 19:24:01 $ by $Author: civilis $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	
@@ -127,7 +127,7 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 	private UIComponent getComponentToRender(IWContext iwc, String taskInstanceId, String formId) {
 		UIComponent viewer = null;
 		if (taskInstanceId != null && !CoreConstants.EMPTY.equals(taskInstanceId)) {
-			ProcessArtifacts bean = (ProcessArtifacts) SpringBeanLookup.getInstance().getSpringBean(iwc.getServletContext(), CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS);
+			ProcessArtifacts bean = ELUtil.getInstance().getBean(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS);
 			if (bean == null) {
 				return null;
 			}
@@ -156,7 +156,7 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 			return false;
 		}
 		
-		PDFGenerator generator = (PDFGenerator) SpringBeanLookup.getInstance().getSpringBean(iwc.getServletContext(), CoreConstants.SPRING_BEAN_NAME_PDF_GENERATOR);
+		PDFGenerator generator = ELUtil.getInstance().getBean(CoreConstants.SPRING_BEAN_NAME_PDF_GENERATOR);
 		if (generator == null) {
 			return false;
 		}
