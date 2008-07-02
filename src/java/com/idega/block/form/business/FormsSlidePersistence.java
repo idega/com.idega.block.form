@@ -24,7 +24,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 
-import com.idega.block.form.business.util.BlockFormUtil;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
@@ -49,9 +48,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  *
- * Last modified: $Date: 2008/06/30 13:35:16 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/02 19:23:46 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
