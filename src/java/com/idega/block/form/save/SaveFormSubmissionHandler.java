@@ -46,9 +46,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/06/28 18:59:19 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/03 15:40:34 $ by $Author: civilis $
  */
 public class SaveFormSubmissionHandler extends AbstractConnector implements SubmissionHandler {
     
@@ -64,8 +64,6 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
 	public Map<String, Object> submit(Submission submission, Node instance) throws XFormsException {
     	
     	checkSubmissionActions(submission);
-    	
-    	DOMUtil.prettyPrintDOM(instance);
     	
     	if(submission.getReplace().equals("instance")) {
     		
@@ -95,10 +93,14 @@ public class SaveFormSubmissionHandler extends AbstractConnector implements Subm
     		String action = submission.getElement().getAttribute(FormManagerUtil.action_att);
         	Map<String, String> parameters = new URIUtil(action).getParameters();
         	
+        	
         	if(parameters.containsKey(sendFormLinkEmailParam)) {
 
 //        		stage 2 -> send email with the link
         		sendSavedFormLink(instance);
+        	} else if(parameters.containsKey("SUBMISSION_COMPLETE")) {
+
+        		System.out.println("_______ would try to close deals with saved data");
         	}
     	}
 
