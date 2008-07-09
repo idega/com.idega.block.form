@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.49 2008/06/18 07:58:36 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.50 2008/07/09 12:59:39 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -10,6 +10,7 @@
 package com.idega.block.form.presentation;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -38,6 +39,7 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
+import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
 import com.idega.documentmanager.business.PersistedFormDocument;
@@ -47,17 +49,15 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
-import com.idega.presentation.Layer;
 import com.idega.util.CoreConstants;
-import com.idega.util.CoreUtil;
 import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/06/18 07:58:36 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/09 12:59:39 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.49 $
+ * @version $Revision: 1.50 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -124,16 +124,19 @@ public class FormViewer extends IWBaseComponent {
 		return document;
 	}
 	
-	protected void initializeXForms(FacesContext context) {
+	private void addResources(IWContext iwc) {
 		String styleSheet = "/content" + IWBundleStarter.SLIDE_STYLES_PATH + IWBundleStarter.CHIBA_CSS;
-		if (CoreUtil.isSingleComponentRenderingProcess(context)) {
-			Layer styleSheetContainer = new Layer();
-			styleSheetContainer.add(PresentationUtil.getStyleSheetSourceLine(styleSheet));
-			add(styleSheetContainer);
+		Web2Business web2 = ELUtil.getInstance().getBean(Web2Business.class);
+		try {
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToMootoolsLib());
+		} catch (RemoteException e) {
+			e.printStackTrace();
 		}
-		else {
-			PresentationUtil.addStyleSheetToHeader(IWContext.getIWContext(context), styleSheet);
-		}
+		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
+	}
+	
+	protected void initializeXForms(FacesContext context) {
+		addResources(IWContext.getIWContext(context));
 		
 		Document document = resolveXFormsDocument(context);
 		
