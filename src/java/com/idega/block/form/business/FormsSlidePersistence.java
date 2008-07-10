@@ -48,9 +48,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.18 $
  *
- * Last modified: $Date: 2008/07/02 19:23:46 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/10 07:16:21 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -274,7 +274,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			XForm xform = getXformsDAO().find(XForm.class, formId);
 			
 			if(xform.getFormState() == XFormState.FIRM)
-				throw new IllegalAccessException("Tried to save firm form. Once form made simple, it cannot be modified. Form id: "+formId);
+				throw new IllegalAccessException("Tried to save firm form. Once form made firm, it cannot be modified. Form id: "+formId);
 			
 			String formPath = xform.getFormStorageIdentifier();
 			Document xformsDocument = document.getContext().getXformsXmlDoc();
