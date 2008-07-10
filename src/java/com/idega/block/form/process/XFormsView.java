@@ -3,6 +3,8 @@ package com.idega.block.form.process;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.faces.application.Application;
 import javax.faces.component.UIComponent;
@@ -26,9 +28,9 @@ import com.idega.util.URIUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  * 
- * Last modified: $Date: 2008/06/19 09:46:29 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/10 07:16:58 $ by $Author: civilis $
  */
 public class XFormsView implements View {
 
@@ -241,15 +243,12 @@ public class XFormsView implements View {
 	public String getDisplayName(Locale locale) {
 		if(displayName == null) {
 
-//			FIXME hack
-			if("is_is".equals(locale.toString().toLowerCase())) {
-				locale = new Locale("is_is");
-			}
 			try {
 				Document document = getFormDocument();
 				displayName = document.getFormTitle().getString(locale);
 				
 			} catch (Exception e) {
+				Logger.getLogger(getClass().getName()).log(Level.WARNING, "Exception while resolving form title by locale="+locale, e);
 				displayName = null;
 			}
 		}
