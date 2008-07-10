@@ -19,87 +19,99 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:anton@idega.com">Anton Makarov</a>
- * @version $Revision: 1.3 $
- *
- * Last modified: $Date: 2008/06/19 09:11:32 $ by $Author: anton $
+ * @version $Revision: 1.4 $
+ * 
+ * Last modified: $Date: 2008/07/10 07:17:23 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
 public class ObjectCollectionConverter implements DataConverter {
 
+	private static final String listElName = "list";
+	private static final String rowElName = "row";
+
 	public Object convert(Element o) {
-	
-	@SuppressWarnings("unchecked")
-	List<Element> rowNodes = DOMUtil.getChildElements(o);
-	List<String> rowList = new ArrayList<String>();
-	
-	for(Element rowElem : rowNodes) {
+
+		Element listEl = DOMUtil.getChildElement(o, listElName);
 		@SuppressWarnings("unchecked")
-		List<Element> columns = DOMUtil.getChildElements(rowElem);
-		Map<String, String> columnMap = new LinkedHashMap<String, String>();
-		
-		for(Element columnElem : columns) {
-			columnMap.put(columnElem.getNodeName(), columnElem.getTextContent());
+		List<Element> rowNodes = DOMUtil.getChildElements(listEl);
+		List<String> rowList = new ArrayList<String>();
+
+		for (Element rowElem : rowNodes) {
+			@SuppressWarnings("unchecked")
+			List<Element> columns = DOMUtil.getChildElements(rowElem);
+			Map<String, String> columnMap = new LinkedHashMap<String, String>();
+
+			for (Element columnElem : columns) {
+				columnMap.put(columnElem.getNodeName(), columnElem
+						.getTextContent());
+			}
+			rowList.add(ObjToJSON(columnMap));
 		}
-		rowList.add(ObjToJSON(columnMap));
+
+		return rowList;
 	}
-		
-	return rowList;
-	}
-	
+
 	public Element revert(Object o, Element e) {
 
-		if(!(o instanceof List))
-			throw new IllegalArgumentException("Wrong class object provided for ObjCollectionConverter: "+o.getClass().getName()+". Should be java.util.List");
-		
+		if (!(o instanceof List))
+			throw new IllegalArgumentException(
+					"Wrong class object provided for ObjCollectionConverter: "
+							+ o.getClass().getName()
+							+ ". Should be java.util.List");
+
+		e = DOMUtil.getChildElement(e, listElName);
 		NodeList childNodes = e.getChildNodes();
-		
+
 		List<Node> childs2Remove = new ArrayList<Node>();
-		
+
 		for (int i = 0; i < childNodes.getLength(); i++) {
-			
+
 			Node child = childNodes.item(i);
-			
-			if(child != null && (child.getNodeType() == Node.TEXT_NODE || child.getNodeType() == Node.ELEMENT_NODE))
+
+			if (child != null
+					&& (child.getNodeType() == Node.TEXT_NODE || child
+							.getNodeType() == Node.ELEMENT_NODE))
 				childs2Remove.add(child);
 		}
-		
+
 		for (Node node : childs2Remove)
 			e.removeChild(node);
-		
+
 		@SuppressWarnings("unchecked")
-		Collection<String> rowList = (Collection<String>)o;
-		
-		for(String rowStr : rowList) {
+		Collection<String> rowList = (Collection<String>) o;
+
+		for (String rowStr : rowList) {
 			@SuppressWarnings("unchecked")
 			Map<String, String> columnMap = JSONToObj(rowStr);
-			
-			Element rowElem = e.getOwnerDocument().createElement("row");
-			
-			for(String column : columnMap.keySet()) {
-				Element columnEl = rowElem.getOwnerDocument().createElement(column);
+
+			Element rowElem = e.getOwnerDocument().createElement(rowElName);
+
+			for (String column : columnMap.keySet()) {
+				Element columnEl = rowElem.getOwnerDocument().createElement(
+						column);
 				columnEl.setTextContent(columnMap.get(column));
 				rowElem.appendChild(columnEl);
 			}
-			
+
 			e.appendChild(rowElem);
 		}
 		return e;
 	}
-	
+
 	private String ObjToJSON(Map<String, String> obj) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		String jsonOut = xstream.toXML(obj);
 		return jsonOut;
 	}
-	
+
 	private Map<String, String> JSONToObj(String jsonIn) {
 		XStream xstream = new XStream(new JettisonMappedXmlDriver());
 		@SuppressWarnings("unchecked")
 		Map<String, String> obj = (Map<String, String>) xstream.fromXML(jsonIn);
 		return obj;
 	}
-	
+
 	public VariableDataType getDataType() {
 		return VariableDataType.OBJLIST;
 	}
