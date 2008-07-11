@@ -22,16 +22,17 @@ import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/06/17 12:18:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/11 14:15:02 $ by $Author: anton $
  */
 @Entity
 @Table(name="XFORMS")
 @NamedQueries(
 		{
 			@NamedQuery(name=XForm.getAllByTypeAndStorageType, query="from XForm xf where xf."+XForm.formTypeProperty+" = :"+XForm.formTypeProperty+" and xf."+XForm.formStorageTypeProperty+" = :"+XForm.formStorageTypeProperty),
-			@NamedQuery(name=XForm.getByParentVersion, query="from XForm xf where xf."+XForm.formParentProperty+" = :"+XForm.formParentProperty+" and xf."+XForm.versionProperty+" = :"+XForm.versionProperty+" and xf."+XForm.formStateProperty+" = :"+XForm.formStateProperty)
+			@NamedQuery(name=XForm.getByParentVersion, query="from XForm xf where xf."+XForm.formParentProperty+" = :"+XForm.formParentProperty+" and xf."+XForm.versionProperty+" = :"+XForm.versionProperty+" and xf."+XForm.formStateProperty+" = :"+XForm.formStateProperty),
+			@NamedQuery(name=XForm.getByFormId, query="from XForm xf where xf."+XForm.formIdProperty+" = :"+XForm.formIdProperty)
 		}
 )
 public class XForm implements Serializable {
@@ -39,7 +40,9 @@ public class XForm implements Serializable {
 	private static final long serialVersionUID = 6769707584973868649L;
 	public static final String getAllByTypeAndStorageType = "XForm.getAllByTypeAndStorageType";
 	public static final String getByParentVersion = "XForm.getByParentVersion";
+	public static final String getByFormId = "XForm.getByFormId";
 	
+	public static final String formIdProperty = "formId";
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="FORM_ID")
 	private Long formId;

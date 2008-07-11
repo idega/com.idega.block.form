@@ -11,9 +11,12 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
 import org.chiba.xml.xforms.core.Submission;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.idega.block.form.data.XForm;
+import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.block.form.presentation.FormViewer;
 import com.idega.documentmanager.business.Document;
 import com.idega.documentmanager.business.DocumentManager;
@@ -25,12 +28,13 @@ import com.idega.jbpm.view.View;
 import com.idega.jbpm.view.ViewToTask;
 import com.idega.util.CoreConstants;
 import com.idega.util.URIUtil;
+import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * 
- * Last modified: $Date: 2008/07/10 07:16:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/07/11 14:15:02 $ by $Author: anton $
  */
 public class XFormsView implements View {
 
@@ -47,6 +51,7 @@ public class XFormsView implements View {
 	private Map<String, String> parameters;
 	private Map<String, Object> variables;
 	private ViewToTask viewToTask;
+	private XFormsDAO xformsDAO;
 
 	public ViewToTask getViewToTask() {
 		return viewToTask;
@@ -200,7 +205,6 @@ public class XFormsView implements View {
 	public String getDisplayName() {
 		
 		if(displayName == null) {
-			
 			try {
 				Document document = getFormDocument();
 				displayName = document.getFormTitle().getString(new Locale("en"));
@@ -254,5 +258,27 @@ public class XFormsView implements View {
 		}
 		
 		return displayName;
+	}
+	
+	public String getDefaultDisplayName() {
+		ELUtil.getInstance().autowire(this);
+		
+		if (getViewId() == null || CoreConstants.EMPTY.equals(getViewId()))
+			throw new NullPointerException("View id not set");
+		
+		Long formId = new Long(getViewId());
+		XForm xform = getXformsDAO().getXFormById(formId);
+				
+		
+		return xform.getDisplayName();
+	}
+	
+	public XFormsDAO getXformsDAO() {
+		return xformsDAO;
+	}
+
+	@Autowired
+	public void setXformsDAO(XFormsDAO xformsDAO) {
+		this.xformsDAO = xformsDAO;
 	}
 }
