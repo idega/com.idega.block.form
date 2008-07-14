@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.51 2008/07/10 13:51:42 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.52 2008/07/14 08:23:16 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/07/10 13:51:42 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/14 08:23:16 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.51 $
+ * @version $Revision: 1.52 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -132,8 +132,6 @@ public class FormViewer extends IWBaseComponent {
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-		
-		//	TODO: set pageBusyMessage parameter for XSL
 		
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 	}
