@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.52 2008/07/14 08:23:16 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.53 2008/07/25 16:30:43 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/07/14 08:23:16 $ by $Author: valdas $
+ * Last modified: $Date: 2008/07/25 16:30:43 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.52 $
+ * @version $Revision: 1.53 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -129,6 +129,7 @@ public class FormViewer extends IWBaseComponent {
 		Web2Business web2 = ELUtil.getInstance().getBean(Web2Business.class);
 		try {
 			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToMootoolsLib());
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToJQueryLib());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
