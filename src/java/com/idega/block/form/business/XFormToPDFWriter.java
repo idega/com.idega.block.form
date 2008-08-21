@@ -27,14 +27,15 @@ import com.idega.presentation.IWContext;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.FileUtil;
+import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
  * Downloads PDF for provided XForm
  * @author <a href="mailto:valdas@idega.com>Valdas Žemaitis</a>
  * Created: 2008.05.10
- * @version $Revision: 1.9 $
- * Last modified: $Date: 2008/07/02 19:24:01 $ by $Author: civilis $
+ * @version $Revision: 1.10 $
+ * Last modified: $Date: 2008/08/21 13:58:03 $ by $Author: valdas $
  */
 public class XFormToPDFWriter extends DownloadWriter implements MediaWritable { 
 	
@@ -126,7 +127,7 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 	
 	private UIComponent getComponentToRender(IWContext iwc, String taskInstanceId, String formId) {
 		UIComponent viewer = null;
-		if (taskInstanceId != null && !CoreConstants.EMPTY.equals(taskInstanceId)) {
+		if (!StringUtil.isEmpty(taskInstanceId)) {
 			ProcessArtifacts bean = ELUtil.getInstance().getBean(CoreConstants.SPRING_BEAN_NAME_PROCESS_ARTIFACTS);
 			if (bean == null) {
 				return null;
@@ -139,7 +140,7 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 				e.printStackTrace();
 			}
 		}
-		else if (formId != null && !CoreConstants.EMPTY.equals(formId)) {
+		else if (!StringUtil.isEmpty(formId)) {
 			Application application = iwc.getApplication();
 			viewer = application.createComponent(FormViewer.COMPONENT_TYPE);
 			((FormViewer) viewer).setFormId(formId);
@@ -148,19 +149,24 @@ public class XFormToPDFWriter extends DownloadWriter implements MediaWritable {
 		return viewer;
 	}
 	
-	private boolean generatePDF(IWContext iwc, IWSlideService slide, String taskInstanceId, String formId, String pathInSlide, String pdfName, String pathToForm) {
+	private boolean generatePDF(IWContext iwc, IWSlideService slide, String taskInstanceId, String formId, String pathInSlide, String pdfName,
+			String pathToForm) {
 		UIComponent viewer = getComponentToRender(iwc, taskInstanceId, formId);
 		if (viewer == null) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to get viewer for " + taskInstanceId == null ? "xform: " + formId : "taskInstance: " +
-					taskInstanceId);
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to get viewer for " + taskInstanceId == null ? "xform: " + formId : "taskInstance: " 
+				+ taskInstanceId);
 			return false;
+		}
+		boolean isFormViewer = viewer instanceof FormViewer;
+		if (isFormViewer) {
+			((FormViewer) viewer).setPdfViewer(true);
 		}
 		
 		PDFGenerator generator = ELUtil.getInstance().getBean(CoreConstants.SPRING_BEAN_NAME_PDF_GENERATOR);
 		if (generator == null) {
 			return false;
 		}
-		if (generator.generatePDF(iwc, viewer, pdfName, pathInSlide, true)) {
+		if (generator.generatePDF(iwc, viewer, pdfName, pathInSlide, true, isFormViewer)) {
 			return setXForm(slide, pathToForm);
 		}
 		
