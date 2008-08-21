@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.53 2008/07/25 16:30:43 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.54 2008/08/21 12:40:50 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/07/25 16:30:43 $ by $Author: valdas $
+ * Last modified: $Date: 2008/08/21 12:40:50 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.53 $
+ * @version $Revision: 1.54 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -74,6 +74,8 @@ public class FormViewer extends IWBaseComponent {
 	
 	private Document xDoc;
 	private String sessionKey;
+	
+	private boolean pdfViewer;
 
 	public FormViewer() {
 		super();
@@ -267,6 +269,7 @@ public class FormViewer extends IWBaseComponent {
 		values[0] = super.saveState(ctx);
 		values[1] = formId;
 		values[2] = sessionKey;
+		values[3] = Boolean.valueOf(isPdfViewer());
 		
 		return values;
 	}
@@ -277,6 +280,7 @@ public class FormViewer extends IWBaseComponent {
 		super.restoreState(ctx, values[0]);
 		formId = (String) values[1];
 		sessionKey = (String) values[2];
+		pdfViewer = values[3] instanceof Boolean ? (Boolean) values[3] : false;
 	}
 
 	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session,
@@ -385,4 +389,13 @@ public class FormViewer extends IWBaseComponent {
 	public void setPersistenceManager(PersistenceManager persistenceManager) {
 		this.persistenceManager = persistenceManager;
 	}
+
+	public boolean isPdfViewer() {
+		return pdfViewer;
+	}
+
+	public void setPdfViewer(boolean pdfViewer) {
+		this.pdfViewer = pdfViewer;
+	}
+
 }
