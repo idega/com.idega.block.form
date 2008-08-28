@@ -19,9 +19,9 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 /**
  * @author <a href="mailto:anton@idega.com">Anton Makarov</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- * Last modified: $Date: 2008/07/10 07:17:23 $ by $Author: civilis $
+ * Last modified: $Date: 2008/08/28 11:55:38 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -82,7 +82,6 @@ public class ObjectCollectionConverter implements DataConverter {
 		Collection<String> rowList = (Collection<String>) o;
 
 		for (String rowStr : rowList) {
-			@SuppressWarnings("unchecked")
 			Map<String, String> columnMap = JSONToObj(rowStr);
 
 			Element rowElem = e.getOwnerDocument().createElement(rowElName);
