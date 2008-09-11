@@ -20,9 +20,9 @@ import com.idega.util.xml.XPathUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/06/30 13:36:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/09/11 18:17:08 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Service
@@ -63,7 +63,7 @@ public class XFormsConverter implements Converter {
 	
 	protected VariableDataType getDataType(String mapping) {
 		
-		String strRepr = mapping.contains(CoreConstants.COLON) ? mapping.substring(0, mapping.indexOf(CoreConstants.COLON)) : "string";
+		String strRepr = mapping.contains(CoreConstants.UNDER) ? mapping.substring(0, mapping.indexOf(CoreConstants.UNDER)) : "string";
 		return VariableDataType.getByStringRepresentation(strRepr);
 	}
 
