@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.54 2008/08/21 12:40:50 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.55 2008/09/12 09:33:34 arunas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/08/21 12:40:50 $ by $Author: valdas $
+ * Last modified: $Date: 2008/09/12 09:33:34 $ by $Author: arunas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.54 $
+ * @version $Revision: 1.55 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -128,15 +128,20 @@ public class FormViewer extends IWBaseComponent {
 	
 	private void addResources(IWContext iwc) {
 		String styleSheet = "/content" + IWBundleStarter.SLIDE_STYLES_PATH + IWBundleStarter.CHIBA_CSS;
+		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
+
 		Web2Business web2 = ELUtil.getInstance().getBean(Web2Business.class);
 		try {
 			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToMootoolsLib());
 			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToJQueryLib());
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleUriToHumanizedMessagesScript());
+		
+			PresentationUtil.addStyleSheetToHeader(iwc, web2.getBundleUriToHumanizedMessagesStyleSheet());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-		
-		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
+
+
 	}
 	
 	protected void initializeXForms(FacesContext context) {
