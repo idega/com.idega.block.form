@@ -58,20 +58,5 @@
       <groupId>com.idega.block.platform</groupId>
 	  <artifactId>com.idega.slide</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.idega.block.addon</groupId>
-      <artifactId>org.jboss.jbpm</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>jsr250-api</artifactId>
-      <version>${javax.annotation-jsr250-api-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.common</groupId>
-      <artifactId>google-collect</artifactId>
-      <version>${com.google.common-google-collect-version}</version>
-      <type>jar</type>
-    </dependency>
   </dependencies>
 </project>
