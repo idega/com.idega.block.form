@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewerTag.java,v 1.2 2006/11/02 11:40:42 gediminas Exp $
+ * $Id: FormViewerTag.java,v 1.3 2008/09/17 13:07:52 civilis Exp $
  * Created on Aug 17, 2006
  *
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -27,6 +27,7 @@ public class FormViewerTag extends UIComponentTag {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void setProperties(UIComponent component) {
 		super.setProperties(component);

@@ -13,9 +13,9 @@ import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/07/11 14:15:02 $ by $Author: anton $
+ * Last modified: $Date: 2008/09/17 13:07:52 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository
@@ -46,7 +46,6 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 	}
 
 	public XForm getXFormById(Long formId) {
-		@SuppressWarnings("unchecked")
 		XForm xform = (XForm) getEntityManager().createNamedQuery(XForm.getByFormId)
 		.setParameter(XForm.formIdProperty, formId)
 		.getSingleResult();
