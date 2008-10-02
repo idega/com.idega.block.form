@@ -44,9 +44,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/09/30 20:28:58 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/02 13:37:04 $ by $Author: civilis $
  *
  */
 public class SaveFormAction extends AbstractBoundAction {
@@ -131,7 +131,6 @@ public class SaveFormAction extends AbstractBoundAction {
         
         if(actionSave.equals(action)) {
         	
-        	System.out.println("saving_____");
         	storeSubmission();
         	
         	doRebuild(true);
@@ -171,16 +170,11 @@ public class SaveFormAction extends AbstractBoundAction {
     	
     	Long fid = new Long(formId);
 		
-//		TODO: check, if form is in firm state, if not - take it
-		
 		Instance instance = getInstance();
 		
 		final String[] submissionMeta = saveSubmission(fid, instance);
 		final String submissionId = submissionMeta[0];
 		final String submissionIdentifier = submissionMeta[1];
-		
-		System.out.println("___submissionId="+submissionId);
-		System.out.println("___submissionIdentifier="+submissionIdentifier);
 		
 		final IWContext iwc = IWContext.getCurrentInstance();
 		
@@ -192,36 +186,19 @@ public class SaveFormAction extends AbstractBoundAction {
 		
 		ModelItem mi = instance.getModelItem(getLinkExp());
 		
-		System.out.println("mi by exp="+getLinkExp()+", mi ="+mi);
-		
 		mi.setValue(url);
 		
 		mi = instance.getModelItem(getSubmissionIdentifier());
 		
-		System.out.println("mi by exp="+getSubmissionIdentifier()+", mi ="+mi);
-		
 		mi.setValue(submissionIdentifier);
-		
-//		Element linkToFormEl = getLinkLocationElement();
-//		linkToFormEl.setTextContent(url);
-//		
-//		Element submissionIdentifierEl = getSubmissionIdentifierElement();
-//		submissionIdentifierEl.setTextContent(submissionIdentifier);
     }
     
     protected String[] saveSubmission(Long fid, Instance instance) {
     	
-    	System.out.println("storing instance______");
-    	
 //		TODO: check, if form is in firm state, if not - take it
 		
 		try {
-//			trying to find form identifier from standard node (@nodeType='formIdentifier')
-			
 			ModelItem submissionIdentifierMI = instance.getModelItem(getSubmissionIdentifier());
-			
-//			XPathUtil u = new XPathUtil(".//*[@nodeType='formIdentifier']");
-//			Element el = (Element)u.getNode(instanceEl);
 			
 			String submissionIdentifier = null;
 			
@@ -237,14 +214,11 @@ public class SaveFormAction extends AbstractBoundAction {
 //			checking if submission already contains submissionId - therefore we're reusing existing submissionId
 			
 			ModelItem submissionIdMI = instance.getModelItem(getSubmissionIdExp());
-//			XPathUtil u = new XPathUtil(".//saveFormData/submissionId");
-//			Element submissionIdEl = (Element)u.getNode(instanceEl);
 			String submissionIdStr = submissionIdMI.getValue();
 			
 			if(StringUtil.isEmpty(submissionIdStr))
 				submissionIdStr = null;
 
-//			TODO: works incorrectly now, should store submission id, probably create submission instance before saving or smth
 			Long submissionId = submissionIdStr != null ? new Long(submissionIdStr) : null;
 			
 			Element instanceEl = ((Document)instance.getPointer(".").getNode()).getDocumentElement();
@@ -255,7 +229,6 @@ public class SaveFormAction extends AbstractBoundAction {
 			InputStream is = getISFromXML(instanceEl);
 			
 			if(submissionId != null) {
-				DOMUtil.prettyPrintDOM(instanceEl);
 				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
 			} else {
 				
@@ -266,8 +239,6 @@ public class SaveFormAction extends AbstractBoundAction {
 				instanceEl = ((Document)instance.getPointer(".").getNode()).getDocumentElement();
 				
 				is = getISFromXML(instanceEl);
-				
-				DOMUtil.prettyPrintDOM(instanceEl);
 				
 //				restore with new modified submission data
 				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
