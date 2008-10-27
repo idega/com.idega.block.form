@@ -9,23 +9,24 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.documentmanager.business.Form;
 import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/09/17 13:07:52 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/27 20:18:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository
 @Transactional(readOnly=true)
 public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
-	public List<XForm> getAllXFormsByTypeAndStorageType(String formType, String formStorageType) {
+	public List<Form> getAllXFormsByTypeAndStorageType(String formType, String formStorageType) {
 		
 		@SuppressWarnings("unchecked")
-		List<XForm> xforms = getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
+		List<Form> xforms = getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
 		.setParameter(XForm.formTypeProperty, formType)
 		.setParameter(XForm.formStorageTypeProperty, formStorageType)
 		.getResultList();
