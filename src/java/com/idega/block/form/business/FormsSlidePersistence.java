@@ -29,12 +29,14 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.core.persistence.Param;
 import com.idega.documentmanager.business.DocumentManager;
 import com.idega.documentmanager.business.DocumentManagerFactory;
+import com.idega.documentmanager.business.Form;
 import com.idega.documentmanager.business.FormLockException;
-import com.idega.documentmanager.business.PersistedForm;
 import com.idega.documentmanager.business.PersistedFormDocument;
 import com.idega.documentmanager.business.PersistenceManager;
+import com.idega.documentmanager.business.Submission;
 import com.idega.documentmanager.business.SubmittedDataBean;
 import com.idega.documentmanager.business.XFormPersistenceType;
 import com.idega.documentmanager.business.XFormState;
@@ -48,9 +50,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.19 $
  *
- * Last modified: $Date: 2008/07/10 07:16:21 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/27 20:17:21 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -418,25 +420,27 @@ public class FormsSlidePersistence implements PersistenceManager {
 			*/
 	}
 
-	public List<PersistedForm> getStandaloneForms() {
+	public List<Form> getStandaloneForms() {
 
 		String formType = standaloneFormType;
 		String formStorageType = slideStorageType;
 		
-		List<XForm> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType);
+		List<Form> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType);
+		return xforms;
+	}
+	
+	public List<Submission> getAllStandaloneFormsSubmissions() {
 		
-		ArrayList<PersistedForm> forms = new ArrayList<PersistedForm>(xforms.size());
+		List<Submission> submissions = 
+			getXformsDAO().getResultListByInlineQuery("select submissions from " +
+					"com.idega.block.form.data.XForm xforms inner join xforms."+XForm.xformSubmissionsProperty+" submissions " +
+							"where xforms."+XForm.formTypeProperty+" = :"+XForm.formTypeProperty+" and " +
+									"submissions."+XFormSubmission.isFinalSubmissionProperty+" = :"+XFormSubmission.isFinalSubmissionProperty, Submission.class,
+									new Param(XForm.formTypeProperty, standaloneFormType),
+									new Param(XFormSubmission.isFinalSubmissionProperty, true)
+			);
 		
-		for (XForm form : xforms) {
-			
-			PersistedForm pform = new PersistedForm();
-			pform.setDateCreated(form.getDateCreated());
-			pform.setFormId(form.getFormId());
-			pform.setDisplayName(form.getDisplayName());
-			forms.add(pform);
-		}
-		
-		return forms;
+		return submissions;
 	}
 
 	public String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
