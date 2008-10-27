@@ -18,13 +18,14 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.idega.documentmanager.business.Form;
 import com.idega.documentmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/07/11 14:15:02 $ by $Author: anton $
+ * Last modified: $Date: 2008/10/27 20:17:55 $ by $Author: civilis $
  */
 @Entity
 @Table(name="XFORMS")
@@ -35,7 +36,7 @@ import com.idega.documentmanager.business.XFormState;
 			@NamedQuery(name=XForm.getByFormId, query="from XForm xf where xf."+XForm.formIdProperty+" = :"+XForm.formIdProperty)
 		}
 )
-public class XForm implements Serializable {
+public class XForm implements Serializable, Form {
 
 	private static final long serialVersionUID = 6769707584973868649L;
 	public static final String getAllByTypeAndStorageType = "XForm.getAllByTypeAndStorageType";
@@ -77,6 +78,7 @@ public class XForm implements Serializable {
 	@Column(name="DISPLAY_NAME")
 	private String displayName;
 	
+	public static final String xformSubmissionsProperty = "xformSubmissions";
 	@OneToMany(mappedBy=XFormSubmission.xformProperty, cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
 	private List<XFormSubmission> xformSubmissions;
 	
