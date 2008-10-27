@@ -14,15 +14,17 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.Table;
 
+import com.idega.documentmanager.business.Submission;
+
 /**
  * 
  * Stores submissions for each form.
  * Primary use is for storing partial submission of saved form.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  *
- * Last modified: $Date: 2008/06/17 12:18:07 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/27 20:18:15 $ by $Author: civilis $
  */
 @Entity
 @Table(name="XFORMS_SUBMISSIONS")
@@ -30,7 +32,7 @@ import javax.persistence.Table;
 		{
 		}
 )
-public class XFormSubmission implements Serializable {
+public class XFormSubmission implements Serializable, Submission {
 
 	private static final long serialVersionUID = -7231560026323818449L;
 
@@ -49,6 +51,10 @@ public class XFormSubmission implements Serializable {
 	
 	@Column(name="DATE_SUBMITTED", nullable=false)
 	private Date dateSubmitted;
+	
+	public static final String isFinalSubmissionProperty = "isFinalSubmission";
+	@Column(name="FINAL_SUBMISSION")
+	private Boolean isFinalSubmission;
 	
 	public static final String xformProperty = "xform";
 	@ManyToOne(cascade={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.REMOVE})
@@ -90,5 +96,11 @@ public class XFormSubmission implements Serializable {
 	}
 	public void setXform(XForm xform) {
 		this.xform = xform;
+	}
+	public Boolean getIsFinalSubmission() {
+		return isFinalSubmission;
+	}
+	public void setIsFinalSubmission(Boolean isFinalSubmission) {
+		this.isFinalSubmission = isFinalSubmission;
 	}
 }
