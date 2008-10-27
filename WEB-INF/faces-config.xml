@@ -64,4 +64,9 @@
       </idegaweb-info>
     </component-extension>
   </component>
+  
+  <component>
+    <component-type>com.idega.UIFormsEntriesViewer</component-type>
+    <component-class>com.idega.block.form.entries.presentation.UIFormsEntriesViewer</component-class>
+  </component>
 </faces-config>
