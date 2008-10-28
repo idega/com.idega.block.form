@@ -1,0 +1,11 @@
+.formsEntries .links {
+	padding: 0 0 5px 5px;
+}
+
+.formsEntries .links a {
+	font-weight: bold;
+}
+
+.formsEntries table {
+	border: medium double rgb(250,0,255);
+}

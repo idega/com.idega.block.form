@@ -1,16 +1,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<t:div
-		xmlns:ui="http://java.sun.com/jsf/facelets"
+<t:div  styleClass="formsEntries"
 		xmlns:h="http://java.sun.com/jsf/html"
 		xmlns:t="http://myfaces.apache.org/tomahawk"
-		xmlns:f="http://java.sun.com/jsf/core"
 		xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
+		xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
 >
-
+    <fc:addResource resourcePath="/idegaweb/bundles/com.idega.block.form.bundle/resources/style/formsEntries.css" />
     <t:saveState value="#{formsEntries}"/>
-    
-    <h:commandLink value="Back to entries" action="#{formsEntries.showEntries}" immediate="true" />
-    submission
-    <fv:formViewer />
+    <t:div styleClass="links">
+        <h:commandLink value="Back to entries" action="#{formsEntries.showEntries}" immediate="true" styleClass="back" />
+    </t:div>
+    <t:div styleClass="formviewer">
+        <fv:formViewer />
+    </t:div>
 </t:div>
