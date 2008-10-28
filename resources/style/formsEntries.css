@@ -17,6 +17,19 @@
 	font-weight: bold;
 }
 
-.formsEntries table {
+.formsEntries table tr {
+    background-color: #D3E3FE;
+}
 
+.formsEntries table td {
+	padding: 5px;
+}
+
+.formsEntries table th {
+    padding: 8px;
+}
+
+.formsEntries table tr:hover td {
+    background-color: #87B1FE;
+    color: white;
 }

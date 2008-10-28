@@ -20,9 +20,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2008/10/27 20:18:49 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/10/28 13:01:07 $ by $Author: civilis $
  * 
  */
 @Scope("request")
@@ -43,24 +43,12 @@ public class FormsEntriesState implements Serializable {
 				.getAllStandaloneFormsSubmissions();
 
 		ArrayList<FormSubmissionEntry> entries = new ArrayList<FormSubmissionEntry>(
-				!submissions.isEmpty() ? submissions.size() : 2);
+				submissions.size());
 
-		if (!submissions.isEmpty()) {
+		for (Submission submission : submissions) {
 
-			for (Submission submission : submissions) {
-
-				entries.add(new FormSubmissionEntry(submission
-						.getSubmissionId(), submission.getXform()
-						.getDisplayName()));
-			}
-
-		} else {
-
-			FormSubmissionEntry entry = new FormSubmissionEntry(1L,
-					"test submission entry 1");
-			entries.add(entry);
-			entry = new FormSubmissionEntry(2L, "test submission entry 2");
-			entries.add(entry);
+			entries.add(new FormSubmissionEntry(submission, submission
+					.getXform()));
 		}
 
 		return entries;

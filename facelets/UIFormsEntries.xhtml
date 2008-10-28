@@ -3,14 +3,26 @@
 <t:div styleClass="formsEntries"
 		xmlns:h="http://java.sun.com/jsf/html"
 		xmlns:t="http://myfaces.apache.org/tomahawk"
+		xmlns:f="http://java.sun.com/jsf/core"
 		xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
 >
     <fc:addResource resourcePath="/idegaweb/bundles/com.idega.block.form.bundle/resources/style/formsEntries.css" />
     <t:saveState value="#{formsEntries}"/>
 
-    <t:dataTable value="#{formsEntries.formsEntries}" var="entry" rowOnClick="FormsEntriesViewer.loadFormSubmissionView(#{entry.submissionId});">
+    <t:dataTable
+     cellpadding="0" cellspacing="0"
+    value="#{formsEntries.formsEntries}" var="entry" rowOnClick="FormsEntriesViewer.loadFormSubmissionView(#{entry.submission.submissionId});">
 	    <t:column>
-	        <h:outputText value="#{entry.formName}"></h:outputText>
+		    <f:facet name="header">
+	            Form name
+	        </f:facet>
+	        <h:outputText value="#{entry.form.displayName}"></h:outputText>
 	    </t:column>
+	    <t:column>
+            <f:facet name="header">
+                Submission date
+            </f:facet>
+            <h:outputText value="#{entry.submission.dateSubmitted}"></h:outputText>
+        </t:column>
     </t:dataTable>
 </t:div>
