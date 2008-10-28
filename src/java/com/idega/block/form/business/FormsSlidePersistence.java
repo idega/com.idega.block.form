@@ -50,9 +50,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  *
- * Last modified: $Date: 2008/10/27 20:17:21 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/28 10:31:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -143,6 +143,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			com.idega.documentmanager.business.Document form = documentManager.openForm(xformsDoc);
 			
 			form.populateSubmissionDataWithXML(submissionDoc, true);
+			form.setReadonly(true);
 			xformsDoc = form.getXformsDocument();
 			
 			formDoc = new PersistedFormDocument();
@@ -555,20 +556,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 	 * 
 	 * @param formId - not null
 	 * @param is - not null
-	 * @param identifier - could be null, would be generated some random identifier
+	 * @param identifier - could be null, some random identifier would be generated
 	 * @return submitted data id
 	 * @throws IOException
 	 * 
 	 */
 	@Transactional(readOnly=false)
-	public Long saveSubmittedData(Long formId, InputStream is, String identifier) throws IOException {
+	public Long saveSubmittedData(Long formId, InputStream is, String identifier, boolean finalSubmission) throws IOException {
 
 		if(formId == null || is == null)
 			throw new IllegalArgumentException("Not enough arguments. FormId="+formId+", is="+is);
 		
-		if(identifier == null || CoreConstants.EMPTY.equals(identifier)) {
-//			TODO: generate some random identifier
-			throw new UnsupportedOperationException("Empty identifier not supported yet");
+		if(identifier == null || identifier.length() == 0) {
+			identifier = String.valueOf(System
+					.currentTimeMillis());
 		}
 		
 		String path = storeSubmissionData(formId.toString(), identifier, is);
@@ -583,6 +584,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		xformSubmission.setSubmissionIdentifier(identifier);
 		xformSubmission.setSubmissionStorageIdentifier(path);
 		xformSubmission.setSubmissionStorageType(slideStorageType);
+		xformSubmission.setIsFinalSubmission(finalSubmission);
 		xformSubmission.setXform(xform);
 		
 		getXformsDAO().persist(xformSubmission);
@@ -611,7 +613,14 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	public Long saveSubmittedDataByExistingSubmission(Long submissionId, Long formId, InputStream is, String identifier) throws IOException {
+		
+		
+		if(identifier == null || identifier.length() == 0) {
+			identifier = String.valueOf(System
+					.currentTimeMillis());
+		}
 
+		boolean isFinalSubmission = false;
 		XFormSubmission xformSubmission;
 		
 		if(submissionId != null)
@@ -621,12 +630,13 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		if(xformSubmission == null) {
 			
-			submissionId = saveSubmittedData(formId, is, identifier);
+			submissionId = saveSubmittedData(formId, is, identifier, isFinalSubmission);
 		} else {
 		
 			String path = storeSubmissionData(formId.toString(), identifier, is);
 			xformSubmission.setDateSubmitted(new Date());
 			xformSubmission.setSubmissionStorageIdentifier(path);
+			xformSubmission.setIsFinalSubmission(isFinalSubmission);
 			xformSubmission = getXformsDAO().merge(xformSubmission);
 			submissionId = xformSubmission.getSubmissionId();
 		}
