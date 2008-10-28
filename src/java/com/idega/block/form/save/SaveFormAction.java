@@ -44,9 +44,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
- * Last modified: $Date: 2008/10/02 13:37:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/28 10:31:53 $ by $Author: civilis $
  *
  */
 public class SaveFormAction extends AbstractBoundAction {
@@ -232,7 +232,7 @@ public class SaveFormAction extends AbstractBoundAction {
 				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
 			} else {
 				
-				submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier);
+				submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier, false);
 				
 				submissionIdMI.setValue(submissionId.toString());
 				
