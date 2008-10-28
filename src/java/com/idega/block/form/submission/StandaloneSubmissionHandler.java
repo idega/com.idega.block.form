@@ -27,9 +27,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2008/10/28 10:30:40 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/10/28 14:23:40 $ by $Author: civilis $
  */
 public class StandaloneSubmissionHandler extends AbstractConnector implements
 		SubmissionHandler {
@@ -39,7 +39,7 @@ public class StandaloneSubmissionHandler extends AbstractConnector implements
 	private PersistenceManager persistenceManager;
 	@Autowired private DocumentManagerFactory documentManagerFactory;
 
-	public Map submit(Submission submission, Node instance)
+	public Map<String, Object> submit(Submission submission, Node instance)
 			throws XFormsException {
 
 		// method - post, replace - none
