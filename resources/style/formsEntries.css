@@ -1,3 +1,14 @@
+.formsEntries {
+	border: 1px #a0a0a0 solid;
+	position: absolute;
+	left: 25px;
+	right: 25px;
+	bottom: 25px;
+	top: 100px;
+	padding: 10px;
+	overflow: auto;
+}
+
 .formsEntries .links {
 	padding: 0 0 5px 5px;
 }
@@ -7,5 +18,5 @@
 }
 
 .formsEntries table {
-	border: medium double rgb(250,0,255);
+
 }
