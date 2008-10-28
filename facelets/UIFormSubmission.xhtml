@@ -5,11 +5,12 @@
 		xmlns:h="http://java.sun.com/jsf/html"
 		xmlns:t="http://myfaces.apache.org/tomahawk"
 		xmlns:f="http://java.sun.com/jsf/core"
+		xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
 >
 
-<t:saveState value="#{formsEntries}"/>
-
-<h:commandLink value="Back to entries" action="#{formsEntries.showEntries}" immediate="true" />
-
-	Submission here		
+    <t:saveState value="#{formsEntries}"/>
+    
+    <h:commandLink value="Back to entries" action="#{formsEntries.showEntries}" immediate="true" />
+    submission
+    <fv:formViewer />
 </t:div>
