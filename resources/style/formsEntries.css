@@ -5,7 +5,6 @@
 	right: 25px;
 	bottom: 25px;
 	top: 100px;
-	padding: 10px;
 	overflow: auto;
 }
 
@@ -17,19 +16,26 @@
 	font-weight: bold;
 }
 
+.formsEntries table {
+	width: 100%;
+}
+
 .formsEntries table tr {
-    background-color: #D3E3FE;
 }
 
 .formsEntries table td {
-	padding: 5px;
+	padding: 5px 8px;
+	border-bottom: 1px #dedede solid;
 }
 
 .formsEntries table th {
-    padding: 8px;
+	padding: 8px;
+	text-align: left;
+	border-bottom: 1px #a0a0a0 solid;
+	background-color: #efefef;
 }
 
 .formsEntries table tr:hover td {
-    background-color: #87B1FE;
-    color: white;
+	background-color: #87B1FE;
+	color: white;
 }
