@@ -1,6 +1,7 @@
 package com.idega.block.form.entries.presentation;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,9 +22,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2008/10/29 10:08:03 $ by $Author: alexis $
+ *          Last modified: $Date: 2008/10/29 11:21:14 $ by $Author: civilis $
  * 
  */
 public class UIFormsEntriesViewer extends IWBaseComponent {
@@ -32,9 +33,7 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 
 	public static final String entriesFacet = "entries";
 	public static final String formSubmissionFacet = "formSubmission";
-	public static final String formIdParam 	= "formId";
-	
-	private String formId;
+	public static final String formSubmissionSourceFacet = "formSubmissionSource";
 	
 	@Autowired private Web2Business web2Business;
 
@@ -55,9 +54,17 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 				FaceletComponent.COMPONENT_TYPE);
 		facelet.setFaceletURI(bundle.getFaceletURI("UIFormSubmission.xhtml"));
 		facelet.setValueBinding(renderedAtt, context.getApplication()
-				.createValueBinding("#{formsEntries.formSubmissionRendered}"));
+				.createValueBinding("#{formsEntries.formSubmissionRendered && formsEntries.submissionView}"));
 
 		getFacets().put(formSubmissionFacet, facelet);
+		
+		facelet = (FaceletComponent) context.getApplication().createComponent(
+				FaceletComponent.COMPONENT_TYPE);
+		facelet.setFaceletURI(bundle.getFaceletURI("UIFormSubmissionSource.xhtml"));
+		facelet.setValueBinding(renderedAtt, context.getApplication()
+				.createValueBinding("#{formsEntries.formSubmissionRendered && formsEntries.sourceView}"));
+
+		getFacets().put(formSubmissionSourceFacet, facelet);
 	}
 
 	@Override
@@ -71,11 +78,14 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 
 		UIComponent entries = getFacet(entriesFacet);
 		UIComponent formSubmission = getFacet(formSubmissionFacet);
+		UIComponent formSubmissionSource = getFacet(formSubmissionSourceFacet);
 
 		if (formSubmission.isRendered()) {
 			renderChild(context, formSubmission);
+		} else if (formSubmissionSource.isRendered()) {
+			addClientResources(IWContext.getIWContext(context), entries);
+			renderChild(context, formSubmissionSource);
 		} else if (entries.isRendered()) {
-
 			addClientResources(IWContext.getIWContext(context), entries);
 			renderChild(context, entries);
 		}
@@ -83,12 +93,19 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 
 	private void addClientResources(IWContext iwc, UIComponent container) {
 		
-//		Web2Business web2Business = getWeb2Business();
-		
+		Web2Business web2Business = getWeb2Business();
 		IWBundle bundle = getBundle((FacesContext)iwc, IWBundleStarter.BUNDLE_IDENTIFIER);
 		
 		List<String> scripts = new ArrayList<String>(1);
 		scripts.add(bundle.getResourcesVirtualPath()+"/javascript/FormsEntriesViewer.js");
+		try {
+			scripts.add(web2Business.getBundleURIToMootoolsLib());
+		} catch (RemoteException e) {
+			// TODO: handle exception
+		}
+		scripts.add(web2Business.getCodePressScriptFilePath());
+		
+//		/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/javascript/codepress/codepress.js,
 		
 		PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scripts);
 		
@@ -207,13 +224,5 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 			ELUtil.getInstance().autowire(this);
 		
 		return web2Business;
-	}
-	
-	public String getFormId() {
-		return formId;
-	}
-
-	public void setFormId(String formId) {
-		this.formId = formId;
 	}
 }
