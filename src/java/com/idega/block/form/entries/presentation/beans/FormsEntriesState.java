@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
 import com.idega.block.form.entries.presentation.UIFormsEntriesViewer;
+import com.idega.documentmanager.business.Form;
 import com.idega.documentmanager.business.PersistenceManager;
 import com.idega.documentmanager.business.Submission;
 import com.idega.documentmanager.business.XFormPersistenceType;
@@ -26,9 +28,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- *          Last modified: $Date: 2008/10/29 11:22:56 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/10/29 12:29:42 $ by $Author: civilis $
  * 
  */
 @Scope("request")
@@ -40,6 +42,8 @@ public class FormsEntriesState implements Serializable {
 	private String submissionFacetDisplayed;
 	private String submissionId;
 	private static final String submissionIdParam = "submissionId";
+	private static final String formIdParam = "formId";
+	private Long formId;
 
 	@Autowired
 	@XFormPersistenceType("slide")
@@ -47,8 +51,13 @@ public class FormsEntriesState implements Serializable {
 
 	public List<FormSubmissionEntry> getFormsEntries() {
 
-		List<Submission> submissions = getPersistenceManager()
-				.getAllStandaloneFormsSubmissions();
+		List<Submission> submissions;
+		
+		if(getFormId() == null)
+			submissions = getPersistenceManager()
+			.getAllStandaloneFormsSubmissions();
+		else
+			submissions = getPersistenceManager().getFormsSubmissions(getFormId());
 
 		ArrayList<FormSubmissionEntry> entries = new ArrayList<FormSubmissionEntry>(
 				submissions.size());
@@ -171,5 +180,40 @@ public class FormsEntriesState implements Serializable {
 
 	public void setSubmissionId(String submissionId) {
 		this.submissionId = submissionId;
+	}
+	
+	public List<SelectItem> getForms() {
+		
+		List<Form> forms = getPersistenceManager().getStandaloneForms();
+		
+		ArrayList<SelectItem> formsItems = new ArrayList<SelectItem>(forms.size());
+		
+		formsItems.add(new SelectItem(CoreConstants.EMPTY, "All forms"));
+		
+		for (Form form : forms) {
+	
+			formsItems.add(new SelectItem(form.getFormId(), form.getDisplayName()));
+		}
+		
+		return formsItems;
+	}
+	
+	public Long getFormId() {
+		
+		if(formId == null) {
+		
+			String formIdStr = (String) FacesContext.getCurrentInstance()
+			.getExternalContext().getRequestParameterMap().get(
+					formIdParam);
+			
+			if(!StringUtil.isEmpty(formIdStr))
+				setFormId(new Long(formIdStr));
+		}
+		
+		return formId;
+	}
+
+	public void setFormId(Long formId) {
+		this.formId = formId;
 	}
 }
