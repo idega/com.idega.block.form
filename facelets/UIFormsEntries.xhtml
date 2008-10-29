@@ -8,6 +8,7 @@
 >
     <fc:addResource resourcePath="/idegaweb/bundles/com.idega.block.form.bundle/resources/style/formsEntries.css" />
     <t:saveState value="#{formsEntries}"/>
+    <t:inputHidden id="submissionId" forceId="true" />
     
     <t:div styleClass="chooseForm">
         <h:selectOneMenu value="#{formsEntries.formId}" onchange="this.form.submit();">
