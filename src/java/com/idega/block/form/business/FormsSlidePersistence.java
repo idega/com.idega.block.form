@@ -50,9 +50,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  *
- * Last modified: $Date: 2008/10/28 10:31:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/29 11:22:04 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -121,21 +121,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		if(xformSubmission != null) {
 			
-			String submissionPath = xformSubmission.getSubmissionStorageIdentifier();
-			StringBuilder subSB = new StringBuilder(submissionPath);
-			
-			if(!submissionPath.endsWith(CoreConstants.SLASH))
-				subSB.append(CoreConstants.SLASH);
-			
-			subSB.append(submissionFileName);
-			submissionPath = subSB.toString();
-			
 			XForm xform = xformSubmission.getXform();
 			
 			String formPath = xform.getFormStorageIdentifier();
 			Document xformsDoc = loadXMLResourceFromSlide(formPath);
 			
-			Document submissionDoc = loadXMLResourceFromSlide(submissionPath);
+			Document submissionDoc = xformSubmission.getSubmissionDocument();
 			
 //			TODO: load with submitted data
 			
@@ -442,6 +433,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 			);
 		
 		return submissions;
+	}
+	
+	public Submission getSubmission(long submissionId) {
+		
+		XFormSubmission submission = getXformsDAO().find(XFormSubmission.class, submissionId);
+		return submission;
 	}
 
 	public String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
