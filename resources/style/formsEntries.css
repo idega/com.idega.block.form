@@ -8,12 +8,37 @@
 	overflow: auto;
 }
 
+.formsEntries .formviewer, .formsEntries .source {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 24px;
+	bottom: 0;
+	height: auto !important;
+	overflow: auto;
+	z-index: 0;
+}
+
 .formsEntries .links {
-	padding: 0 0 5px 5px;
+	border-bottom: 1px #a0a0a0 solid;
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 23px;
+	padding: 0;
+	z-index: 1;
 }
 
 .formsEntries .links a {
-	margin-right: 10px;
+	font-weight: bold;
+	color: #1f1f1f;
+	background-color: #efefef;
+	display: block;
+	float: left;
+	margin: 0 !important;
+	padding: 0 6px;
+	line-height: 23px;
+	border-right: 1px #a0a0a0 solid;
 }
 
 .formsEntries .source textarea {
