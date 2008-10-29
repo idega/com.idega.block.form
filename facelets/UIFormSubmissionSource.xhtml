@@ -2,6 +2,7 @@
 
 <t:div  styleClass="formsEntries"
 		xmlns:h="http://java.sun.com/jsf/html"
+		xmlns:f="http://java.sun.com/jsf/core"
 		xmlns:t="http://myfaces.apache.org/tomahawk"
 		xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
 		xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
@@ -11,8 +12,17 @@
     <ui:composition template="#{IWURIResource.res['/idegaweb/bundles/com.idega.block.form.bundle/facelets/UIFormSubmissionTemplate.xhtml']}">
 
 	    <ui:define name="content">
-	        <t:div styleClass="formviewer">
-	            <fv:formViewer submissionId="#{formsEntries.submissionId}" />
+            <f:verbatim>
+                    <script type="text/javascript">
+                        window.addEvent('domready', function() {
+                            console.log("asdfasd ");
+                        	//CodePress.run();
+                        });
+                    </script>
+            </f:verbatim>
+	    
+	        <t:div styleClass="source">
+	           <h:inputTextarea id="asfdads234324" value="#{formsEntries.submissionSource}" styleClass="codepress html linenumbers-on" />
 	        </t:div>
 	    </ui:define>
     </ui:composition>

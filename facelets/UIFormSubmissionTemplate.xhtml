@@ -1,0 +1,18 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<t:div  styleClass="formsEntries"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:t="http://myfaces.apache.org/tomahawk"
+        xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
+        xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+>
+    <fc:addResource resourcePath="/idegaweb/bundles/com.idega.block.form.bundle/resources/style/formsEntries.css" />
+    <t:saveState value="#{formsEntries}"/>
+    <t:div styleClass="links">
+        <h:commandLink value="Back to entries" action="#{formsEntries.showEntries}" immediate="true" styleClass="back" />
+        <h:commandLink value="View source" action="#{formsEntries.viewSource}" rendered="#{formsEntries.submissionView}" immediate="true" styleClass="back" />
+        <h:commandLink value="View submission" action="#{formsEntries.viewSubmission}" rendered="#{formsEntries.sourceView}" immediate="true" styleClass="back" />
+    </t:div>
+    <ui:insert name="content" />
+</t:div>

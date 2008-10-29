@@ -13,6 +13,16 @@
 }
 
 .formsEntries .links a {
+	margin-right: 10px;
+}
+
+.formsEntries .source textarea {
+	
+	width: 100%;
+	height: 500px;
+}
+
+.formsEntries .links a {
 	font-weight: bold;
 }
 
@@ -24,6 +34,7 @@
 }
 
 .formsEntries table td {
+	cursor: pointer;
 	padding: 5px 8px;
 	border-bottom: 1px #dedede solid;
 }
