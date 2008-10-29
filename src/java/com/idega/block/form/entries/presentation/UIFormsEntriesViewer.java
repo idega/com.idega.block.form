@@ -21,9 +21,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * 
- *          Last modified: $Date: 2008/10/27 20:18:49 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/10/29 10:08:03 $ by $Author: alexis $
  * 
  */
 public class UIFormsEntriesViewer extends IWBaseComponent {
@@ -32,6 +32,9 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 
 	public static final String entriesFacet = "entries";
 	public static final String formSubmissionFacet = "formSubmission";
+	public static final String formIdParam 	= "formId";
+	
+	private String formId;
 	
 	@Autowired private Web2Business web2Business;
 
@@ -204,5 +207,13 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 			ELUtil.getInstance().autowire(this);
 		
 		return web2Business;
+	}
+	
+	public String getFormId() {
+		return formId;
+	}
+
+	public void setFormId(String formId) {
+		this.formId = formId;
 	}
 }
