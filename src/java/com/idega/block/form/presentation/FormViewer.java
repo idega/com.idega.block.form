@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.55 2008/09/12 09:33:34 arunas Exp $ Created on
+ * $Id: FormViewer.java,v 1.56 2008/10/29 11:22:31 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -54,10 +54,10 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/09/12 09:33:34 $ by $Author: arunas $
+ * Last modified: $Date: 2008/10/29 11:22:31 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.55 $
+ * @version $Revision: 1.56 $
  */
 public class FormViewer extends IWBaseComponent {
 
@@ -228,6 +228,11 @@ public class FormViewer extends IWBaseComponent {
 			try {
 				XFormsSessionManager manager = getXFormsSessionManager(session);
 				XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
+				
+				if(xFormsSession == null) {
+					initializeXForms(context);
+					xFormsSession = manager.getXFormsSession(getSessionKey());
+				}
 				
 				HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 
