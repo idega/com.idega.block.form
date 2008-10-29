@@ -50,9 +50,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $
  *
- * Last modified: $Date: 2008/10/29 11:22:04 $ by $Author: civilis $
+ * Last modified: $Date: 2008/10/29 12:29:17 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -429,6 +429,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 							"where xforms."+XForm.formTypeProperty+" = :"+XForm.formTypeProperty+" and " +
 									"submissions."+XFormSubmission.isFinalSubmissionProperty+" = :"+XFormSubmission.isFinalSubmissionProperty, Submission.class,
 									new Param(XForm.formTypeProperty, standaloneFormType),
+									new Param(XFormSubmission.isFinalSubmissionProperty, true)
+			);
+		
+		return submissions;
+	}
+	
+	public List<Submission> getFormsSubmissions(long formId) {
+		
+		List<Submission> submissions = 
+			getXformsDAO().getResultListByInlineQuery("select submissions from " +
+					"com.idega.block.form.data.XForm xforms inner join xforms."+XForm.xformSubmissionsProperty+" submissions " +
+							"where xforms."+XForm.formIdProperty+" = :"+XForm.formIdProperty+" and " +
+									"submissions."+XFormSubmission.isFinalSubmissionProperty+" = :"+XFormSubmission.isFinalSubmissionProperty, Submission.class,
+									new Param(XForm.formIdProperty, formId),
 									new Param(XFormSubmission.isFinalSubmissionProperty, true)
 			);
 		
