@@ -29,8 +29,8 @@ import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.file.tmp.TmpFileResolver;
 import com.idega.core.file.tmp.TmpFileResolverType;
 import com.idega.core.file.tmp.TmpFilesModifyStrategy;
-import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.documentmanager.business.XFormPersistenceType;
+import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
@@ -44,9 +44,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  *
- * Last modified: $Date: 2008/10/28 10:31:53 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:51:03 $ by $Author: civilis $
  *
  */
 public class SaveFormAction extends AbstractBoundAction {

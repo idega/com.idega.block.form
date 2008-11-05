@@ -9,14 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.impl.GenericDaoImpl;
-import com.idega.documentmanager.business.Form;
-import com.idega.documentmanager.business.XFormState;
+import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  *
- * Last modified: $Date: 2008/10/27 20:18:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:51:03 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository

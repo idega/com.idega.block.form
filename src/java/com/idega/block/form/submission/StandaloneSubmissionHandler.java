@@ -16,20 +16,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 
 import com.idega.chiba.web.xml.xforms.util.XFormsUtil;
-import com.idega.documentmanager.business.Document;
-import com.idega.documentmanager.business.DocumentManager;
-import com.idega.documentmanager.business.DocumentManagerFactory;
-import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.documentmanager.business.XFormPersistenceType;
+import com.idega.xformsmanager.business.Document;
+import com.idega.xformsmanager.business.DocumentManager;
+import com.idega.xformsmanager.business.DocumentManagerFactory;
+import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWContext;
 import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2008/10/28 14:23:40 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/05 08:51:02 $ by $Author: civilis $
  */
 public class StandaloneSubmissionHandler extends AbstractConnector implements
 		SubmissionHandler {

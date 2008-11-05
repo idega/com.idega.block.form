@@ -21,14 +21,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.idega.documentmanager.component.beans.LocalizedStringBean;
+import com.idega.xformsmanager.component.beans.LocalizedStringBean;
 import com.idega.util.xml.NamespaceContextImpl;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  *
- * Last modified: $Date: 2008/04/10 01:06:12 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:51:03 $ by $Author: civilis $
  */
 public class BlockFormUtil {
 	

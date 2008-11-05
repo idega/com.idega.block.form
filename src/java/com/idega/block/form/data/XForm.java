@@ -18,14 +18,14 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.idega.documentmanager.business.Form;
-import com.idega.documentmanager.business.XFormState;
+import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2008/10/27 20:17:55 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:50:51 $ by $Author: civilis $
  */
 @Entity
 @Table(name="XFORMS")

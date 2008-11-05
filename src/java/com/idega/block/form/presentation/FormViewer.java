@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.56 2008/10/29 11:22:31 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.57 2008/11/05 08:50:47 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -42,9 +42,9 @@ import org.w3c.dom.events.EventTarget;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
-import com.idega.documentmanager.business.PersistedFormDocument;
-import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.documentmanager.business.XFormPersistenceType;
+import com.idega.xformsmanager.business.PersistedFormDocument;
+import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
@@ -54,10 +54,10 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
- * Last modified: $Date: 2008/10/29 11:22:31 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:50:47 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.56 $
+ * @version $Revision: 1.57 $
  */
 public class FormViewer extends IWBaseComponent {
 

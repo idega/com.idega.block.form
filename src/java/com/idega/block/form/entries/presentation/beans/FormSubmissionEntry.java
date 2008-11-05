@@ -1,14 +1,14 @@
 package com.idega.block.form.entries.presentation.beans;
 
-import com.idega.documentmanager.business.Form;
-import com.idega.documentmanager.business.Submission;
+import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.Submission;
 
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * 
- *          Last modified: $Date: 2008/10/28 13:01:08 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/05 08:50:24 $ by $Author: civilis $
  * 
  */
 public class FormSubmissionEntry {

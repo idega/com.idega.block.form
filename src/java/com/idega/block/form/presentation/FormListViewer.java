@@ -1,5 +1,5 @@
 /*
- * $Id: FormListViewer.java,v 1.16 2008/10/27 20:19:10 civilis Exp $ Created on
+ * $Id: FormListViewer.java,v 1.17 2008/11/05 08:50:40 civilis Exp $ Created on
  * 24.1.2005
  * 
  * Copyright (C) 2005 Idega Software hf. All Rights Reserved.
@@ -20,8 +20,8 @@ import org.apache.commons.logging.LogFactory;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
-import com.idega.documentmanager.business.Form;
-import com.idega.documentmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
@@ -36,10 +36,10 @@ import com.idega.webface.WFUtil;
  * Displays a list of available XForms
  * </p>
  * 
- * Last modified: $Date: 2008/10/27 20:19:10 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:50:40 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  */
 public class FormListViewer extends IWBaseComponent {
 

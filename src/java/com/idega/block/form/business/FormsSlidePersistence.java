@@ -30,17 +30,17 @@ import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.persistence.Param;
-import com.idega.documentmanager.business.DocumentManager;
-import com.idega.documentmanager.business.DocumentManagerFactory;
-import com.idega.documentmanager.business.Form;
-import com.idega.documentmanager.business.FormLockException;
-import com.idega.documentmanager.business.PersistedFormDocument;
-import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.documentmanager.business.Submission;
-import com.idega.documentmanager.business.SubmittedDataBean;
-import com.idega.documentmanager.business.XFormPersistenceType;
-import com.idega.documentmanager.business.XFormState;
-import com.idega.documentmanager.component.FormDocument;
+import com.idega.xformsmanager.business.DocumentManager;
+import com.idega.xformsmanager.business.DocumentManagerFactory;
+import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.FormLockException;
+import com.idega.xformsmanager.business.PersistedFormDocument;
+import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.Submission;
+import com.idega.xformsmanager.business.SubmittedDataBean;
+import com.idega.xformsmanager.business.XFormPersistenceType;
+import com.idega.xformsmanager.business.XFormState;
+import com.idega.xformsmanager.component.FormDocument;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
@@ -50,9 +50,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  *
- * Last modified: $Date: 2008/10/29 12:29:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/05 08:50:34 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -131,7 +131,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 //			TODO: load with submitted data
 			
 			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(null);
-			com.idega.documentmanager.business.Document form = documentManager.openForm(xformsDoc);
+			com.idega.xformsmanager.business.Document form = documentManager.openForm(xformsDoc);
 			
 			form.populateSubmissionDataWithXML(submissionDoc, true);
 			form.setReadonly(true);
@@ -241,7 +241,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			String formSlideId = generateFormId(defaultFormName);
 			String formType = document.getFormType() == null ? standaloneFormType : document.getFormType();
 			
-			Document xformsDocument = document.getContext().getXformsXmlDoc();
+			Document xformsDocument = document.getXformsDocument();
 			
 			String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType);
 			
@@ -271,7 +271,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 				throw new IllegalAccessException("Tried to save firm form. Once form made firm, it cannot be modified. Form id: "+formId);
 			
 			String formPath = xform.getFormStorageIdentifier();
-			Document xformsDocument = document.getContext().getXformsXmlDoc();
+			Document xformsDocument = document.getXformsDocument();
 			saveExistingXFormsDocumentToSlide(xformsDocument, formPath);
 			
 			xform.setDisplayName(defaultFormName);
@@ -351,7 +351,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			throw new UnsupportedOperationException("Not supported yet, make this call from document manager");
 
 //		Document xformsDoc = loadFormNoLock(formId);
-//		com.idega.documentmanager.business.Document document = getDocumentManagerFactory().newDocumentManager(iwma).openForm(xformsDoc);
+//		com.idega.xformsmanager.business.Document document = getDocumentManagerFactory().newDocumentManager(iwma).openForm(xformsDoc);
 		
 //		if(newTitle == null)
 //			newTitle = new LocalizedStringBean("copy_"+document.getFormTitle().getString(new Locale("en")));

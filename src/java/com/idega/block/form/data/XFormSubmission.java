@@ -23,7 +23,7 @@ import org.w3c.dom.Document;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
-import com.idega.documentmanager.business.Submission;
+import com.idega.xformsmanager.business.Submission;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
@@ -36,9 +36,9 @@ import com.idega.util.xml.XmlUtil;
  * submission of saved form.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- *          Last modified: $Date: 2008/10/29 11:21:31 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/05 08:51:01 $ by $Author: civilis $
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")

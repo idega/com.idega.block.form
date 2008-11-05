@@ -11,10 +11,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.idega.block.form.business.util.BlockFormUtil;
-import com.idega.documentmanager.business.DocumentManager;
-import com.idega.documentmanager.business.component.ButtonArea;
-import com.idega.documentmanager.business.component.Page;
-import com.idega.documentmanager.component.beans.LocalizedStringBean;
+import com.idega.xformsmanager.business.DocumentManager;
+import com.idega.xformsmanager.business.component.ButtonArea;
+import com.idega.xformsmanager.business.component.Page;
+import com.idega.xformsmanager.component.beans.LocalizedStringBean;
 import com.idega.presentation.IWBaseComponent;
 
 /**
@@ -114,7 +114,7 @@ public class SDataPreview extends IWBaseComponent {
 	
 	public Document adjustDocumentForPreview(String resource_path, Document xforms_doc, DocumentManager doc_man) throws Exception {
 		
-		com.idega.documentmanager.business.Document doc = doc_man.openForm(xforms_doc);
+		com.idega.xformsmanager.business.Document doc = doc_man.openForm(xforms_doc);
 		Page c_page = doc.getConfirmationPage();
 		if(c_page == null)
 			c_page = doc.addConfirmationPage(null);

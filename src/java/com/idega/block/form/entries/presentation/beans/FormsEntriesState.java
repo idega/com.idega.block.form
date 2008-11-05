@@ -16,11 +16,11 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
 import com.idega.block.form.entries.presentation.UIFormsEntriesViewer;
-import com.idega.documentmanager.business.Form;
-import com.idega.documentmanager.business.PersistenceManager;
-import com.idega.documentmanager.business.Submission;
-import com.idega.documentmanager.business.XFormPersistenceType;
-import com.idega.documentmanager.util.FormManagerUtil;
+import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.Submission;
+import com.idega.xformsmanager.business.XFormPersistenceType;
+import com.idega.xformsmanager.util.FormManagerUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -28,9 +28,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- *          Last modified: $Date: 2008/10/29 12:29:42 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/05 08:50:29 $ by $Author: civilis $
  * 
  */
 @Scope("request")
