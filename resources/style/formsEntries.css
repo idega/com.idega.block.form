@@ -59,16 +59,29 @@
 	cursor: pointer;
 	padding: 5px 8px;
 	border-bottom: 1px #dedede solid;
+	font-size: 13px !important;
 }
 
 .formsEntries table th {
 	padding: 8px;
 	text-align: left;
+	border-top: 1px #a0a0a0 solid;
 	border-bottom: 1px #a0a0a0 solid;
 	background-color: #efefef;
+	font-size: 13px !important;
 }
 
 .formsEntries table tr:hover td {
 	background-color: #87B1FE;
 	color: white;
+}
+
+.formsEntries .chooseForm {
+	padding: 3px;
+	text-align: right;
+}
+
+.formsEntries .chooseForm select {
+	margin: 0;
+	font-size: 14px;
 }
