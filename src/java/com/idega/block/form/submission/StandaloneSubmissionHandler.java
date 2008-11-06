@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 
 import com.idega.chiba.web.xml.xforms.util.XFormsUtil;
+import com.idega.core.file.tmp.TmpFileResolver;
+import com.idega.core.file.tmp.TmpFileResolverType;
+import com.idega.core.file.tmp.TmpFilesModifyStrategy;
 import com.idega.xformsmanager.business.Document;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
@@ -27,9 +30,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- *          Last modified: $Date: 2008/11/05 08:51:02 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/06 14:17:37 $ by $Author: anton $
  */
 public class StandaloneSubmissionHandler extends AbstractConnector implements
 		SubmissionHandler {
@@ -38,6 +41,9 @@ public class StandaloneSubmissionHandler extends AbstractConnector implements
 	@XFormPersistenceType("slide")
 	private PersistenceManager persistenceManager;
 	@Autowired private DocumentManagerFactory documentManagerFactory;
+	
+	@Autowired @TmpFileResolverType("xformVariables") private TmpFileResolver tmpFileResolver;
+	@Autowired @TmpFileResolverType("xformSlide") private TmpFilesModifyStrategy tmpFilesModifyStrategy;
 
 	public Map<String, Object> submit(Submission submission, Node instance)
 			throws XFormsException {
@@ -63,6 +69,8 @@ public class StandaloneSubmissionHandler extends AbstractConnector implements
 		}
 
 		try {
+			getTmpFileResolver().replaceAllFiles(instance, getTmpFilesModifyStrategy());
+			
 			String submissionIdentifier = String.valueOf(System
 					.currentTimeMillis());
 			InputStream is = getISFromXML(instance);
@@ -75,7 +83,7 @@ public class StandaloneSubmissionHandler extends AbstractConnector implements
 //			taking form, meaning, that this form should be saved to the repository already, before submitting it 
 //			(that could be issue in formbuilder preview). just fix it, probably saving before taking, or something
 			Document formDocument = docMan.takeForm(fid);
-
+			
 			/* Long submissionId = */getPersistenceManager().saveSubmittedData(
 					formDocument.getFormId(), is, submissionIdentifier, true);
 			return null;
@@ -114,5 +122,21 @@ public class StandaloneSubmissionHandler extends AbstractConnector implements
 
 	void setDocumentManagerFactory(DocumentManagerFactory documentManagerFactory) {
 		this.documentManagerFactory = documentManagerFactory;
+	}
+	
+	TmpFileResolver getTmpFileResolver() {
+		
+		if(tmpFileResolver == null)
+			ELUtil.getInstance().autowire(this);
+		
+		return tmpFileResolver;
+	}
+	
+	TmpFilesModifyStrategy getTmpFilesModifyStrategy() {
+		
+		if(tmpFilesModifyStrategy == null)
+			ELUtil.getInstance().autowire(this);
+			
+		return tmpFilesModifyStrategy;
 	}
 }

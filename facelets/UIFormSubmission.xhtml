@@ -6,13 +6,24 @@
 		xmlns:fv="http://xmlns.idega.com/com.idega.block.form"
 		xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
 		xmlns:ui="http://java.sun.com/jsf/facelets"
+		xmlns:iwc="http://xmlns.idega.com/com.idega.core"
+		xmlns:f="http://java.sun.com/jsf/core"
 >
 
     <ui:composition template="#{IWURIResource.res['/idegaweb/bundles/com.idega.block.form.bundle/facelets/UIFormSubmissionTemplate.xhtml']}">
-
 	    <ui:define name="content">
 	        <t:div styleClass="formviewer">
 	            <fv:formViewer submissionId="#{formsEntries.submissionId}" />
+	           	
+	            <t:dataTable id="attachments" value="#{entryAttachments.attachments}" var="file" styleClass="formAttachments">
+					<t:column>
+						<h:graphicImage value="#{IWURIResource.res['/idegaweb/bundles/com.idega.block.form.bundle/resources/images/pageIcons/documents.png']}"/>
+						<iwc:DownloadLink downloadWriter="#{entryAttachments.downloadWriter}" value="#{file.fileName}">
+							<f:param id="submissionId" value="#{formsEntries.submissionId}"/>
+							<f:param id="fileId" value="#{file.id}"/>
+						</iwc:DownloadLink>
+					</t:column>
+	            </t:dataTable>
 	        </t:div>
 	    </ui:define>
     </ui:composition>
