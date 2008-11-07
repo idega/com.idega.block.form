@@ -59,7 +59,7 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 		Submission sub = getPersistenceManager().getSubmission(Long.parseLong(submissionId));
 		List<UploadedFile> files = getFileResolver().resolveUploadedList(sub.getSubmissionDocument());
 		
-		selectedFile = getFileFromListByUri(fileId, files);
+		selectedFile = getFileFromListById(fileId, files);
 		
 		setAsDownload(iwc, selectedFile.getFileName(), getUploadedFileContentLength(selectedFile.getFileURI()));
 	}
@@ -110,7 +110,7 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 		}
 	}
 	
-	private UploadedFile getFileFromListByUri(String fileId, List<UploadedFile> files) {
+	private UploadedFile getFileFromListById(String fileId, List<UploadedFile> files) {
 		if(files != null) {
 			for(UploadedFile file : files) {
 				String idToCompareWith = String.valueOf(file.getFileURI().getPath().hashCode());
