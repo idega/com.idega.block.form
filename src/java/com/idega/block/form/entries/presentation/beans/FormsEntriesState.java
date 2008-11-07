@@ -28,9 +28,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- *          Last modified: $Date: 2008/11/05 08:50:29 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/07 12:50:12 $ by $Author: valdas $
  * 
  */
 @Scope("request")
@@ -90,6 +90,16 @@ public class FormsEntriesState implements Serializable {
 
 		return UIFormsEntriesViewer.formSubmissionFacet
 				.equals(getFacetDisplayed());
+	}
+	
+	//	FIXME: temporary solution
+	public Class<?> getDocumentDownloader() {
+		try {
+			return Class.forName("com.idega.bpm.pdf.servlet.XFormToPDFWriter");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	String getFacetDisplayed() {

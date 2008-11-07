@@ -5,6 +5,7 @@
 		xmlns:t="http://myfaces.apache.org/tomahawk"
 		xmlns:f="http://java.sun.com/jsf/core"
 		xmlns:fc="http://xmlns.idega.com/com.idega.facelets"
+		xmlns:iwc="http://xmlns.idega.com/com.idega.core"
 >
     <fc:addResource resourcePath="/idegaweb/bundles/com.idega.block.form.bundle/resources/style/formsEntries.css" />
     <t:saveState value="#{formsEntries}"/>
@@ -22,15 +23,23 @@
 	    value="#{formsEntries.formsEntries}" var="entry" rowOnClick="FormsEntriesViewer.loadFormSubmissionView(#{entry.submission.submissionId});">
 	        <t:column>
 	            <f:facet name="header">
-	                Form name
+	                #{localizedStrings['com.idega.block.form']['form_name']}
 	            </f:facet>
 	            <h:outputText value="#{entry.form.displayName}"></h:outputText>
 	        </t:column>
 	        <t:column>
 	            <f:facet name="header">
-	                Submission date
+	                #{localizedStrings['com.idega.block.form']['submission_date']}
 	            </f:facet>
 	            <h:outputText value="#{entry.submission.dateSubmitted}"></h:outputText>
+	        </t:column>
+	        <t:column>
+	            <f:facet name="header">
+	                #{localizedStrings['com.idega.block.form']['download_form_document']}
+	            </f:facet>
+				<iwc:DownloadLink downloadWriter="#{formsEntries.documentDownloader}" value="#{localizedStrings['com.idega.block.form']['download']}">
+					<f:param id="XFormSubmitionId" value="#{entry.submission.submissionId}"/>
+				</iwc:DownloadLink>
 	        </t:column>
 	    </t:dataTable>
     </t:div>
