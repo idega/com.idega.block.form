@@ -1,2 +1,6 @@
 save_form.linkToForm.subject=Hlekkur \u00ED vista\u00F0a formi\u00F0 \u00DEitt
 save_form.linkToForm.text=Hlekkur \u00ED vista\u00F0a formi\u00F0 \u00DEitt: {0}
+download=S\u00E6kja skjal
+download_form_document=S\u00E6kja form
+form_name=Form
+submission_date=Sent dags
