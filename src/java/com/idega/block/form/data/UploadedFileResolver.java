@@ -51,7 +51,6 @@ public class UploadedFileResolver {
 				String fileName = entryFileNameXPath.getString(item);
 				String mimeType = entryMimeTypeXPath.getString(item);
 				String uriStr = item.getTextContent();
-				System.out.println(uriStr + " " + fileName + " " + mimeType);
 		    	
 		    	if(!CoreConstants.EMPTY.equals(uriStr) && !uriStr.startsWith(CoreConstants.NEWLINE)) {
 		    		
