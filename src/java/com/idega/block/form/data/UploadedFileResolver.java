@@ -50,8 +50,9 @@ public class UploadedFileResolver {
 				Node item = entries.item(i);
 				String fileName = entryFileNameXPath.getString(item);
 				String mimeType = entryMimeTypeXPath.getString(item);
-				String uriStr = item.getTextContent();
-		    	
+				
+				Node uriStrItem = item.getChildNodes().item(0);
+		    	String uriStr = uriStrItem.getTextContent();
 		    	if(!CoreConstants.EMPTY.equals(uriStr) && !uriStr.startsWith(CoreConstants.NEWLINE)) {
 		    		
 		    		try {

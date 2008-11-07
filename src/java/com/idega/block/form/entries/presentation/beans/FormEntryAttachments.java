@@ -34,8 +34,7 @@ public class FormEntryAttachments {
 	
 	public List<UploadedFile> getAttachments() {
 		Submission sub = getPersistenceManager().getSubmission(getSubmissionId());
-		UploadedFileResolver resolver = new UploadedFileResolver();
-		List<UploadedFile> files = resolver.resolveUploadedList(sub.getSubmissionDocument());
+		List<UploadedFile> files = getFileResolver().resolveUploadedList(sub.getSubmissionDocument());
 
 		return files;			
 	}
