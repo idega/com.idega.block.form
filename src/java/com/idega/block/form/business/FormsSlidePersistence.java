@@ -50,9 +50,9 @@ import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.23 $
+ * @version $Revision: 1.24 $
  *
- * Last modified: $Date: 2008/11/05 08:50:34 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/07 10:33:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -417,7 +417,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		String formType = standaloneFormType;
 		String formStorageType = slideStorageType;
 		
-		List<Form> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType);
+		List<Form> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType, XFormState.FLUX);
 		return xforms;
 	}
 	

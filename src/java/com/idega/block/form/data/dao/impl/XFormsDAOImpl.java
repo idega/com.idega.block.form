@@ -14,43 +14,58 @@ import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $
- *
- * Last modified: $Date: 2008/11/05 08:51:03 $ by $Author: civilis $
+ * @version $Revision: 1.10 $
+ * 
+ *          Last modified: $Date: 2008/11/07 10:33:48 $ by $Author: civilis $
  */
 @Scope("singleton")
 @Repository
-@Transactional(readOnly=true)
+@Transactional(readOnly = true)
 public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
-	public List<Form> getAllXFormsByTypeAndStorageType(String formType, String formStorageType) {
-		
+	public List<Form> getAllXFormsByTypeAndStorageType(String formType,
+			String formStorageType, XFormState state) {
+
+		String q = "from XForm xf where xf." + XForm.formTypeProperty + " = :"
+				+ XForm.formTypeProperty + " and xf."
+				+ XForm.formStorageTypeProperty + " = :"
+				+ XForm.formStorageTypeProperty + " and xf."
+				+ XForm.formStateProperty + " = :" + XForm.formStateProperty;
+
 		@SuppressWarnings("unchecked")
-		List<Form> xforms = getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
-		.setParameter(XForm.formTypeProperty, formType)
-		.setParameter(XForm.formStorageTypeProperty, formStorageType)
-		.getResultList();
-		
+		List<Form> xforms = getEntityManager().createQuery(q).setParameter(
+				XForm.formTypeProperty, formType).setParameter(
+				XForm.formStorageTypeProperty, formStorageType).setParameter(
+				XForm.formStateProperty, state).getResultList();
+
+		// @SuppressWarnings("unchecked")
+		// List<Form> xforms =
+		// getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
+		// .setParameter(XForm.formTypeProperty, formType)
+		// .setParameter(XForm.formStorageTypeProperty, formStorageType)
+		// .getResultList();
+
 		return xforms;
 	}
-	
-	public XForm getXFormByParentVersion(Long parentFormId, Integer version, XFormState state) {
-		
+
+	public XForm getXFormByParentVersion(Long parentFormId, Integer version,
+			XFormState state) {
+
 		@SuppressWarnings("unchecked")
-		List<XForm> xforms = getEntityManager().createNamedQuery(XForm.getByParentVersion)
-		.setParameter(XForm.formParentProperty, parentFormId)
-		.setParameter(XForm.versionProperty, version)
-		.setParameter(XForm.formStateProperty, state)
-		.getResultList();
-		
+		List<XForm> xforms = getEntityManager().createNamedQuery(
+				XForm.getByParentVersion).setParameter(
+				XForm.formParentProperty, parentFormId).setParameter(
+				XForm.versionProperty, version).setParameter(
+				XForm.formStateProperty, state).getResultList();
+
 		return xforms.isEmpty() ? null : xforms.iterator().next();
 	}
 
 	public XForm getXFormById(Long formId) {
-		XForm xform = (XForm) getEntityManager().createNamedQuery(XForm.getByFormId)
-		.setParameter(XForm.formIdProperty, formId)
-		.getSingleResult();
-		
+		XForm xform = (XForm) getEntityManager().createNamedQuery(
+				XForm.getByFormId).setParameter(XForm.formIdProperty, formId)
+				.getSingleResult();
+
 		return xform;
 	}
 }
