@@ -30,6 +30,12 @@ import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.persistence.Param;
+import com.idega.idegaweb.IWApplicationContext;
+import com.idega.idegaweb.IWMainApplication;
+import com.idega.slide.business.IWSlideService;
+import com.idega.slide.util.WebdavExtendedResource;
+import com.idega.util.CoreConstants;
+import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
 import com.idega.xformsmanager.business.Form;
@@ -41,18 +47,12 @@ import com.idega.xformsmanager.business.SubmittedDataBean;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.xformsmanager.business.XFormState;
 import com.idega.xformsmanager.component.FormDocument;
-import com.idega.idegaweb.IWApplicationContext;
-import com.idega.idegaweb.IWMainApplication;
-import com.idega.slide.business.IWSlideService;
-import com.idega.slide.util.WebdavExtendedResource;
-import com.idega.util.CoreConstants;
-import com.idega.util.xml.XmlUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.24 $
+ * @version $Revision: 1.25 $
  *
- * Last modified: $Date: 2008/11/07 10:33:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/10 12:07:41 $ by $Author: anton $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -304,7 +304,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 //			making firm
 			
-			XForm existingFirmXForm = getXformsDAO().getXFormByParentVersion(xform.getFormId(), xform.getVersion(), XFormState.FIRM);
+			XForm existingFirmXForm = getXformsDAO().getXFormByParentVersion(xform, xform.getVersion(), XFormState.FIRM);
 			
 			if(existingFirmXForm != null) {
 				
@@ -322,7 +322,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 				XForm newFirmForm = new XForm();
 				newFirmForm.setDateCreated(xform.getDateCreated());
 				newFirmForm.setDisplayName(xform.getDisplayName());
-				newFirmForm.setFormParent(xform.getFormId());
+				newFirmForm.setFormParent(xform);
 				newFirmForm.setFormState(XFormState.FIRM);
 				newFirmForm.setFormStorageType(slideStorageType);
 				newFirmForm.setFormStorageIdentifier(formPath);
@@ -421,6 +421,15 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return xforms;
 	}
 	
+	public List<Submission> getStandaloneFormSubmissions(long formId) {
+
+		String formType = standaloneFormType;
+		String formStorageType = slideStorageType;
+		
+		List<Submission> subs = getXformsDAO().getSubmissionsByTypeAndStorageType(formType, formStorageType, formId);
+		return subs;
+	}
+	
 	public List<Submission> getAllStandaloneFormsSubmissions() {
 		
 		List<Submission> submissions = 
@@ -437,16 +446,18 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	public List<Submission> getFormsSubmissions(long formId) {
 		
-		List<Submission> submissions = 
-			getXformsDAO().getResultListByInlineQuery("select submissions from " +
-					"com.idega.block.form.data.XForm xforms inner join xforms."+XForm.xformSubmissionsProperty+" submissions " +
-							"where xforms."+XForm.formIdProperty+" = :"+XForm.formIdProperty+" and " +
-									"submissions."+XFormSubmission.isFinalSubmissionProperty+" = :"+XFormSubmission.isFinalSubmissionProperty, Submission.class,
-									new Param(XForm.formIdProperty, formId),
-									new Param(XFormSubmission.isFinalSubmissionProperty, true)
-			);
+//		List<Submission> submissions = 
+//			getXformsDAO().getResultListByInlineQuery("select submissions from " +
+//					"com.idega.block.form.data.XForm xforms inner join xforms."+XForm.xformSubmissionsProperty+" submissions " +
+//							"where xforms."+XForm.formIdProperty+" = :"+XForm.formIdProperty+" and " +
+//									"submissions."+XFormSubmission.isFinalSubmissionProperty+" = :"+XFormSubmission.isFinalSubmissionProperty, Submission.class,
+//									new Param(XForm.formIdProperty, formId),
+//									new Param(XFormSubmission.isFinalSubmissionProperty, true)
+//			);
+//		
+//		return submissions;
 		
-		return submissions;
+		return getStandaloneFormSubmissions(formId);
 	}
 	
 	public Submission getSubmission(long submissionId) {

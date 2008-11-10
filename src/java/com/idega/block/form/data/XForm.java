@@ -13,6 +13,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -23,9 +25,9 @@ import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  *
- * Last modified: $Date: 2008/11/05 08:50:51 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/10 12:07:41 $ by $Author: anton $
  */
 @Entity
 @Table(name="XFORMS")
@@ -49,9 +51,11 @@ public class XForm implements Serializable, Form {
 	private Long formId;
 	
 	public static final String formParentProperty = "formParent";
-	@Column(name="FORM_PARENT")
-	private Long formParent;
-	
+	@ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST,
+			CascadeType.REFRESH, CascadeType.REMOVE })
+	@JoinColumn(name="FORM_PARENT")
+	private XForm formParent;
+
 	@Column(name="FORM_STORAGE_IDENTIFIER", nullable=false)
 	private String formStorageIdentifier;
 	
@@ -100,10 +104,10 @@ public class XForm implements Serializable, Form {
 	public void setFormId(Long formId) {
 		this.formId = formId;
 	}
-	public Long getFormParent() {
+	public XForm getFormParent() {
 		return formParent;
 	}
-	public void setFormParent(Long formParent) {
+	public void setFormParent(XForm formParent) {
 		this.formParent = formParent;
 	}
 	public String getFormStorageIdentifier() {

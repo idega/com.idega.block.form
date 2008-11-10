@@ -7,16 +7,18 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idega.block.form.data.XForm;
+import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.xformsmanager.business.Form;
+import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * 
- *          Last modified: $Date: 2008/11/07 10:33:48 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/10 12:07:41 $ by $Author: anton $
  */
 @Scope("singleton")
 @Repository
@@ -48,13 +50,26 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		return xforms;
 	}
 
-	public XForm getXFormByParentVersion(Long parentFormId, Integer version,
+	public List<Submission> getSubmissionsByTypeAndStorageType(String formType,
+			String formStorageType, long formId) {
+
+		String q = "select sub from " 
+				  + XForm.class.getName() + " as child inner join child.formParent as parent, " 
+				  + XFormSubmission.class.getName() + " as sub"
+				  + " where sub.xform = child and parent.formId = :" + XForm.formIdProperty;
+
+		List<Submission> submissions = getEntityManager().createQuery(q).setParameter(XForm.formIdProperty, formId).getResultList();
+
+		return submissions;
+	}
+
+	public XForm getXFormByParentVersion(Form parentForm, Integer version,
 			XFormState state) {
 
 		@SuppressWarnings("unchecked")
 		List<XForm> xforms = getEntityManager().createNamedQuery(
 				XForm.getByParentVersion).setParameter(
-				XForm.formParentProperty, parentFormId).setParameter(
+				XForm.formParentProperty, parentForm).setParameter(
 				XForm.versionProperty, version).setParameter(
 				XForm.formStateProperty, state).getResultList();
 
