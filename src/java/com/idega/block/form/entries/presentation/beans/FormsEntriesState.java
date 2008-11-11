@@ -15,22 +15,25 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 
+import com.idega.block.form.data.UploadedFile;
+import com.idega.block.form.data.UploadedFileResolver;
+import com.idega.block.form.data.UploadedFileWriter;
 import com.idega.block.form.entries.presentation.UIFormsEntriesViewer;
+import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
+import com.idega.util.expression.ELUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.xformsmanager.util.FormManagerUtil;
-import com.idega.util.CoreConstants;
-import com.idega.util.StringUtil;
-import com.idega.util.expression.ELUtil;
 
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * 
- *          Last modified: $Date: 2008/11/07 12:50:12 $ by $Author: valdas $
+ *          Last modified: $Date: 2008/11/11 08:51:23 $ by $Author: anton $
  * 
  */
 @Scope("request")
@@ -44,7 +47,8 @@ public class FormsEntriesState implements Serializable {
 	private static final String submissionIdParam = "submissionId";
 	private static final String formIdParam = "formId";
 	private Long formId;
-
+	
+	@Autowired private UploadedFileResolver fileResolver;
 	@Autowired
 	@XFormPersistenceType("slide")
 	private transient PersistenceManager persistenceManager;
@@ -225,5 +229,21 @@ public class FormsEntriesState implements Serializable {
 
 	public void setFormId(Long formId) {
 		this.formId = formId;
+	}
+	
+	public List<UploadedFile> getAttachments() {
+		Long submissionId = new Long(getSubmissionId());
+		Submission sub = getPersistenceManager().getSubmission(submissionId);
+		List<UploadedFile> files = getFileResolver().resolveUploadedList(sub.getSubmissionDocument());
+
+		return files;			
+	}
+	
+	public Class<?> getDownloadWriter() {
+		return UploadedFileWriter.class;
+	}
+	
+	private UploadedFileResolver getFileResolver() {
+		return fileResolver;
 	}
 }
