@@ -19,6 +19,7 @@ import com.idega.block.form.data.UploadedFile;
 import com.idega.block.form.data.UploadedFileResolver;
 import com.idega.block.form.data.UploadedFileWriter;
 import com.idega.block.form.entries.presentation.UIFormsEntriesViewer;
+import com.idega.block.pdf.business.PDFWriterProvider;
 import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -31,9 +32,9 @@ import com.idega.xformsmanager.util.FormManagerUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- *          Last modified: $Date: 2008/11/11 08:51:23 $ by $Author: anton $
+ *          Last modified: $Date: 2008/11/13 07:16:58 $ by $Author: valdas $
  * 
  */
 @Scope("request")
@@ -52,6 +53,7 @@ public class FormsEntriesState implements Serializable {
 	@Autowired
 	@XFormPersistenceType("slide")
 	private transient PersistenceManager persistenceManager;
+	@Autowired(required = false) private PDFWriterProvider pdfWriter;
 
 	public List<FormSubmissionEntry> getFormsEntries() {
 
@@ -96,14 +98,14 @@ public class FormsEntriesState implements Serializable {
 				.equals(getFacetDisplayed());
 	}
 	
-	//	FIXME: temporary solution
 	public Class<?> getDocumentDownloader() {
-		try {
-			return Class.forName("com.idega.bpm.pdf.servlet.XFormToPDFWriter");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+		if (pdfWriter == null) {
+			Logger.getLogger(FormsEntriesState.class.getName()).log(Level.SEVERE, "Error getting Spring bean for: " + pdfWriter.getClass() +
+																															", add missing dependency!");
+			return null;
 		}
-		return null;
+
+		return pdfWriter.getPDFWriterClass();
 	}
 
 	String getFacetDisplayed() {
@@ -245,5 +247,13 @@ public class FormsEntriesState implements Serializable {
 	
 	private UploadedFileResolver getFileResolver() {
 		return fileResolver;
+	}
+
+	public PDFWriterProvider getPdfWriter() {
+		return pdfWriter;
+	}
+
+	public void setPdfWriter(PDFWriterProvider pdfWriter) {
+		this.pdfWriter = pdfWriter;
 	}
 }
