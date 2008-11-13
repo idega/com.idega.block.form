@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.57 2008/11/05 08:50:47 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.58 2008/11/13 11:17:53 arunas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -39,12 +39,10 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
+import com.idega.block.pdf.PDFRenderedComponent;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
-import com.idega.xformsmanager.business.PersistedFormDocument;
-import com.idega.xformsmanager.business.PersistenceManager;
-import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
@@ -52,14 +50,20 @@ import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 import com.idega.util.PresentationUtil;
 import com.idega.util.expression.ELUtil;
+import com.idega.xformsmanager.business.DocumentManager;
+import com.idega.xformsmanager.business.DocumentManagerFactory;
+import com.idega.xformsmanager.business.PersistedFormDocument;
+import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.XFormPersistenceType;
+
 
 /**
- * Last modified: $Date: 2008/11/05 08:50:47 $ by $Author: civilis $
+ * Last modified: $Date: 2008/11/13 11:17:53 $ by $Author: arunas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.57 $
+ * @version $Revision: 1.58 $
  */
-public class FormViewer extends IWBaseComponent {
+public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 
 	public static final String COMPONENT_TYPE = "FormViewer";
 	public static final String formIdParam 				= "formId";
@@ -71,6 +75,7 @@ public class FormViewer extends IWBaseComponent {
 	private PersistenceManager persistenceManager;
 	private String formId;
 	private String submissionId;
+	private DocumentManagerFactory documentManagerFactory;
 	
 	private Document xDoc;
 	private String sessionKey;
@@ -107,6 +112,7 @@ public class FormViewer extends IWBaseComponent {
 				PersistenceManager persistenceManager = getPersistenceManager();
 				PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
 				document = formDocument.getXformsDocument();
+				
 			} else {
 				
 				String submissionId = getSubmissionId(context);
@@ -405,7 +411,41 @@ public class FormViewer extends IWBaseComponent {
 	}
 
 	public void setPdfViewer(boolean pdfViewer) {
+		
+		getFormDocument().setPdfForm(pdfViewer);
+		
 		this.pdfViewer = pdfViewer;
 	}
+	
+	public DocumentManagerFactory getDocumentManagerFactory() {
+		return documentManagerFactory;
+	}
+	
+	@Autowired
+	public void setDocumentManagerFactory(
+			DocumentManagerFactory documentManagerFactory) {
+		this.documentManagerFactory = documentManagerFactory;
+	}
+	
+	protected com.idega.xformsmanager.business.Document getFormDocument() {
+
+		try {
+			FacesContext fctx = FacesContext.getCurrentInstance();
+			IWMainApplication iwma = fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
+			
+			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(iwma);
+			com.idega.xformsmanager.business.Document form = documentManager.openForm(xDoc);
+			
+			return form;
+
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
+	
 
 }
