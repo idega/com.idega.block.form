@@ -36,9 +36,9 @@ import com.idega.util.xml.XmlUtil;
  * submission of saved form.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- *          Last modified: $Date: 2008/11/05 08:51:01 $ by $Author: civilis $
+ *          Last modified: $Date: 2008/11/14 14:11:17 $ by $Author: civilis $
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
@@ -125,7 +125,7 @@ public class XFormSubmission implements Serializable, Submission {
 	}
 
 	public Boolean getIsFinalSubmission() {
-		return isFinalSubmission;
+		return isFinalSubmission == null ? true : isFinalSubmission;
 	}
 
 	public void setIsFinalSubmission(Boolean isFinalSubmission) {

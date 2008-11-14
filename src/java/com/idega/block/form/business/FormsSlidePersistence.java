@@ -50,9 +50,9 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.25 $
+ * @version $Revision: 1.26 $
  *
- * Last modified: $Date: 2008/11/10 12:07:41 $ by $Author: anton $
+ * Last modified: $Date: 2008/11/14 14:11:17 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -134,7 +134,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			com.idega.xformsmanager.business.Document form = documentManager.openForm(xformsDoc);
 			
 			form.populateSubmissionDataWithXML(submissionDoc, true);
-			form.setReadonly(true);
+			form.setReadonly(xformSubmission.getIsFinalSubmission());
 			xformsDoc = form.getXformsDocument();
 			
 			formDoc = new PersistedFormDocument();
