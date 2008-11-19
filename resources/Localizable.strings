@@ -1,5 +1,5 @@
-download=download
-download_form_document=download_form_document
+download=Download
+download_form_document=Download form
 form_name=Form name
 iw.component.com.idega.block.form.presentation.FormListViewer.name=FormListViewer
 iw.component.com.idega.block.form.presentation.FormViewer.name=Form Viewer

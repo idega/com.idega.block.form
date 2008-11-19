@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.58 2008/11/13 11:17:53 arunas Exp $ Created on
+ * $Id: FormViewer.java,v 1.59 2008/11/19 08:14:55 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -49,6 +49,7 @@ import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
 import com.idega.util.PresentationUtil;
+import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
@@ -58,10 +59,10 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 
 /**
- * Last modified: $Date: 2008/11/13 11:17:53 $ by $Author: arunas $
+ * Last modified: $Date: 2008/11/19 08:14:55 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.58 $
+ * @version $Revision: 1.59 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 
@@ -107,7 +108,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 			
 			String formId = getFormId(context);
 			
-			if(formId != null && !CoreConstants.EMPTY.equals(formId)) {
+			if (!StringUtil.isEmpty(formId)) {
 			
 				PersistenceManager persistenceManager = getPersistenceManager();
 				PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
@@ -117,7 +118,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 				
 				String submissionId = getSubmissionId(context);
 				
-				if(submissionId != null && !CoreConstants.EMPTY.equals(submissionId)) {
+				if (!StringUtil.isEmpty(submissionId)) {
 				
 					PersistenceManager persistenceManager = getPersistenceManager();
 					PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(new Long(submissionId));
@@ -434,6 +435,11 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 			IWMainApplication iwma = fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
 			
 			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(iwma);
+			
+			if (xDoc == null) {
+				xDoc = resolveXFormsDocument(fctx);
+			}
+			
 			com.idega.xformsmanager.business.Document form = documentManager.openForm(xDoc);
 			
 			return form;

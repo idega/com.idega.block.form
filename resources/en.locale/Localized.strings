@@ -1,2 +1,8 @@
+download=Download
+download_form_document=Download form
+form_name=Form name
+iw.component.com.idega.block.form.presentation.FormListViewer.name=FormListViewer
+iw.component.com.idega.block.form.presentation.FormViewer.name=Form Viewer
 save_form.linkToForm.subject=Link to your saved form
 save_form.linkToForm.text=Link to your saved form: {0}
+submission_date=Submission date
