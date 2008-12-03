@@ -50,9 +50,9 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.26 $
+ * @version $Revision: 1.27 $
  *
- * Last modified: $Date: 2008/11/14 14:11:17 $ by $Author: civilis $
+ * Last modified: $Date: 2008/12/03 08:07:48 $ by $Author: eiki $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -153,18 +153,16 @@ public class FormsSlidePersistence implements PersistenceManager {
 	protected Document loadXMLResourceFromSlide(String resourcePath) {
 	
 		try {
-			WebdavExtendedResource resource = getWebdavExtendedResource(resourcePath);
+			IWSlideService service = getIWSlideService();
+						
+			InputStream is = service.getInputStream(resourcePath);
 
-			if(!resource.exists())
-				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: "+resourcePath);
 			
-			InputStream is = resource.getMethodData();
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			Document resourceDocument = docBuilder.parse(is);
+	
 			return resourceDocument;
 			
-		} catch (RuntimeException e) {
-			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -186,6 +184,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 	protected void saveExistingXFormsDocumentToSlide(Document xformsDoc, String path) {
 
 		try {
+			
+			//TODO use upload method
 			WebdavExtendedResource xformRes = getWebdavExtendedResource(path);
 
 			if(!xformRes.exists())
@@ -500,18 +500,16 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 
 	public Document loadSubmittedData(String formId, String submittedDataFilename) throws Exception {
+		IWSlideService service = getIWSlideService();
+		
 		
 		if(submittedDataFilename == null || formId == null)
 			throw new NullPointerException("submitted_data_id or formId is not provided");
 	
-		String resource_path = getSubmittedDataResourcePath(formId, submittedDataFilename);
-
-		WebdavExtendedResource webdav_resource = getWebdavExtendedResource(resource_path);
-		
-		if(webdav_resource == null)
-			throw new NullPointerException("Submitted data document was not found by provided resource path: "+resource_path);
-		
-		InputStream is = webdav_resource.getMethodData();
+		String resourcePath = getSubmittedDataResourcePath(formId, submittedDataFilename);
+		InputStream is = service.getInputStream(resourcePath);
+			
+//		InputStream is = service.getInputStream(resourcePath);
 		
 		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 		Document submitted_data = docBuilder.parse(is);
@@ -520,6 +518,9 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 
 	public List<SubmittedDataBean> listSubmittedData(String formId) throws Exception {
+		//IWSlideService service = getIWSlideService();
+		
+		//todo use api calls
 		
 		if(true)
 			throw new UnsupportedOperationException("Not supported yet, implement with new submission storage");
