@@ -50,9 +50,9 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.27 $
+ * @version $Revision: 1.28 $
  *
- * Last modified: $Date: 2008/12/03 08:07:48 $ by $Author: eiki $
+ * Last modified: $Date: 2008/12/28 11:38:03 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -109,6 +109,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		formDoc.setFormId(formId);
 		formDoc.setFormType(xform.getFormType());
 		formDoc.setXformsDocument(xformsDoc);
+		formDoc.setVersion(xform.getVersion());
 		
 		return formDoc;
 	}
@@ -141,6 +142,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			formDoc.setFormId(xform.getFormId());
 			formDoc.setFormType(xform.getFormType());
 			formDoc.setXformsDocument(xformsDoc);
+			formDoc.setVersion(xform.getVersion());
 			
 		} else {
 			logger.log(Level.WARNING, "No submission found by submissionId provided="+submissionId);
@@ -262,6 +264,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			formDocument.setFormId(formId);
 			formDocument.setFormType(formType);
 			formDocument.setXformsDocument(xformsDocument);
+			formDocument.setVersion(version);
 			
 		} else {
 			
@@ -281,6 +284,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			formDocument.setFormId(formId);
 			formDocument.setFormType(xform.getFormType());
 			formDocument.setXformsDocument(xformsDocument);
+			formDocument.setVersion(xform.getVersion());
 		}
 		
 		return formDocument;
@@ -341,6 +345,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		formDocument.setFormId(xform.getFormId());
 		formDocument.setFormType(xform.getFormType());
 		formDocument.setXformsDocument(xformsDocument);
+		formDocument.setVersion(xform.getVersion());
 		
 		return formDocument;
 	}
