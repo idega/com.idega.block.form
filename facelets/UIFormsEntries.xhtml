@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<t:div styleClass="formsEntries"
+<div class="formsEntries"
 		xmlns:h="http://java.sun.com/jsf/html"
 		xmlns:t="http://myfaces.apache.org/tomahawk"
 		xmlns:f="http://java.sun.com/jsf/core"
@@ -8,7 +8,7 @@
 		xmlns:iwc="http://xmlns.idega.com/com.idega.core"
 >
     <fc:addResource resourcePath="/idegaweb/bundles/com.idega.block.form.bundle/resources/style/formsEntries.css" />
-    <t:saveState value="#{formsEntries}"/>
+    <t:saveState id="formsEntries" value="#{formsEntries}"/>
     <t:inputHidden id="submissionId" forceId="true" />
     
     <t:div styleClass="chooseForm">
@@ -43,4 +43,4 @@
 	        </t:column>
 	    </t:dataTable>
     </t:div>
-</t:div>
+</div>
