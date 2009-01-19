@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.60 2009/01/10 12:36:40 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.61 2009/01/19 21:48:52 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -59,10 +59,10 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 
 /**
- * Last modified: $Date: 2009/01/10 12:36:40 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/19 21:48:52 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.60 $
+ * @version $Revision: 1.61 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 
@@ -116,18 +116,15 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 				
 			} else {
 				
-				String submissionId = getSubmissionId(context);
+				String submissionUUID = getSubmissionId(context);
 				
-				if (!StringUtil.isEmpty(submissionId)) {
+				if (!StringUtil.isEmpty(submissionUUID)) {
 				
 					PersistenceManager persistenceManager = getPersistenceManager();
-					PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(new Long(submissionId));
+					PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(submissionUUID);
 					document = formDocument.getXformsDocument();
 				}
 			}
-				
-//			PersistenceManager persistenceManager = (PersistenceManager) WFUtil.getBeanInstance("xformsPersistenceManager");
-			
 		}
 		
 		return document;

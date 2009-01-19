@@ -44,9 +44,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  *
- * Last modified: $Date: 2008/11/05 08:51:03 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/19 21:48:52 $ by $Author: civilis $
  *
  */
 public class SaveFormAction extends AbstractBoundAction {
@@ -173,7 +173,7 @@ public class SaveFormAction extends AbstractBoundAction {
 		Instance instance = getInstance();
 		
 		final String[] submissionMeta = saveSubmission(fid, instance);
-		final String submissionId = submissionMeta[0];
+		final String submissionUUID = submissionMeta[0];
 		final String submissionIdentifier = submissionMeta[1];
 		
 		final IWContext iwc = IWContext.getCurrentInstance();
@@ -181,7 +181,7 @@ public class SaveFormAction extends AbstractBoundAction {
 		BuilderService bs = getBuilderService(iwc);
 		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
 		final URIUtil uriUtil = new URIUtil(url);
-		uriUtil.setParameter(FormViewer.submissionIdParam, submissionId);
+		uriUtil.setParameter(FormViewer.submissionIdParam, submissionUUID);
 		url = uriUtil.getUri();
 		
 		ModelItem mi = instance.getModelItem(getLinkExp());
@@ -214,13 +214,11 @@ public class SaveFormAction extends AbstractBoundAction {
 //			checking if submission already contains submissionId - therefore we're reusing existing submissionId
 			
 			ModelItem submissionIdMI = instance.getModelItem(getSubmissionIdExp());
-			String submissionIdStr = submissionIdMI.getValue();
+			String submissionUUID = submissionIdMI.getValue();
 			
-			if(StringUtil.isEmpty(submissionIdStr))
-				submissionIdStr = null;
+			if(StringUtil.isEmpty(submissionUUID))
+				submissionUUID = null;
 
-			Long submissionId = submissionIdStr != null ? new Long(submissionIdStr) : null;
-			
 			Element instanceEl = ((Document)instance.getPointer(".").getNode()).getDocumentElement();
 			
 //			storing uploaded files to persistent location
@@ -228,23 +226,23 @@ public class SaveFormAction extends AbstractBoundAction {
 			
 			InputStream is = getISFromXML(instanceEl);
 			
-			if(submissionId != null) {
-				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
+			if(submissionUUID != null) {
+				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, fid, is, submissionIdentifier);
 			} else {
 				
-				submissionId = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier, false);
+				submissionUUID = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier, false);
 				
-				submissionIdMI.setValue(submissionId.toString());
+				submissionIdMI.setValue(submissionUUID);
 				
 				instanceEl = ((Document)instance.getPointer(".").getNode()).getDocumentElement();
 				
 				is = getISFromXML(instanceEl);
 				
 //				restore with new modified submission data
-				submissionId = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionId, fid, is, submissionIdentifier);
+				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, fid, is, submissionIdentifier);
 			}
 			
-			return new String[] {submissionId.toString(), submissionIdentifier};
+			return new String[] {submissionUUID, submissionIdentifier};
 			
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while saving submission", e);

@@ -29,6 +29,7 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.core.idgenerator.business.UUIDGenerator;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
@@ -50,7 +51,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.29 $ Last modified: $Date: 2009/01/14 14:19:57 $ by $Author: civilis $
+ * @version $Revision: 1.30 $ Last modified: $Date: 2009/01/19 21:48:53 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -121,10 +122,10 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = true)
-	public PersistedFormDocument loadPopulatedForm(Long submissionId) {
+	public PersistedFormDocument loadPopulatedForm(String submissionUUID) {
 		
-		XFormSubmission xformSubmission = getXformsDAO().find(
-		    XFormSubmission.class, submissionId);
+		XFormSubmission xformSubmission = getXformsDAO()
+		        .getSubmissionBySubmissionUUID(submissionUUID);
 		final PersistedFormDocument formDoc;
 		
 		if (xformSubmission != null) {
@@ -155,7 +156,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 		} else {
 			logger.log(Level.WARNING,
-			    "No submission found by submissionId provided=" + submissionId);
+			    "No submission found by submissionId provided="
+			            + submissionUUID);
 			formDoc = null;
 		}
 		
@@ -362,9 +364,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 				String formType = xform.getFormType();
 				
 				// storing into the same folder as the parent form
-				String formBasePath = formStorageIdentifier
-				        .substring(0, formStorageIdentifier
-				                .lastIndexOf(CoreConstants.SLASH)+1);
+				String formBasePath = formStorageIdentifier.substring(0,
+				    formStorageIdentifier.lastIndexOf(CoreConstants.SLASH) + 1);
 				
 				String formPath = saveXFormsDocumentToSlide(xformsDocument,
 				    formSlideId, formType, formBasePath);
@@ -645,21 +646,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return submitted_data;
 	}
 	
-	/**
-	 * Stores submitted data: inputStream file and attachments in slide, and meta data in
-	 * XFORMS_SUBMISSIONS
-	 * 
-	 * @param formId
-	 *            - not null
-	 * @param is
-	 *            - not null
-	 * @param identifier
-	 *            - could be null, some random identifier would be generated
-	 * @return submitted data id
-	 * @throws IOException
-	 */
 	@Transactional(readOnly = false)
-	public Long saveSubmittedData(Long formId, InputStream is,
+	public String saveSubmittedData(Long formId, InputStream is,
 	        String identifier, boolean finalSubmission) throws IOException {
 		
 		if (formId == null || is == null)
@@ -678,17 +666,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 			throw new RuntimeException("No xform found for formId provided="
 			        + formId);
 		
+		String submissionUUID = UUIDGenerator.getInstance().generateUUID();
+		
 		XFormSubmission xformSubmission = new XFormSubmission();
 		xformSubmission.setDateSubmitted(new Date());
 		xformSubmission.setSubmissionIdentifier(identifier);
 		xformSubmission.setSubmissionStorageIdentifier(path);
 		xformSubmission.setSubmissionStorageType(slideStorageType);
 		xformSubmission.setIsFinalSubmission(finalSubmission);
+		xformSubmission.setSubmissionUUID(submissionUUID);
 		xformSubmission.setXform(xform);
 		
 		getXformsDAO().persist(xformSubmission);
 		
-		return xformSubmission.getSubmissionId();
+		return submissionUUID;
 	}
 	
 	private String storeSubmissionData(String formId, String identifier,
@@ -709,7 +700,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return path;
 	}
 	
-	public Long saveSubmittedDataByExistingSubmission(Long submissionId,
+	public String saveSubmittedDataByExistingSubmission(String submissionUUID,
 	        Long formId, InputStream is, String identifier) throws IOException {
 		
 		if (identifier == null || identifier.length() == 0) {
@@ -719,27 +710,31 @@ public class FormsSlidePersistence implements PersistenceManager {
 		boolean isFinalSubmission = false;
 		XFormSubmission xformSubmission;
 		
-		if (submissionId != null)
-			xformSubmission = getXformsDAO().find(XFormSubmission.class,
-			    submissionId);
+		if (submissionUUID != null)
+			xformSubmission = getXformsDAO().getSubmissionBySubmissionUUID(
+			    submissionUUID);
 		else
 			xformSubmission = null;
 		
 		if (xformSubmission == null) {
 			
-			submissionId = saveSubmittedData(formId, is, identifier,
+			submissionUUID = saveSubmittedData(formId, is, identifier,
 			    isFinalSubmission);
 		} else {
+			
+			if(submissionUUID.length() != 36) {
+				submissionUUID = UUIDGenerator.getInstance().generateUUID();
+				xformSubmission.setSubmissionUUID(submissionUUID);
+			}
 			
 			String path = storeSubmissionData(formId.toString(), identifier, is);
 			xformSubmission.setDateSubmitted(new Date());
 			xformSubmission.setSubmissionStorageIdentifier(path);
 			xformSubmission.setIsFinalSubmission(isFinalSubmission);
 			xformSubmission = getXformsDAO().merge(xformSubmission);
-			submissionId = xformSubmission.getSubmissionId();
 		}
 		
-		return submissionId;
+		return submissionUUID;
 	}
 	
 	protected String generateFormId(String name) {

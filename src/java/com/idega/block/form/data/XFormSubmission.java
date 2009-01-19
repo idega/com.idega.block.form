@@ -36,9 +36,9 @@ import com.idega.util.xml.XmlUtil;
  * submission of saved form.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * 
- *          Last modified: $Date: 2008/11/14 14:11:17 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/01/19 21:48:53 $ by $Author: civilis $
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
@@ -55,6 +55,10 @@ public class XFormSubmission implements Serializable, Submission {
 
 	@Column(name = "SUBMISSION_IDENTIFIER")
 	private String submissionIdentifier;
+	
+	public static final String submissionUUIDProperty = "submissionUUID";
+	@Column(name = "SUBMISSION_UUID", nullable = false)
+	private String submissionUUID;
 
 	@Column(name = "SUBMISSION_STORAGE_TYPE", nullable = false)
 	private String submissionStorageType;
@@ -185,4 +189,12 @@ public class XFormSubmission implements Serializable, Submission {
 		return service.getWebdavExtendedResource(path, service
 				.getRootUserCredentials());
 	}
+
+	public String getSubmissionUUID() {
+    	return submissionUUID;
+    }
+
+	public void setSubmissionUUID(String submissionUUID) {
+    	this.submissionUUID = submissionUUID;
+    }
 }
