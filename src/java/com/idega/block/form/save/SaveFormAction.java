@@ -44,9 +44,9 @@ import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  *
- * Last modified: $Date: 2009/01/19 21:48:52 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/19 22:24:13 $ by $Author: civilis $
  *
  */
 public class SaveFormAction extends AbstractBoundAction {
@@ -227,7 +227,26 @@ public class SaveFormAction extends AbstractBoundAction {
 			InputStream is = getISFromXML(instanceEl);
 			
 			if(submissionUUID != null) {
+				
+				boolean old = false;
+				if(submissionUUID.length() != 36) {
+					old = true;
+				}
+				
 				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, fid, is, submissionIdentifier);
+				
+				if(old) {
+					
+					submissionIdMI.setValue(submissionUUID);
+					
+					instanceEl = ((Document)instance.getPointer(".").getNode()).getDocumentElement();
+					
+					is = getISFromXML(instanceEl);
+					
+//					restore with new modified submission data
+					submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, fid, is, submissionIdentifier);
+				}
+				
 			} else {
 				
 				submissionUUID = getPersistenceManager().saveSubmittedData(fid, is, submissionIdentifier, false);
