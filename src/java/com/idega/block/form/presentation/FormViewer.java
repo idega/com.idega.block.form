@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.61 2009/01/19 21:48:52 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.62 2009/01/20 17:33:55 civilis Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -47,32 +47,35 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
-import com.idega.util.CoreConstants;
+import com.idega.presentation.text.Text;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
+import com.idega.xformsmanager.business.InvalidSubmissionException;
 import com.idega.xformsmanager.business.PersistedFormDocument;
 import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
-
 /**
- * Last modified: $Date: 2009/01/19 21:48:52 $ by $Author: civilis $
+ * Last modified: $Date: 2009/01/20 17:33:55 $ by $Author: civilis $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.61 $
+ * @version $Revision: 1.62 $
  */
-public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
-
-	public static final String COMPONENT_TYPE = "FormViewer";
-	public static final String formIdParam 				= "formId";
-	public static final String submissionIdParam 		= "submissionId";
-	public static final String formviewerPageType 		= "formsviewer";
+public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
-	protected static final Logger log =   Logger.getLogger(FormViewer.class.getName());
-
+	public static final String COMPONENT_TYPE = "FormViewer";
+	public static final String formIdParam = "formId";
+	public static final String submissionIdParam = "submissionId";
+	public static final String formviewerPageType = "formsviewer";
+	
+	private static final String invalidSubmissionFacet = "InvalidSubmission";
+	
+	protected static final Logger log = Logger.getLogger(FormViewer.class
+	        .getName());
+	
 	private PersistenceManager persistenceManager;
 	private String formId;
 	private String submissionId;
@@ -82,17 +85,17 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 	private String sessionKey;
 	
 	private boolean pdfViewer;
-
+	
 	public FormViewer() {
 		super();
 		ELUtil.getInstance().autowire(this);
 	}
-
+	
 	@Override
 	public String getRendererType() {
 		return null;
 	}
-
+	
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		
@@ -104,14 +107,15 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		
 		Document document = xDoc;
 		
-		if(document == null) {
+		if (document == null) {
 			
 			String formId = getFormId(context);
 			
 			if (!StringUtil.isEmpty(formId)) {
-			
+				
 				PersistenceManager persistenceManager = getPersistenceManager();
-				PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
+				PersistedFormDocument formDocument = persistenceManager
+				        .loadForm(new Long(formId));
 				document = formDocument.getXformsDocument();
 				
 			} else {
@@ -119,10 +123,19 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 				String submissionUUID = getSubmissionId(context);
 				
 				if (!StringUtil.isEmpty(submissionUUID)) {
-				
+					
 					PersistenceManager persistenceManager = getPersistenceManager();
-					PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(submissionUUID);
-					document = formDocument.getXformsDocument();
+					
+					try {
+						PersistedFormDocument formDocument = persistenceManager
+						        .loadPopulatedForm(submissionUUID);
+						document = formDocument.getXformsDocument();
+						
+					} catch (InvalidSubmissionException e) {
+						
+						Text text = new Text("The form was already submitted");
+						getFacets().put(invalidSubmissionFacet, text);
+					}
 				}
 			}
 		}
@@ -131,21 +144,25 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 	}
 	
 	private void addResources(IWContext iwc) {
-		String styleSheet = "/content" + IWBundleStarter.SLIDE_STYLES_PATH + IWBundleStarter.CHIBA_CSS;
+		String styleSheet = "/content" + IWBundleStarter.SLIDE_STYLES_PATH
+		        + IWBundleStarter.CHIBA_CSS;
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
-
+		
 		Web2Business web2 = ELUtil.getInstance().getBean(Web2Business.class);
 		try {
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToMootoolsLib());
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToJQueryLib());
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleUriToHumanizedMessagesScript());
-		
-			PresentationUtil.addStyleSheetToHeader(iwc, web2.getBundleUriToHumanizedMessagesStyleSheet());
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
+			        .getBundleURIToMootoolsLib());
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
+			        .getBundleURIToJQueryLib());
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
+			        .getBundleUriToHumanizedMessagesScript());
+			
+			PresentationUtil.addStyleSheetToHeader(iwc, web2
+			        .getBundleUriToHumanizedMessagesStyleSheet());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-
-
+		
 	}
 	
 	protected void initializeXForms(FacesContext context) {
@@ -153,21 +170,25 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		
 		Document document = resolveXFormsDocument(context);
 		
-		if(document == null)
+		if (document == null)
 			return;
 		
-		HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-		HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
-		HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
+		HttpServletRequest request = (HttpServletRequest) context
+		        .getExternalContext().getRequest();
+		HttpServletResponse response = (HttpServletResponse) context
+		        .getExternalContext().getResponse();
+		HttpSession session = (HttpSession) context.getExternalContext()
+		        .getSession(true);
 		
 		XFormsSessionManager sessionManager = null;
 		XFormsSession xformsSession = null;
 		
 		try {
 			sessionManager = getXFormsSessionManager(session);
-			//get IdegaXFormsSessionBase instance
-			xformsSession = sessionManager.createXFormsSession(request, response, session);
-		}catch (XFormsConfigException e2) {
+			// get IdegaXFormsSessionBase instance
+			xformsSession = sessionManager.createXFormsSession(request,
+			    response, session);
+		} catch (XFormsConfigException e2) {
 			e2.printStackTrace();
 		} catch (XFormsException e1) {
 			// TODO Auto-generated catch block
@@ -175,108 +196,130 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		}
 		
 		WebAdapter adapter = xformsSession.getAdapter();
-		//xformsSession.setAdapter(adapter);
+		// xformsSession.setAdapter(adapter);
 		try {
-//			setupDocument(context, document);
+			// setupDocument(context, document);
 			setupAdapter(adapter, document, xformsSession, context);
 			adapter.init();
 			
-			EventTarget eventTarget = (EventTarget) ((Document)adapter.getXForms()).getDocumentElement();
+			EventTarget eventTarget = (EventTarget) ((Document) adapter
+			        .getXForms()).getDocumentElement();
 			
 			EventListener eventListener = new EventListener() {
-
+				
 				public void handleEvent(Event event) {
 					String id = "";
-			        if (event.getTarget() instanceof Element) {
-			            id = ((Element) event.getTarget()).getAttribute("id");
-			        }
-
-					log.info("Got event, type=" + event.getType() + ", id=" + id);
+					if (event.getTarget() instanceof Element) {
+						id = ((Element) event.getTarget()).getAttribute("id");
+					}
 					
-				}};
+					log.info("Got event, type=" + event.getType() + ", id="
+					        + id);
+					
+				}
+			};
 			
-			eventTarget.addEventListener(XFormsEventNames.SUBMIT_DONE, eventListener, true);
-	        eventTarget.addEventListener(XFormsEventNames.SUBMIT_ERROR, eventListener, true);
+			eventTarget.addEventListener(XFormsEventNames.SUBMIT_DONE,
+			    eventListener, true);
+			eventTarget.addEventListener(XFormsEventNames.SUBMIT_ERROR,
+			    eventListener, true);
 			
 			XMLEvent exitEvent = adapter.checkForExitEvent();
 			if (exitEvent != null) {
 				handleExit(exitEvent, xformsSession, session, request, response);
 			} else {
-
+				
 				// actually add the XFormsSession ot the manager
 				sessionManager.addXFormsSession(xformsSession);
 				setSessionKey(xformsSession.getKey());
-
+				
 				// store queryString as 'referer' in XFormsSession
-				//xFormsSession.setProperty(XFormsSession.REFERER, request.getQueryString());
+				// xFormsSession.setProperty(XFormsSession.REFERER, request.getQueryString());
 			}
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			log.log(Level.WARNING, "handleExit failed", e);
 			return;
-		}
-		catch (XFormsException e) {
+		} catch (XFormsException e) {
 			log.log(Level.WARNING, "Could not set XML container", e);
 			shutdown(adapter, session, xformsSession.getKey());
 			return;
 		}
 	}
-
+	
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		
-		if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
+		if (getFacets().containsKey(invalidSubmissionFacet)) {
 			
-			HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
-			WebAdapter webAdapter = null;
-			try {
-				XFormsSessionManager manager = getXFormsSessionManager(session);
-				XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
+			renderChild(context, getFacet(invalidSubmissionFacet));
+			
+		} else {
+			
+			if (getFormId(context) != null || getSubmissionId(context) != null
+			        || xDoc != null) {
 				
-				if(xFormsSession == null) {
-					initializeXForms(context);
-					xFormsSession = manager.getXFormsSession(getSessionKey());
+				HttpSession session = (HttpSession) context
+				        .getExternalContext().getSession(true);
+				WebAdapter webAdapter = null;
+				try {
+					XFormsSessionManager manager = getXFormsSessionManager(session);
+					XFormsSession xFormsSession = manager
+					        .getXFormsSession(getSessionKey());
+					
+					if (xFormsSession == null) {
+						initializeXForms(context);
+						xFormsSession = manager
+						        .getXFormsSession(getSessionKey());
+					}
+					
+					HttpServletRequest request = (HttpServletRequest) context
+					        .getExternalContext().getRequest();
+					
+					xFormsSession.setRequest(request);
+					xFormsSession
+					        .setBaseURI(request.getRequestURL().toString());
+					
+					xFormsSession.handleRequest();
+					
+				} catch (Exception e) {
+					log.log(Level.SEVERE, "Error rendering form", e);
+					shutdown(webAdapter, session, getSessionKey());
 				}
-				
-				HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-
-		        xFormsSession.setRequest(request);
-		        xFormsSession.setBaseURI(request.getRequestURL().toString());
-
-                xFormsSession.handleRequest();
-				
-           } catch (Exception e) {
-	        	log.log(Level.SEVERE, "Error rendering form", e);
-	        	shutdown(webAdapter, session, getSessionKey());
 			}
 		}
+		
 		super.encodeEnd(context);
 	}
-
+	
 	public String getFormId() {
 		
 		return formId;
 	}
 	
 	public String getFormId(FacesContext context) {
-
+		
 		String formId = getFormId();
 		
-		if(formId == null) {
+		if (formId == null) {
 			
-			formId = getValueBinding(formIdParam) != null ? (String)getValueBinding(formIdParam).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(formIdParam);
-			formId = CoreConstants.EMPTY.equals(formId) ? null : formId;
+			formId = getExpressionValue(context, formIdParam);
+			
+			if (formId == null)
+				formId = context.getExternalContext().getRequestParameterMap()
+				        .get(formIdParam);
+			
+			formId = StringUtil.isEmpty(formId) ? null : formId;
 			setFormId(formId);
 		}
 		
 		return formId;
 	}
-
+	
 	public void setFormId(String formId) {
-
+		
 		this.formId = formId;
 	}
-
+	
 	@Override
 	public Object saveState(FacesContext ctx) {
 		Object values[] = new Object[4];
@@ -287,7 +330,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		
 		return values;
 	}
-
+	
 	@Override
 	public void restoreState(FacesContext ctx, Object state) {
 		Object values[] = (Object[]) state;
@@ -296,16 +339,21 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		sessionKey = (String) values[2];
 		pdfViewer = values[3] instanceof Boolean ? (Boolean) values[3] : false;
 	}
-
-	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session,
-			HttpServletRequest request, HttpServletResponse response) throws IOException {
+	
+	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession,
+	        HttpSession session, HttpServletRequest request,
+	        HttpServletResponse response) throws IOException {
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
-            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
-        } else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
+			response.sendRedirect(response.encodeRedirectURL(request
+			        .getContextPath()
+			        + "/SubmissionResponse?sessionKey="
+			        + xFormsSession.getKey()));
+		} else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
 			if (exitEvent.getContextInfo("show") != null) {
 				String loadURI = (String) exitEvent.getContextInfo("uri");
 				// kill XFormsSession
-				xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
+				xFormsSession.getManager().deleteXFormsSession(
+				    xFormsSession.getKey());
 				setSessionKey(null);
 				response.sendRedirect(response.encodeRedirectURL(loadURI));
 			}
@@ -313,28 +361,30 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		log.fine("Exited during XForms model init");
 	}
 	
-	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
+	protected void setupAdapter(WebAdapter adapter, Document document,
+	        XFormsSession xforms_session, FacesContext context)
+	        throws XFormsException {
 		adapter.setXFormsSession(xforms_session);
 		adapter.setXForms(document);
 		
 		Map<String, String> servletMap = new HashMap<String, String>();
 		servletMap.put(WebAdapter.SESSION_ID, xforms_session.getKey());
 		adapter.setContextParam(XFormsConstants.SUBMISSION, servletMap);
-
+		
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
 		adapter.setUploadDestination(XFormTmpFileResolverImpl.UPLOADS_PATH);
 		// storeCookies(request, adapter);
 	}
-
-	protected void shutdown(WebAdapter webAdapter, HttpSession session, String key) {
+	
+	protected void shutdown(WebAdapter webAdapter, HttpSession session,
+	        String key) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
 			try {
 				webAdapter.shutdown();
-			}
-			catch (XFormsException xfe) {
+			} catch (XFormsException xfe) {
 				xfe.printStackTrace();
 			}
 		}
@@ -344,73 +394,85 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		}
 		setSessionKey(null);
 		// redirect to error page (after encoding session id if required)
-		//response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
-		//		+ request.getSession().getServletContext().getInitParameter("error.page")));
+		// response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
+		// + request.getSession().getServletContext().getInitParameter("error.page")));
 	}
-
+	
 	public void setXFormsDocument(Document xDoc) {
 		this.xDoc = xDoc;
 	}
 	
-	protected XFormsSessionManager getXFormsSessionManager(HttpSession session) throws XFormsConfigException {
+	protected XFormsSessionManager getXFormsSessionManager(HttpSession session)
+	        throws XFormsConfigException {
 		
-		XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+		XFormsSessionManager manager = (XFormsSessionManager) session
+		        .getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
 		
-		if(manager == null) {
-		
-			manager = DefaultXFormsSessionManagerImpl.createXFormsSessionManager(IdegaXFormSessionManagerImpl.class.getName());
-			session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, manager);
-		}
+		if (manager == null) {
 			
+			manager = DefaultXFormsSessionManagerImpl
+			        .createXFormsSessionManager(IdegaXFormSessionManagerImpl.class
+			                .getName());
+			session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER,
+			    manager);
+		}
+		
 		return manager;
 	}
 	
 	public void setSessionKey(String sessionKey) {
 		this.sessionKey = sessionKey;
 	}
+	
 	public String getSessionKey() {
 		return sessionKey;
 	}
-
+	
 	public String getSubmissionId(FacesContext context) {
-
+		
 		String submissionId = getSubmissionId();
 		
-		if(submissionId == null) {
+		if (submissionId == null) {
 			
-			submissionId = getValueBinding(submissionIdParam) != null ? (String)getValueBinding(submissionIdParam).getValue(context) : (String)context.getExternalContext().getRequestParameterMap().get(submissionIdParam);
-			submissionId = CoreConstants.EMPTY.equals(submissionId) ? null : submissionId;
+			submissionId = getExpressionValue(context, submissionIdParam);
+			
+			if (submissionId == null)
+				submissionId = context.getExternalContext()
+				        .getRequestParameterMap().get(submissionIdParam);
+			
+			submissionId = StringUtil.isEmpty(submissionId) ? null
+			        : submissionId;
 			setSubmissionId(submissionId);
 		}
 		
 		return submissionId;
 	}
-
+	
 	public String getSubmissionId() {
 		return submissionId;
 	}
-
+	
 	public void setSubmissionId(String submissionId) {
 		this.submissionId = submissionId;
 	}
-
+	
 	public PersistenceManager getPersistenceManager() {
 		return persistenceManager;
 	}
-
+	
 	@Autowired
 	@XFormPersistenceType("slide")
 	public void setPersistenceManager(PersistenceManager persistenceManager) {
 		this.persistenceManager = persistenceManager;
 	}
-
+	
 	public boolean isPdfViewer() {
 		return pdfViewer;
 	}
-
+	
 	public void setPdfViewer(boolean pdfViewer) {
 		
-		if(pdfViewer)
+		if (pdfViewer)
 			getFormDocument().setPdfForm(pdfViewer);
 		
 		this.pdfViewer = pdfViewer;
@@ -422,26 +484,30 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 	
 	@Autowired
 	public void setDocumentManagerFactory(
-			DocumentManagerFactory documentManagerFactory) {
+	        DocumentManagerFactory documentManagerFactory) {
 		this.documentManagerFactory = documentManagerFactory;
 	}
 	
 	protected com.idega.xformsmanager.business.Document getFormDocument() {
-
+		
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
-			IWMainApplication iwma = fctx == null ? IWMainApplication.getDefaultIWMainApplication() : IWMainApplication.getIWMainApplication(fctx);
+			IWMainApplication iwma = fctx == null ? IWMainApplication
+			        .getDefaultIWMainApplication() : IWMainApplication
+			        .getIWMainApplication(fctx);
 			
-			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(iwma);
+			DocumentManager documentManager = getDocumentManagerFactory()
+			        .newDocumentManager(iwma);
 			
 			if (xDoc == null) {
 				xDoc = resolveXFormsDocument(fctx);
 			}
 			
-			com.idega.xformsmanager.business.Document form = documentManager.openForm(xDoc);
+			com.idega.xformsmanager.business.Document form = documentManager
+			        .openForm(xDoc);
 			
 			return form;
-
+			
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
@@ -449,7 +515,4 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent{
 		}
 	}
 	
-	
-	
-
 }
