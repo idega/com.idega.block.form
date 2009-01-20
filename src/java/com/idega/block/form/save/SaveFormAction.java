@@ -44,7 +44,7 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $ Last modified: $Date: 2009/01/20 17:34:38 $ by $Author: civilis $
+ * @version $Revision: 1.8 $ Last modified: $Date: 2009/01/20 17:53:54 $ by $Author: civilis $
  */
 public class SaveFormAction extends AbstractBoundAction {
 	
@@ -329,7 +329,6 @@ public class SaveFormAction extends AbstractBoundAction {
 	
 	private String getSubmissionUUID() {
 		
-		System.out.println("__submssion exp=" + getSubmissionIdExp());
 		ModelItem submissionIdMI = getInstance().getModelItem(
 		    getSubmissionIdExp());
 		String submissionUUID = submissionIdMI.getValue();
