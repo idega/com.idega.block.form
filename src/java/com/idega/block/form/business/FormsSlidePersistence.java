@@ -36,11 +36,13 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.FormLockException;
+import com.idega.xformsmanager.business.InvalidSubmissionException;
 import com.idega.xformsmanager.business.PersistedFormDocument;
 import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.Submission;
@@ -51,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.31 $ Last modified: $Date: 2009/01/19 22:24:13 $ by $Author: civilis $
+ * @version $Revision: 1.32 $ Last modified: $Date: 2009/01/20 17:33:04 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -130,6 +132,10 @@ public class FormsSlidePersistence implements PersistenceManager {
 		final PersistedFormDocument formDoc;
 		
 		if (xformSubmission != null) {
+			
+			if(xformSubmission.getIsValidSubmission() != null && !xformSubmission.getIsValidSubmission()) {
+				throw new InvalidSubmissionException("The submission is invalid, submissionUUID="+submissionUUID);
+			}
 			
 			XForm xform = xformSubmission.getXform();
 			
@@ -701,6 +707,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return path;
 	}
 	
+	@Transactional(readOnly = false)
+	public void invalidateSubmittedDataByExistingSubmission(
+	        String submissionUUID) {
+		
+		if (StringUtil.isEmpty(submissionUUID)) {
+			throw new IllegalArgumentException("submissionUUID not provided");
+		}
+		
+		XFormSubmission xformSubmission = getXformsDAO()
+		        .getSubmissionBySubmissionUUID(submissionUUID);
+		xformSubmission.setIsValidSubmission(false);
+	}
+	
+	@Transactional(readOnly = false)
 	public String saveSubmittedDataByExistingSubmission(String submissionUUID,
 	        Long formId, InputStream is, String identifier) throws IOException {
 		
@@ -723,7 +743,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			    isFinalSubmission);
 		} else {
 			
-			if(submissionUUID.length() != 36) {
+			if (submissionUUID.length() != 36) {
 				
 				submissionUUID = UUIDGenerator.getInstance().generateUUID();
 				xformSubmission.setSubmissionUUID(submissionUUID);
