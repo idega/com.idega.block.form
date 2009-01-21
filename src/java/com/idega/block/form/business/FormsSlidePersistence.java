@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.32 $ Last modified: $Date: 2009/01/20 17:33:04 $ by $Author: civilis $
+ * @version $Revision: 1.33 $ Last modified: $Date: 2009/01/21 10:01:21 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -133,8 +133,11 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		if (xformSubmission != null) {
 			
-			if(xformSubmission.getIsValidSubmission() != null && !xformSubmission.getIsValidSubmission()) {
-				throw new InvalidSubmissionException("The submission is invalid, submissionUUID="+submissionUUID);
+			if (xformSubmission.getIsValidSubmission() != null
+			        && !xformSubmission.getIsValidSubmission()) {
+				throw new InvalidSubmissionException(
+				        "The submission is invalid, submissionUUID="
+				                + submissionUUID);
 			}
 			
 			XForm xform = xformSubmission.getXform();
@@ -711,13 +714,11 @@ public class FormsSlidePersistence implements PersistenceManager {
 	public void invalidateSubmittedDataByExistingSubmission(
 	        String submissionUUID) {
 		
-		if (StringUtil.isEmpty(submissionUUID)) {
-			throw new IllegalArgumentException("submissionUUID not provided");
+		if (!StringUtil.isEmpty(submissionUUID)) {
+			XFormSubmission xformSubmission = getXformsDAO()
+			        .getSubmissionBySubmissionUUID(submissionUUID);
+			xformSubmission.setIsValidSubmission(false);
 		}
-		
-		XFormSubmission xformSubmission = getXformsDAO()
-		        .getSubmissionBySubmissionUUID(submissionUUID);
-		xformSubmission.setIsValidSubmission(false);
 	}
 	
 	@Transactional(readOnly = false)
