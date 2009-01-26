@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.33 $ Last modified: $Date: 2009/01/21 10:01:21 $ by $Author: civilis $
+ * @version $Revision: 1.34 $ Last modified: $Date: 2009/01/26 09:56:33 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -286,7 +286,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			Document xformsDocument = document.getXformsDocument();
 			
-			storeBasePath = CoreConstants.PATH_FILES_ROOT + storeBasePath;
+			if(storeBasePath != null)
+				storeBasePath = CoreConstants.PATH_FILES_ROOT + storeBasePath;
 			
 			String formPath = saveXFormsDocumentToSlide(xformsDocument,
 			    formSlideId, formType, storeBasePath);
