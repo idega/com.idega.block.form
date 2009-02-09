@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.34 $ Last modified: $Date: 2009/01/26 09:56:33 $ by $Author: civilis $
+ * @version $Revision: 1.35 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -659,7 +659,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	@Transactional(readOnly = false)
 	public String saveSubmittedData(Long formId, InputStream is,
-	        String identifier, boolean finalSubmission) throws IOException {
+	        String identifier, boolean finalSubmission, Integer formSubmitter) throws IOException {
 		
 		if (formId == null || is == null)
 			throw new IllegalArgumentException("Not enough arguments. FormId="
@@ -687,6 +687,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		xformSubmission.setIsFinalSubmission(finalSubmission);
 		xformSubmission.setSubmissionUUID(submissionUUID);
 		xformSubmission.setXform(xform);
+		xformSubmission.setFormSubmitter(formSubmitter);
 		
 		getXformsDAO().persist(xformSubmission);
 		
@@ -724,7 +725,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	@Transactional(readOnly = false)
 	public String saveSubmittedDataByExistingSubmission(String submissionUUID,
-	        Long formId, InputStream is, String identifier) throws IOException {
+	        Long formId, InputStream is, String identifier, Integer formSubmitter) throws IOException {
 		
 		if (identifier == null || identifier.length() == 0) {
 			identifier = String.valueOf(System.currentTimeMillis());
@@ -742,7 +743,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		if (xformSubmission == null) {
 			
 			submissionUUID = saveSubmittedData(formId, is, identifier,
-			    isFinalSubmission);
+			    isFinalSubmission, formSubmitter);
 		} else {
 			
 			if (submissionUUID.length() != 36) {
@@ -755,6 +756,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			xformSubmission.setDateSubmitted(new Date());
 			xformSubmission.setSubmissionStorageIdentifier(path);
 			xformSubmission.setIsFinalSubmission(isFinalSubmission);
+			xformSubmission.setFormSubmitter(formSubmitter);
 			xformSubmission = getXformsDAO().merge(xformSubmission);
 		}
 		

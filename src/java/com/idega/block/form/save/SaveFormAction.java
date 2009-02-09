@@ -35,6 +35,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWContext;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.SendMail;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
@@ -44,7 +45,7 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $ Last modified: $Date: 2009/01/20 17:53:54 $ by $Author: civilis $
+ * @version $Revision: 1.9 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
  */
 public class SaveFormAction extends AbstractBoundAction {
 	
@@ -149,6 +150,7 @@ public class SaveFormAction extends AbstractBoundAction {
 		setAction(action);
 	}
 	
+	@Override
 	public void perform() throws XFormsException {
 		super.perform();
 		
@@ -283,7 +285,7 @@ public class SaveFormAction extends AbstractBoundAction {
 				
 				submissionUUID = getPersistenceManager()
 				        .saveSubmittedDataByExistingSubmission(submissionUUID,
-				            fid, is, submissionIdentifier);
+				            fid, is, submissionIdentifier, getFormSubmitterId());
 				
 				if (old) {
 					
@@ -297,13 +299,13 @@ public class SaveFormAction extends AbstractBoundAction {
 					// restore with new modified submission data
 					submissionUUID = getPersistenceManager()
 					        .saveSubmittedDataByExistingSubmission(
-					            submissionUUID, fid, is, submissionIdentifier);
+					            submissionUUID, fid, is, submissionIdentifier, getFormSubmitterId());
 				}
 				
 			} else {
 				
 				submissionUUID = getPersistenceManager().saveSubmittedData(fid,
-				    is, submissionIdentifier, false);
+				    is, submissionIdentifier, false, getFormSubmitterId());
 				
 				submissionIdMI.setValue(submissionUUID);
 				
@@ -315,7 +317,7 @@ public class SaveFormAction extends AbstractBoundAction {
 				// restore with new modified submission data
 				submissionUUID = getPersistenceManager()
 				        .saveSubmittedDataByExistingSubmission(submissionUUID,
-				            fid, is, submissionIdentifier);
+				            fid, is, submissionIdentifier, getFormSubmitterId());
 			}
 			
 			return new String[] { submissionUUID, submissionIdentifier };
@@ -325,6 +327,14 @@ public class SaveFormAction extends AbstractBoundAction {
 			    "Exception while saving submission", e);
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private Integer getFormSubmitterId() {
+		IWContext iwc = CoreUtil.getIWContext();
+		if (iwc != null && iwc.isLoggedOn()) {
+			return iwc.getCurrentUserId();
+		}
+		return null;
 	}
 	
 	private String getSubmissionUUID() {

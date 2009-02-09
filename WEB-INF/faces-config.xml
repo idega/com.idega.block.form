@@ -66,6 +66,38 @@
   </component>
   
   <component>
+    <component-type>SavedForms</component-type>
+    <component-class>com.idega.block.form.presentation.SavedForms</component-class>
+    <property>
+      <display-name>Show all saved forms</display-name>
+      <property-name>showAll</property-name>
+      <property-class>boolean</property-class>
+    </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
+  
+  <component>
+    <component-type>UserSavedForms</component-type>
+    <component-class>com.idega.block.form.presentation.UserSavedForms</component-class>
+    <property>
+      <display-name>Show all saved forms</display-name>
+      <property-name>showAll</property-name>
+      <property-class>boolean</property-class>
+    </property>
+    <component-extension>
+      <idegaweb-info>
+        <builder-visible>true</builder-visible>
+        <object-type>jsf.uicomponent</object-type>
+      </idegaweb-info>
+    </component-extension>
+  </component>
+  
+  <component>
     <component-type>com.idega.UIFormsEntriesViewer</component-type>
     <component-class>com.idega.block.form.entries.presentation.UIFormsEntriesViewer</component-class>
   </component>

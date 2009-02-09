@@ -26,13 +26,14 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWContext;
+import com.idega.util.CoreUtil;
 import com.idega.util.expression.ELUtil;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * 
- *          Last modified: $Date: 2008/11/06 14:17:37 $ by $Author: anton $
+ *          Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
  */
 public class StandaloneSubmissionHandler extends AbstractConnector implements
 		SubmissionHandler {
@@ -77,15 +78,20 @@ public class StandaloneSubmissionHandler extends AbstractConnector implements
 			String formId = XFormsUtil.getFormId(instance);
 			Long fid = new Long(formId);
 			
-			IWMainApplication iwma = IWContext.getCurrentInstance().getIWMainApplication();
+			IWContext iwc = CoreUtil.getIWContext();
+			IWMainApplication iwma = iwc.getIWMainApplication();
 			
 			DocumentManager docMan = getDocumentManagerFactory().newDocumentManager(iwma);
 //			taking form, meaning, that this form should be saved to the repository already, before submitting it 
 //			(that could be issue in formbuilder preview). just fix it, probably saving before taking, or something
 			Document formDocument = docMan.takeForm(fid);
+			Integer formSubmitter = null;
+			if (iwc.isLoggedOn()) {
+				formSubmitter = iwc.getCurrentUserId();
+			}
 			
 			/* Long submissionId = */getPersistenceManager().saveSubmittedData(
-					formDocument.getFormId(), is, submissionIdentifier, true);
+					formDocument.getFormId(), is, submissionIdentifier, true, formSubmitter);
 			return null;
 
 		} catch (Exception e) {

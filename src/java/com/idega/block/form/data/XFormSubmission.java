@@ -36,9 +36,9 @@ import com.idega.util.xml.XmlUtil;
  * submission of saved form.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * 
- *          Last modified: $Date: 2009/01/20 17:33:21 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
@@ -68,6 +68,10 @@ public class XFormSubmission implements Serializable, Submission {
 
 	@Column(name = "DATE_SUBMITTED", nullable = false)
 	private Date dateSubmitted;
+	
+	public static final String formSubmitterProperty = "formSubmitter";
+	@Column(name = "FORM_SUBMITTER")
+	private Integer formSubmitter;
 
 	public static final String isFinalSubmissionProperty = "isFinalSubmission";
 	@Column(name = "FINAL_SUBMISSION")
@@ -209,4 +213,13 @@ public class XFormSubmission implements Serializable, Submission {
 	public void setIsValidSubmission(Boolean isValidSubmission) {
     	this.isValidSubmission = isValidSubmission;
     }
+
+	public Integer getFormSubmitter() {
+		return formSubmitter;
+	}
+
+	public void setFormSubmitter(Integer formSubmitter) {
+		this.formSubmitter = formSubmitter;
+	}
+	
 }

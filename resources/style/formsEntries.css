@@ -85,3 +85,7 @@
 	margin: 0;
 	font-size: 14px;
 }
+
+.savedFormsViewer ul {
+	list-style-type: none;
+}

@@ -17,7 +17,7 @@ import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.12 $ Last modified: $Date: 2009/01/19 21:48:53 $ by $Author: civilis $
+ * @version $Revision: 1.13 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
  */
 @Scope("singleton")
 @Repository
@@ -92,5 +92,38 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		        + XFormSubmission.submissionUUIDProperty,
 		    XFormSubmission.class, new Param(
 		            XFormSubmission.submissionUUIDProperty, submissionUUID));
+	}
+
+	private List<XFormSubmission> getSubmissions(boolean onlyFinal, Integer ownerId) {
+		String query = "select submissions from " + XFormSubmission.class.getName() + " submissions where submissions." +
+			XFormSubmission.isFinalSubmissionProperty + " = :" + XFormSubmission.isFinalSubmissionProperty;
+		if (!onlyFinal) {
+			query += " and (submissions." + XFormSubmission.isValidSubmissionProperty + " = true or submissions." + XFormSubmission.isValidSubmissionProperty +
+			" is null)";
+		}
+		if (ownerId != null) {
+			query += " and submissions." + XFormSubmission.formSubmitterProperty + " = :" + XFormSubmission.formSubmitterProperty;
+		}
+		
+		List<XFormSubmission> submissions = null;
+		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, onlyFinal);
+		
+		if (ownerId == null) {
+			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty);
+		}
+		else {
+			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty,
+					new Param(XFormSubmission.formSubmitterProperty, ownerId));
+		}
+		
+		return submissions;
+	}
+	
+	public List<XFormSubmission> getAllNotFinalSubmissions() {
+		return getSubmissions(Boolean.FALSE, null);
+	}
+
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId) {
+		return getSubmissions(Boolean.FALSE, userId);
 	}
 }
