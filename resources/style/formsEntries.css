@@ -117,3 +117,15 @@ tr.odd {
 .savedFormsViewerTable thead tr .headerSortUp {
 	background-image: url(../images/asc.gif);
 }
+
+.savedFormsViewerFormHeaderRow {
+	width: 200px;
+}
+
+.savedFormsViewerSavedAtHeaderRow {
+	width: 150px;
+}
+
+.savedFormsViewerAuthorHeaderRow {
+	width: 200px;
+}

@@ -152,15 +152,18 @@ public class SavedForms extends IWBaseComponent {
 		formCell.add(new Text(iwrb.getLocalizedString("saved_forms.form", "Form")));
 		String sortTitle = iwrb.getLocalizedString("saved_forms.click_to_sort", "Click cell to sort data");
 		formCell.setTitle(sortTitle);
+		formCell.setStyleClass("savedFormsViewerFormHeaderRow");
 		
 		TableHeaderCell savedAtCell = headerRow.createHeaderCell();
 		savedAtCell.add(new Text(iwrb.getLocalizedString("saved_forms.saved_at", "Date")));
 		savedAtCell.setTitle(sortTitle);
+		savedAtCell.setStyleClass("savedFormsViewerSavedAtHeaderRow");
 		
 		if (isShowAll()) {
 			TableHeaderCell authorCell = headerRow.createHeaderCell();
 			authorCell.add(new Text(iwrb.getLocalizedString("saved_forms.submission_author", "Author")));
 			authorCell.setTitle(sortTitle);
+			authorCell.setStyleClass("savedFormsViewerAuthorHeaderRow");
 		}
 		
 		int index = 0;
