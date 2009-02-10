@@ -86,6 +86,34 @@
 	font-size: 14px;
 }
 
-.savedFormsViewer ul {
-	list-style-type: none;
+.savedFormsViewerHeaderRow {
+	background: #D6D6D6 none repeat scroll 0 0;
+}
+
+.savedFormsViewerHeaderRow th {
+	color: #303030;
+	font-size: 12px;
+}
+
+tr.odd {
+	background-color: #EFEFEF;
+}
+
+.savedFormsViewerBodyRows tr:HOVER {
+	background-color: #E8F1FC;
+}
+
+.savedFormsViewerTable thead tr .header {
+	background-image: url(../images/bg.gif);
+	background-position: right center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.savedFormsViewerTable thead tr .headerSortDown {
+	background-image: url(../images/desc.gif);
+}
+
+.savedFormsViewerTable thead tr .headerSortUp {
+	background-image: url(../images/asc.gif);
 }

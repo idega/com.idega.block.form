@@ -73,6 +73,24 @@
       <property-name>showAll</property-name>
       <property-class>boolean</property-class>
     </property>
+    <property>
+    	<display-name>Show the newest forms on top</display-name>
+    	<property-name>newestOnTop</property-name>
+    	<property-class>boolean</property-class>
+    </property>
+    <property>
+      <display-name>Show table header</display-name>
+      <property-name>showTableHeader</property-name>
+      <property-class>boolean</property-class>
+    </property>
+    <property>
+      <display-name>Show only this author's forms</display-name>
+      <property-name>userId</property-name>
+      <property-class>java.lang.Integer</property-class>
+      <property-extension>
+      	<property-resolver>com.idega.user.handler.UserHandler</property-resolver>
+      </property-extension>
+    </property>
     <component-extension>
       <idegaweb-info>
         <builder-visible>true</builder-visible>
@@ -88,6 +106,24 @@
       <display-name>Show all saved forms</display-name>
       <property-name>showAll</property-name>
       <property-class>boolean</property-class>
+    </property>
+    <property>
+    	<display-name>Show the newest forms on top</display-name>
+    	<property-name>newestOnTop</property-name>
+    	<property-class>boolean</property-class>
+    </property>
+    <property>
+      <display-name>Show table header</display-name>
+      <property-name>showTableHeader</property-name>
+      <property-class>boolean</property-class>
+    </property>
+    <property>
+      <display-name>Show only this author's forms</display-name>
+      <property-name>userId</property-name>
+      <property-class>java.lang.Integer</property-class>
+      <property-extension>
+      	<property-resolver>com.idega.user.handler.UserHandler</property-resolver>
+      </property-extension>
     </property>
     <component-extension>
       <idegaweb-info>
