@@ -119,7 +119,7 @@ public class SavedForms extends IWBaseComponent {
 					addedSubmissions.add(submissionUUID);
 				}
 			} catch(Exception e) {
-				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission data for: " + submission.getSubmissionUUID(), e);
+				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID());
 			}
 		}
 		
@@ -133,7 +133,10 @@ public class SavedForms extends IWBaseComponent {
 		try {
 			bs = BuilderServiceFactory.getBuilderService(iwc);
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting " + BuilderService.class, e);
+		}
+		if (bs == null) {
+			return;
 		}
 		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
 		
@@ -316,7 +319,7 @@ public class SavedForms extends IWBaseComponent {
 		try {
 			return userBusiness.getUser(id);
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting user by id: " + id, e);
 		}
 		
 		return null;
@@ -326,7 +329,7 @@ public class SavedForms extends IWBaseComponent {
 		try {
 			return (UserBusiness) IBOLookup.getServiceInstance(iwac, UserBusiness.class);
 		} catch (IBOLookupException e) {
-			e.printStackTrace();
+			Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting " + UserBusiness.class, e);
 		}
 		return null;
 	}
