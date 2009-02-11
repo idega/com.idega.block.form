@@ -98,6 +98,9 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 		
+		IWMainApplication iwma = iwc.getIWMainApplication();
+		Locale locale = iwc.getCurrentLocale();
+		
 		List<String> addedSubmissions = new ArrayList<String>();
 		List<SubmissionDataBean> submissionsData = new ArrayList<SubmissionDataBean>();
 		for (XFormSubmission submission: submissions) {
@@ -106,12 +109,17 @@ public class SavedForms extends IWBaseComponent {
 				String submissionUUID = submission.getSubmissionUUID();
 				
 				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.contains(submissionUUID)) {
+					SubmissionDataBean data = new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
+							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId()));
+					
+					LocalizedStringBean localizedTitle = getDocumentManager().newDocumentManager(iwma).openFormLazy(formId).getFormTitle();
+					data.setLocalizedTitle(localizedTitle.getString(locale));
+					
+					submissionsData.add(data);
 					addedSubmissions.add(submissionUUID);
-					submissionsData.add(new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
-							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId())));
 				}
 			} catch(Exception e) {
-				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission data", e);
+				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission data for: " + submission.getSubmissionUUID(), e);
 			}
 		}
 		
@@ -120,9 +128,6 @@ public class SavedForms extends IWBaseComponent {
 		}
 		
 		Collections.sort(submissionsData, new SubmissionDataComparator(isNewestOnTop()));
-		
-		IWMainApplication iwma = iwc.getIWMainApplication();
-		Locale locale = iwc.getCurrentLocale();
 		
 		BuilderService bs = null;
 		try {
@@ -182,8 +187,7 @@ public class SavedForms extends IWBaseComponent {
 			bodyRow.createCell().add(getLinkToSendEmail(iwc, data, bundle, iwrb, linkToForm));
 			
 			//	Link
-			LocalizedStringBean localizedTitle = getDocumentManager().newDocumentManager(iwma).openFormLazy(data.getFormId()).getFormTitle();
-			Link linkToSavedForm = new Link(localizedTitle.getString(locale));
+			Link linkToSavedForm = new Link(data.getLocalizedTitle());
 			
 			linkToSavedForm.setURL(linkToForm);
 			bodyRow.createCell().add(linkToSavedForm);

@@ -18,6 +18,8 @@ public class SubmissionDataBean {
 	private Long formId;
 	
 	private String submissionUUID;
+	private String localizedTitle;
+	
 	private User formAuthor;
 	
 	private Date submittedDate;
@@ -52,6 +54,14 @@ public class SubmissionDataBean {
 
 	public void setFormAuthor(User formAuthor) {
 		this.formAuthor = formAuthor;
+	}
+
+	public String getLocalizedTitle() {
+		return localizedTitle;
+	}
+
+	public void setLocalizedTitle(String localizedTitle) {
+		this.localizedTitle = localizedTitle;
 	}
 
 }
