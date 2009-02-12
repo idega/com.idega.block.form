@@ -45,7 +45,7 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.9 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
+ * @version $Revision: 1.10 $ Last modified: $Date: 2009/02/12 13:53:49 $ by $Author: valdas $
  */
 public class SaveFormAction extends AbstractBoundAction {
 	
@@ -402,7 +402,7 @@ public class SaveFormAction extends AbstractBoundAction {
 		}
 	}
 	
-	private Instance getInstance() {
+	Instance getInstance() {
 		
 		if (instance == null) {
 			
