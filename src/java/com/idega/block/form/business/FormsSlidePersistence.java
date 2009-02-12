@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.36 $ Last modified: $Date: 2009/02/12 15:59:52 $ by $Author: valdas $
+ * @version $Revision: 1.37 $ Last modified: $Date: 2009/02/12 16:53:52 $ by $Author: donatas $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -322,17 +322,25 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			XForm xform = getXformsDAO().find(XForm.class, formId);
 			
-			if (xform.getFormState() == XFormState.FIRM)
-				throw new IllegalAccessException(
-				        "Tried to save firm form. Once form made firm, it cannot be modified. Form id: "
-				                + formId);
-			
+			if (xform.getFormState() != XFormState.FIRM) {
+				xform.setVersion(xform.getVersion() + 1);
+			} else {
+				String formSlideId = generateFormId(defaultFormName);
+				String formType = document.getFormType() == null ? standaloneFormType
+				        : document.getFormType();
+				
+				Document xformsDocument = document.getXformsDocument();
+				
+				//saving in a new file
+				String formPath = saveXFormsDocumentToSlide(xformsDocument,
+					    formSlideId, formType, null);
+				xform.setFormStorageIdentifier(formPath);
+			}
 			String formPath = xform.getFormStorageIdentifier();
 			Document xformsDocument = document.getXformsDocument();
 			saveExistingXFormsDocumentToSlide(xformsDocument, formPath);
 			
 			xform.setDisplayName(defaultFormName);
-			xform.setVersion(xform.getVersion() + 1);
 			getXformsDAO().merge(xform);
 			
 			formDocument.setFormId(formId);

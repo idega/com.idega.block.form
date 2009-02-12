@@ -11,7 +11,7 @@ import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
+ * @version $Revision: 1.9 $ Last modified: $Date: 2009/02/12 16:53:52 $ by $Author: donatas $
  */
 public interface XFormsDAO extends GenericDao {
 	
@@ -28,8 +28,16 @@ public interface XFormsDAO extends GenericDao {
 	
 	public abstract XFormSubmission getSubmissionBySubmissionUUID(
 	        String submissionUUID);
-	
+		
 	public abstract List<XFormSubmission> getAllNotFinalSubmissions();
 	
 	public abstract List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId);
+	
+	/**
+	 * Get all versions of forms which has a specified parent.
+	 * 
+	 * @param parentId Parent id.
+	 * @return List of XForms .
+	 */
+	public abstract List<XForm> getAllVersionsByParentId(Long parentId);
 }

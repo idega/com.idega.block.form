@@ -2,6 +2,8 @@ package com.idega.block.form.data.dao.impl;
 
 import java.util.List;
 
+import javax.persistence.Query;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +19,7 @@ import com.idega.xformsmanager.business.XFormState;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.13 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
+ * @version $Revision: 1.14 $ Last modified: $Date: 2009/02/12 16:53:52 $ by $Author: donatas $
  */
 @Scope("singleton")
 @Repository
@@ -74,6 +76,13 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		        .setParameter(XForm.formStateProperty, state).getResultList();
 		
 		return xforms.isEmpty() ? null : xforms.iterator().next();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<XForm> getAllVersionsByParentId(Long parentId) {
+		Query query = getEntityManager().createQuery("select xf from XForm xf where xf.formParent.id = :parent order by xf.version desc");
+		query.setParameter("parent",parentId);
+		return query.getResultList();
 	}
 	
 	public XForm getXFormById(Long formId) {
