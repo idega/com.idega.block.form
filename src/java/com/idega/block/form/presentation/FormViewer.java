@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.62 2009/01/20 17:33:55 civilis Exp $ Created on
+ * $Id: FormViewer.java,v 1.63 2009/02/12 15:59:52 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -59,10 +59,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/01/20 17:33:55 $ by $Author: civilis $
+ * Last modified: $Date: 2009/02/12 15:59:52 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.62 $
+ * @version $Revision: 1.63 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -128,7 +128,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 					
 					try {
 						PersistedFormDocument formDocument = persistenceManager
-						        .loadPopulatedForm(submissionUUID);
+						        .loadPopulatedForm(submissionUUID, isPdfViewer());
 						document = formDocument.getXformsDocument();
 						
 					} catch (InvalidSubmissionException e) {
@@ -471,10 +471,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 	
 	public void setPdfViewer(boolean pdfViewer) {
-		
-		if (pdfViewer)
-			getFormDocument().setPdfForm(pdfViewer);
-		
 		this.pdfViewer = pdfViewer;
 	}
 	
@@ -504,7 +500,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			}
 			
 			com.idega.xformsmanager.business.Document form = documentManager
-			        .openForm(xDoc);
+			        .openFormLazy(xDoc);
 			
 			return form;
 			

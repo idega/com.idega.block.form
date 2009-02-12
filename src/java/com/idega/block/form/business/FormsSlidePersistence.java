@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.35 $ Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
+ * @version $Revision: 1.36 $ Last modified: $Date: 2009/02/12 15:59:52 $ by $Author: valdas $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -124,8 +124,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return formDoc;
 	}
 	
-	@Transactional(readOnly = true)
 	public PersistedFormDocument loadPopulatedForm(String submissionUUID) {
+		return loadPopulatedForm(submissionUUID, false);
+	}
+	
+	@Transactional(readOnly = true)
+	public PersistedFormDocument loadPopulatedForm(String submissionUUID, boolean pdfView) {
 		
 		XFormSubmission xformSubmission = getXformsDAO()
 		        .getSubmissionBySubmissionUUID(submissionUUID);
@@ -152,10 +156,13 @@ public class FormsSlidePersistence implements PersistenceManager {
 			DocumentManager documentManager = getDocumentManagerFactory()
 			        .newDocumentManager(null);
 			com.idega.xformsmanager.business.Document form = documentManager
-			        .openForm(xformsDoc);
+			        .openFormLazy(xformsDoc);
 			
 			form.populateSubmissionDataWithXML(submissionDoc, true);
 			form.setReadonly(xformSubmission.getIsFinalSubmission());
+			if (pdfView) {
+				form.setPdfForm(Boolean.TRUE);
+			}
 			xformsDoc = form.getXformsDocument();
 			
 			formDoc = new PersistedFormDocument();
