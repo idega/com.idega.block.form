@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.37 $ Last modified: $Date: 2009/02/12 16:53:52 $ by $Author: donatas $
+ * @version $Revision: 1.38 $ Last modified: $Date: 2009/02/13 17:19:08 $ by $Author: donatas $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -350,6 +350,46 @@ public class FormsSlidePersistence implements PersistenceManager {
 		}
 		
 		return formDocument;
+	}
+	
+	@Transactional(readOnly = false)
+	public PersistedFormDocument saveAllVersions(final FormDocument document, final Long parentId) throws IllegalAccessException {
+
+		PersistedFormDocument persistedFormDocument = saveForm(document);
+
+		Long formId = document.getFormId();
+		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
+
+		List<XForm> list = getXformsDAO().getAllVersionsByParentId(parentId);
+		if (!formId.equals(parentId)) {
+			list.add(getXformsDAO().find(XForm.class, parentId));
+		}
+		for (XForm xform : list) {
+			if (!xform.getFormId().equals(formId)) {				
+				if (xform.getFormState() != XFormState.FIRM) {
+					xform.setVersion(xform.getVersion() + 1);
+				} else {
+					String formSlideId = generateFormId(defaultFormName);
+					String formType = document.getFormType() == null ? standaloneFormType
+					        : document.getFormType();
+					
+					Document xformsDocument = document.getXformsDocument();
+					
+					//saving in a new file
+					String formPath = saveXFormsDocumentToSlide(xformsDocument,
+						    formSlideId, formType, null);
+					xform.setFormStorageIdentifier(formPath);
+				}
+				String formPath = xform.getFormStorageIdentifier();
+				Document xformsDocument = document.getXformsDocument();
+				saveExistingXFormsDocumentToSlide(xformsDocument, formPath);
+				
+				xform.setDisplayName(defaultFormName);
+				getXformsDAO().merge(xform);
+			}
+		}
+		//returning current version data
+		return persistedFormDocument;
 	}
 	
 	@Transactional(readOnly = false)
@@ -835,4 +875,5 @@ public class FormsSlidePersistence implements PersistenceManager {
 	        DocumentManagerFactory documentManagerFactory) {
 		this.documentManagerFactory = documentManagerFactory;
 	}
+
 }
