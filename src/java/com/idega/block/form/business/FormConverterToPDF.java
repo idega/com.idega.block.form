@@ -8,4 +8,6 @@ public interface FormConverterToPDF {
 	
 	public String getHashValueForGeneratedPDFFromXForm(String taskInstanceId, boolean checkExistence);
 	
+	public String getHashValueForGeneratedPDFFromXForm(String taskInstanceId, boolean checkExistence, String pdfName);
+	
 }
