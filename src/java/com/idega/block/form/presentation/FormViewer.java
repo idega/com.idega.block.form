@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.63 2009/02/12 15:59:52 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.64 2009/02/17 14:31:36 juozas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -59,10 +59,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/02/12 15:59:52 $ by $Author: valdas $
+ * Last modified: $Date: 2009/02/17 14:31:36 $ by $Author: juozas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.63 $
+ * @version $Revision: 1.64 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -471,6 +471,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 	
 	public void setPdfViewer(boolean pdfViewer) {
+		if (pdfViewer)
+			getFormDocument().setPdfForm(pdfViewer);
+		
 		this.pdfViewer = pdfViewer;
 	}
 	
