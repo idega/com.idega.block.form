@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.64 2009/02/17 14:31:36 juozas Exp $ Created on
+ * $Id: FormViewer.java,v 1.65 2009/03/23 12:33:11 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -40,6 +40,7 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import com.idega.block.pdf.PDFRenderedComponent;
+import com.idega.block.web2.business.JQueryPlugin;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
@@ -59,10 +60,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/02/17 14:31:36 $ by $Author: juozas $
+ * Last modified: $Date: 2009/03/23 12:33:11 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.64 $
+ * @version $Revision: 1.65 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -156,6 +157,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			        .getBundleURIToJQueryLib());
 			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
 			        .getBundleUriToHumanizedMessagesScript());
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
+					.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZER));
 			
 			PresentationUtil.addStyleSheetToHeader(iwc, web2
 			        .getBundleUriToHumanizedMessagesStyleSheet());
