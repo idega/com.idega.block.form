@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.67 2009/03/26 16:06:06 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.68 2009/04/06 07:13:45 arunas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -11,7 +11,9 @@ package com.idega.block.form.presentation;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,10 +62,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/03/26 16:06:06 $ by $Author: valdas $
+ * Last modified: $Date: 2009/04/06 07:13:45 $ by $Author: arunas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.67 $
+ * @version $Revision: 1.68 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -144,21 +146,41 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		return document;
 	}
 	
+	
 	private void addResources(IWContext iwc) {
-		String styleSheet = "/content" + IWBundleStarter.SLIDE_STYLES_PATH
-		        + IWBundleStarter.CHIBA_CSS;
+		String styleSheet = new StringBuilder().append("/content").append(IWBundleStarter.SLIDE_STYLES_PATH).append(IWBundleStarter.CHIBA_CSS).toString();
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 		
 		Web2Business web2 = ELUtil.getInstance().getBean(Web2Business.class);
+		List<String> scriptsUris = new ArrayList<String>();
+		
+		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);		
+		
 		try {
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
-			        .getBundleURIToMootoolsLib());
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
-			        .getBundleURIToJQueryLib());
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
-			        .getBundleUriToHumanizedMessagesScript());
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2
-					.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+
+			scriptsUris.add(web2.getBundleURIToMootoolsLib());
+			scriptsUris.add(web2.getBundleURIToJQueryLib());
+			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
+			scriptsUris.add(web2.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+
+			// scripts for xforms - DO NOT change order of scripts!  
+
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
+			scriptsUris.add(web2.getBundleURIToPrototypeLib());
+			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
+			scriptsUris.add("/dwr/engine.js");
+			scriptsUris.add("/dwr/util.js");
+			scriptsUris.add("/dwr/interface/Flux.js");
+			
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xforms-util.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/FluxInterface.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/PresentationContext.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/htmltext.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/fckeditor/fckeditor.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
+						
+			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 			
 			PresentationUtil.addStyleSheetToHeader(iwc, web2
 			        .getBundleUriToHumanizedMessagesStyleSheet());
