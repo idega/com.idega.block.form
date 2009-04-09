@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.71 2009/04/09 10:30:43 arunas Exp $ Created on
+ * $Id: FormViewer.java,v 1.72 2009/04/09 11:52:17 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -51,6 +51,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.text.Text;
+import com.idega.util.CoreConstants;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -62,10 +63,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/04/09 10:30:43 $ by $Author: arunas $
+ * Last modified: $Date: 2009/04/09 11:52:17 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.71 $
+ * @version $Revision: 1.72 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -157,19 +158,15 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);		
 		
 		try {
-
-			scriptsUris.add(web2.getBundleURIToJQueryLib());
-			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
-			scriptsUris.add(web2.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
-
 			// scripts for xforms - DO NOT change order of scripts!  
-
-			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
 			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
-			scriptsUris.add("/dwr/engine.js");
-			scriptsUris.add("/dwr/util.js");
+			
+			scriptsUris.add(CoreConstants.DWR_ENGINE_SCRIPT);
+			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
 			scriptsUris.add("/dwr/interface/Flux.js");
+			
+			scriptsUris.add(web2.getBundleURIToJQueryLib());
 			
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xforms-util.js"));
@@ -178,11 +175,14 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/htmltext.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/fckeditor/fckeditor.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
-						
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
+			
+			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
+			scriptsUris.add(web2.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+			
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 			
-			PresentationUtil.addStyleSheetToHeader(iwc, web2
-			        .getBundleUriToHumanizedMessagesStyleSheet());
+			PresentationUtil.addStyleSheetToHeader(iwc, web2.getBundleUriToHumanizedMessagesStyleSheet());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
