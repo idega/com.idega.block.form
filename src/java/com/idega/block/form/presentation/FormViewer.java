@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.70 2009/04/09 06:34:01 arunas Exp $ Created on
+ * $Id: FormViewer.java,v 1.71 2009/04/09 10:30:43 arunas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -62,10 +62,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/04/09 06:34:01 $ by $Author: arunas $
+ * Last modified: $Date: 2009/04/09 10:30:43 $ by $Author: arunas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.70 $
+ * @version $Revision: 1.71 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -158,7 +158,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		
 		try {
 
-			scriptsUris.add(web2.getBundleURIToMootoolsLib());
 			scriptsUris.add(web2.getBundleURIToJQueryLib());
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
 			scriptsUris.add(web2.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
