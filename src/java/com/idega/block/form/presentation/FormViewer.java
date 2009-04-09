@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.72 2009/04/09 11:52:17 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.73 2009/04/09 12:49:18 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -63,10 +63,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/04/09 11:52:17 $ by $Author: valdas $
+ * Last modified: $Date: 2009/04/09 12:49:18 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.72 $
+ * @version $Revision: 1.73 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -156,7 +156,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		List<String> scriptsUris = new ArrayList<String>();
 		
 		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);		
-		
 		try {
 			// scripts for xforms - DO NOT change order of scripts!  
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
@@ -187,6 +186,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			e.printStackTrace();
 		}
 		
+		PresentationUtil.addJavaScriptActionToBody(iwc, new StringBuilder("djConfig.baseScriptUri = '")
+			.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/")).append("';").toString());
 	}
 	
 	protected void initializeXForms(FacesContext context) {
