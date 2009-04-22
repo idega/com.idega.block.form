@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.73 2009/04/09 12:49:18 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.74 2009/04/22 08:29:16 arunas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -63,10 +63,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/04/09 12:49:18 $ by $Author: valdas $
+ * Last modified: $Date: 2009/04/22 08:29:16 $ by $Author: arunas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.73 $
+ * @version $Revision: 1.74 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -162,11 +162,12 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
 			
 			scriptsUris.add(CoreConstants.DWR_ENGINE_SCRIPT);
-			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
 			scriptsUris.add("/dwr/interface/Flux.js");
+			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
 			
 			scriptsUris.add(web2.getBundleURIToJQueryLib());
 			
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xforms-util.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/FluxInterface.js"));
@@ -174,7 +175,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/htmltext.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/fckeditor/fckeditor.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
-			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
 			
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
 			scriptsUris.add(web2.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
