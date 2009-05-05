@@ -31,48 +31,41 @@ import com.idega.util.CoreConstants;
 import com.idega.util.xml.XmlUtil;
 
 /**
- * 
- * Stores submissions for each form. Primary use is for storing partial
- * submission of saved form.
+ * Stores submissions for each form. Primary use is for storing partial submission of saved form.
  * 
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.8 $
- * 
- *          Last modified: $Date: 2009/02/09 15:02:04 $ by $Author: valdas $
+ * @version $Revision: 1.9 $ Last modified: $Date: 2009/05/05 14:10:45 $ by $Author: civilis $
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
 @NamedQueries( {})
 public class XFormSubmission implements Serializable, Submission {
-
+	
 	private static final long serialVersionUID = -7231560026323818449L;
 	private static final String submissionFileName = "submission.xml";
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "SUBMISSION_ID")
 	private Long submissionId;
-
-	@Column(name = "SUBMISSION_IDENTIFIER")
-	private String submissionIdentifier;
 	
 	public static final String submissionUUIDProperty = "submissionUUID";
 	@Column(name = "SUBMISSION_UUID", nullable = false)
 	private String submissionUUID;
-
+	
 	@Column(name = "SUBMISSION_STORAGE_TYPE", nullable = false)
 	private String submissionStorageType;
-
+	
 	@Column(name = "SUBMISSION_STORAGE_IDENTIFIER", nullable = false)
 	private String submissionStorageIdentifier;
-
+	
 	@Column(name = "DATE_SUBMITTED", nullable = false)
 	private Date dateSubmitted;
 	
 	public static final String formSubmitterProperty = "formSubmitter";
 	@Column(name = "FORM_SUBMITTER")
 	private Integer formSubmitter;
-
+	
 	public static final String isFinalSubmissionProperty = "isFinalSubmission";
 	@Column(name = "FINAL_SUBMISSION")
 	private Boolean isFinalSubmission;
@@ -80,144 +73,136 @@ public class XFormSubmission implements Serializable, Submission {
 	public static final String isValidSubmissionProperty = "isValidSubmission";
 	@Column(name = "VALID_SUBMISSION")
 	private Boolean isValidSubmission;
-
+	
 	public static final String xformProperty = "xform";
 	@ManyToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST,
-			CascadeType.REFRESH, CascadeType.REMOVE })
+	        CascadeType.REFRESH, CascadeType.REMOVE })
 	@JoinColumn(name = "XFORM_FK", nullable = false)
 	private XForm xform;
-
+	
 	public Long getSubmissionId() {
 		return submissionId;
 	}
-
+	
 	public void setSubmissionId(Long submissionId) {
 		this.submissionId = submissionId;
 	}
-
-	public String getSubmissionIdentifier() {
-		return submissionIdentifier;
-	}
-
-	public void setSubmissionIdentifier(String submissionIdentifier) {
-		this.submissionIdentifier = submissionIdentifier;
-	}
-
+	
 	public String getSubmissionStorageIdentifier() {
 		return submissionStorageIdentifier;
 	}
-
+	
 	public void setSubmissionStorageIdentifier(
-			String submissionStorageIdentifier) {
+	        String submissionStorageIdentifier) {
 		this.submissionStorageIdentifier = submissionStorageIdentifier;
 	}
-
+	
 	public String getSubmissionStorageType() {
 		return submissionStorageType;
 	}
-
+	
 	public void setSubmissionStorageType(String submissionStorageType) {
 		this.submissionStorageType = submissionStorageType;
 	}
-
+	
 	public Date getDateSubmitted() {
 		return dateSubmitted;
 	}
-
+	
 	public void setDateSubmitted(Date dateSubmitted) {
 		this.dateSubmitted = dateSubmitted;
 	}
-
+	
 	public XForm getXform() {
 		return xform;
 	}
-
+	
 	public void setXform(XForm xform) {
 		this.xform = xform;
 	}
-
+	
 	public Boolean getIsFinalSubmission() {
 		return isFinalSubmission == null ? true : isFinalSubmission;
 	}
-
+	
 	public void setIsFinalSubmission(Boolean isFinalSubmission) {
 		this.isFinalSubmission = isFinalSubmission;
 	}
-
+	
 	public Document getSubmissionDocument() {
-
+		
 		String submissionPath = getSubmissionStorageIdentifier();
 		StringBuilder subSB = new StringBuilder(submissionPath);
-
+		
 		if (!submissionPath.endsWith(CoreConstants.SLASH))
 			subSB.append(CoreConstants.SLASH);
-
+		
 		subSB.append(submissionFileName);
 		submissionPath = subSB.toString();
-
+		
 		Document submissionDoc = loadXMLResourceFromSlide(submissionPath);
-
+		
 		return submissionDoc;
 	}
-
+	
 	private Document loadXMLResourceFromSlide(String resourcePath) {
-
+		
 		try {
 			WebdavExtendedResource resource = getWebdavExtendedResource(resourcePath);
-
+			
 			if (!resource.exists())
 				throw new IllegalArgumentException(
-						"Expected webdav resource doesn't exist. Path provided: "
-								+ resourcePath);
-
+				        "Expected webdav resource doesn't exist. Path provided: "
+				                + resourcePath);
+			
 			InputStream is = resource.getMethodData();
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			Document resourceDocument = docBuilder.parse(is);
 			return resourceDocument;
-
+			
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	private WebdavExtendedResource getWebdavExtendedResource(String path)
-			throws HttpException, IOException, RemoteException,
-			IBOLookupException {
-
+	        throws HttpException, IOException, RemoteException,
+	        IBOLookupException {
+		
 		IWSlideService service;
 		try {
 			service = (IWSlideService) IBOLookup.getServiceInstance(
-					IWMainApplication.getDefaultIWApplicationContext(),
-					IWSlideService.class);
+			    IWMainApplication.getDefaultIWApplicationContext(),
+			    IWSlideService.class);
 		} catch (IBOLookupException e) {
 			throw e;
 		}
 		return service.getWebdavExtendedResource(path, service
-				.getRootUserCredentials());
+		        .getRootUserCredentials());
 	}
-
+	
 	public String getSubmissionUUID() {
-    	return submissionUUID;
-    }
-
+		return submissionUUID;
+	}
+	
 	public void setSubmissionUUID(String submissionUUID) {
-    	this.submissionUUID = submissionUUID;
-    }
-
+		this.submissionUUID = submissionUUID;
+	}
+	
 	public Boolean getIsValidSubmission() {
-    	return isValidSubmission;
-    }
-
+		return isValidSubmission;
+	}
+	
 	public void setIsValidSubmission(Boolean isValidSubmission) {
-    	this.isValidSubmission = isValidSubmission;
-    }
-
+		this.isValidSubmission = isValidSubmission;
+	}
+	
 	public Integer getFormSubmitter() {
 		return formSubmitter;
 	}
-
+	
 	public void setFormSubmitter(Integer formSubmitter) {
 		this.formSubmitter = formSubmitter;
 	}
