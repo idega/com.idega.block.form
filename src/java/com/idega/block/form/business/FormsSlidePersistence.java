@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.38 $ Last modified: $Date: 2009/02/13 17:19:08 $ by $Author: donatas $
+ * @version $Revision: 1.39 $ Last modified: $Date: 2009/05/05 14:10:15 $ by $Author: civilis $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -129,7 +129,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = true)
-	public PersistedFormDocument loadPopulatedForm(String submissionUUID, boolean pdfView) {
+	public PersistedFormDocument loadPopulatedForm(String submissionUUID,
+	        boolean pdfView) {
 		
 		XFormSubmission xformSubmission = getXformsDAO()
 		        .getSubmissionBySubmissionUUID(submissionUUID);
@@ -293,7 +294,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			Document xformsDocument = document.getXformsDocument();
 			
-			if(storeBasePath != null)
+			if (storeBasePath != null)
 				storeBasePath = CoreConstants.PATH_FILES_ROOT + storeBasePath;
 			
 			String formPath = saveXFormsDocumentToSlide(xformsDocument,
@@ -331,9 +332,9 @@ public class FormsSlidePersistence implements PersistenceManager {
 				
 				Document xformsDocument = document.getXformsDocument();
 				
-				//saving in a new file
+				// saving in a new file
 				String formPath = saveXFormsDocumentToSlide(xformsDocument,
-					    formSlideId, formType, null);
+				    formSlideId, formType, null);
 				xform.setFormStorageIdentifier(formPath);
 			}
 			String formPath = xform.getFormStorageIdentifier();
@@ -353,19 +354,21 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = false)
-	public PersistedFormDocument saveAllVersions(final FormDocument document, final Long parentId) throws IllegalAccessException {
-
+	public PersistedFormDocument saveAllVersions(final FormDocument document,
+	        final Long parentId) throws IllegalAccessException {
+		
 		PersistedFormDocument persistedFormDocument = saveForm(document);
-
+		
 		Long formId = document.getFormId();
-		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
-
+		String defaultFormName = document.getFormTitle().getString(
+		    document.getDefaultLocale());
+		
 		List<XForm> list = getXformsDAO().getAllVersionsByParentId(parentId);
 		if (!formId.equals(parentId)) {
 			list.add(getXformsDAO().find(XForm.class, parentId));
 		}
 		for (XForm xform : list) {
-			if (!xform.getFormId().equals(formId)) {				
+			if (!xform.getFormId().equals(formId)) {
 				if (xform.getFormState() != XFormState.FIRM) {
 					xform.setVersion(xform.getVersion() + 1);
 				} else {
@@ -375,9 +378,9 @@ public class FormsSlidePersistence implements PersistenceManager {
 					
 					Document xformsDocument = document.getXformsDocument();
 					
-					//saving in a new file
+					// saving in a new file
 					String formPath = saveXFormsDocumentToSlide(xformsDocument,
-						    formSlideId, formType, null);
+					    formSlideId, formType, null);
 					xform.setFormStorageIdentifier(formPath);
 				}
 				String formPath = xform.getFormStorageIdentifier();
@@ -388,7 +391,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 				getXformsDAO().merge(xform);
 			}
 		}
-		//returning current version data
+		// returning current version data
 		return persistedFormDocument;
 	}
 	
@@ -714,17 +717,20 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	@Transactional(readOnly = false)
 	public String saveSubmittedData(Long formId, InputStream is,
-	        String identifier, boolean finalSubmission, Integer formSubmitter) throws IOException {
+	        String representationIdentifier, boolean finalSubmission,
+	        Integer formSubmitter) throws IOException {
 		
 		if (formId == null || is == null)
 			throw new IllegalArgumentException("Not enough arguments. FormId="
 			        + formId + ", is=" + is);
 		
-		if (identifier == null || identifier.length() == 0) {
-			identifier = String.valueOf(System.currentTimeMillis());
+		if (StringUtil.isEmpty(representationIdentifier)) {
+			representationIdentifier = String.valueOf(System
+			        .currentTimeMillis());
 		}
 		
-		String path = storeSubmissionData(formId.toString(), identifier, is);
+		String path = storeSubmissionData(formId.toString(),
+		    representationIdentifier, is);
 		
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 		
@@ -736,7 +742,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 		
 		XFormSubmission xformSubmission = new XFormSubmission();
 		xformSubmission.setDateSubmitted(new Date());
-		xformSubmission.setSubmissionIdentifier(identifier);
 		xformSubmission.setSubmissionStorageIdentifier(path);
 		xformSubmission.setSubmissionStorageType(slideStorageType);
 		xformSubmission.setIsFinalSubmission(finalSubmission);
@@ -780,7 +785,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	@Transactional(readOnly = false)
 	public String saveSubmittedDataByExistingSubmission(String submissionUUID,
-	        Long formId, InputStream is, String identifier, Integer formSubmitter) throws IOException {
+	        Long formId, InputStream is, String identifier,
+	        Integer formSubmitter) throws IOException {
 		
 		if (identifier == null || identifier.length() == 0) {
 			identifier = String.valueOf(System.currentTimeMillis());
@@ -875,5 +881,5 @@ public class FormsSlidePersistence implements PersistenceManager {
 	        DocumentManagerFactory documentManagerFactory) {
 		this.documentManagerFactory = documentManagerFactory;
 	}
-
+	
 }
