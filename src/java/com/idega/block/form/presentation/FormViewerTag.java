@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewerTag.java,v 1.3 2008/09/17 13:07:52 civilis Exp $
+ * $Id: FormViewerTag.java,v 1.4 2009/05/19 07:22:58 valdas Exp $
  * Created on Aug 17, 2006
  *
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -10,10 +10,10 @@
 package com.idega.block.form.presentation;
 
 import javax.faces.component.UIComponent;
-import javax.faces.webapp.UIComponentTag;
+import javax.faces.webapp.UIComponentELTag;
 
 
-public class FormViewerTag extends UIComponentTag {
+public class FormViewerTag extends UIComponentELTag {
 	
 	private String formId;
 
@@ -26,8 +26,7 @@ public class FormViewerTag extends UIComponentTag {
 	public String getRendererType() {
 		return null;
 	}
-
-	@SuppressWarnings("unchecked")
+	
 	@Override
 	protected void setProperties(UIComponent component) {
 		super.setProperties(component);
