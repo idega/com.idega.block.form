@@ -18,8 +18,8 @@ import com.idega.block.form.bean.SubmissionDataBean;
 import com.idega.block.form.business.SubmissionDataComparator;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
+import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
-import com.idega.block.web2.business.Web2Business;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
@@ -67,7 +67,7 @@ public class SavedForms extends IWBaseComponent {
 	private DocumentManagerFactory documentManager;
 	
 	@Autowired
-	private Web2Business web2;
+	private JQuery jQuery;
 	
 	private boolean showAll = Boolean.TRUE;
 	private boolean newestOnTop = Boolean.TRUE;
@@ -85,8 +85,8 @@ public class SavedForms extends IWBaseComponent {
 		
 		ELUtil.getInstance().autowire(this);
 		
-		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToJQueryLib());
-		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
+		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
+		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
 		
 		HtmlTag container = (HtmlTag) context.getApplication().createComponent(HtmlTag.COMPONENT_TYPE);
 		container.setValue("div");
@@ -212,7 +212,7 @@ public class SavedForms extends IWBaseComponent {
 		boolean addPager = submissionsData.size() > 10;
 		Layer pagerContainer = null;
 		if (addPager) {
-			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, web2.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER_PAGER));
+			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER_PAGER));
 			
 			//	Pager
 			pagerContainer = new Layer();

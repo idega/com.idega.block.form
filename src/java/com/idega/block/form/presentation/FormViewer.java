@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.74 2009/04/22 08:29:16 arunas Exp $ Created on
+ * $Id: FormViewer.java,v 1.75 2009/05/19 07:22:36 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -42,6 +42,7 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import com.idega.block.pdf.PDFRenderedComponent;
+import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
@@ -63,10 +64,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/04/22 08:29:16 $ by $Author: arunas $
+ * Last modified: $Date: 2009/05/19 07:22:36 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.74 $
+ * @version $Revision: 1.75 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -89,6 +90,11 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	private String sessionKey;
 	
 	private boolean pdfViewer;
+	
+	@Autowired
+	private JQuery jQuery;
+	@Autowired
+	private Web2Business web2;
 	
 	public FormViewer() {
 		super();
@@ -152,7 +158,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		String styleSheet = new StringBuilder().append("/content").append(IWBundleStarter.SLIDE_STYLES_PATH).append(IWBundleStarter.CHIBA_CSS).toString();
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 		
-		Web2Business web2 = ELUtil.getInstance().getBean(Web2Business.class);
 		List<String> scriptsUris = new ArrayList<String>();
 		
 		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);		
@@ -165,7 +170,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add("/dwr/interface/Flux.js");
 			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
 			
-			scriptsUris.add(web2.getBundleURIToJQueryLib());
+			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
 			
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
@@ -177,7 +182,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
 			
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
-			scriptsUris.add(web2.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
 			
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 			
