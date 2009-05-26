@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.75 2009/05/19 07:22:36 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.76 2009/05/26 15:05:11 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -64,10 +64,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/05/19 07:22:36 $ by $Author: valdas $
+ * Last modified: $Date: 2009/05/26 15:05:11 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.75 $
+ * @version $Revision: 1.76 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -162,15 +162,15 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		
 		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);		
 		try {
-			// scripts for xforms - DO NOT change order of scripts!  
+			// scripts for xforms - DO NOT change order of scripts!
+			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
+			
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
 			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
 			
 			scriptsUris.add(CoreConstants.DWR_ENGINE_SCRIPT);
 			scriptsUris.add("/dwr/interface/Flux.js");
 			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
-			
-			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
 			
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
