@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.39 $ Last modified: $Date: 2009/05/05 14:10:15 $ by $Author: civilis $
+ * @version $Revision: 1.40 $ Last modified: $Date: 2009/06/07 23:28:20 $ by $Author: eiki $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -219,19 +219,13 @@ public class FormsSlidePersistence implements PersistenceManager {
 	        String path) {
 		
 		try {
-			
-			// TODO use upload method
-			WebdavExtendedResource xformRes = getWebdavExtendedResource(path);
-			
-			if (!xformRes.exists())
-				throw new IllegalArgumentException(
-				        "Expected webdav resource doesn't exist. Path provided: "
-				                + path);
+			IWSlideService service = getIWSlideService();
 			
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			DOMUtil.prettyPrintDOM(xformsDoc, out);
 			InputStream is = new ByteArrayInputStream(out.toByteArray());
-			xformRes.putMethod(is);
+			service.uploadFileAndCreateFoldersFromStringAsRoot(path, path.substring(path.lastIndexOf('/')),is,"text/xml",false);
+			
 			is.close();
 			
 		} catch (IllegalArgumentException e) {
