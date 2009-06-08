@@ -36,6 +36,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
+import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.DocumentManager;
@@ -53,7 +54,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.42 $ Last modified: $Date: 2009/06/08 00:04:13 $ by $Author: eiki $
+ * @version $Revision: 1.43 $ Last modified: $Date: 2009/06/08 07:53:58 $ by $Author: valdas $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -183,19 +184,17 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	protected Document loadXMLResourceFromSlide(String resourcePath) {
-		
+		InputStream stream = null;
 		try {
 			IWSlideService service = getIWSlideService();
 			
-			InputStream is = service.getInputStream(resourcePath);
+			stream = service.getInputStream(resourcePath);
 			
-			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
-			Document resourceDocument = docBuilder.parse(is);
-			
-			return resourceDocument;
-			
+			return XmlUtil.getXMLDocument(stream);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			IOUtil.closeInputStream(stream);
 		}
 	}
 	
