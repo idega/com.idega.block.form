@@ -53,7 +53,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.41 $ Last modified: $Date: 2009/06/07 23:51:14 $ by $Author: eiki $
+ * @version $Revision: 1.42 $ Last modified: $Date: 2009/06/08 00:04:13 $ by $Author: eiki $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -225,7 +225,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			DOMUtil.prettyPrintDOM(xformsDoc, out);
 			InputStream is = new ByteArrayInputStream(out.toByteArray());
 			int lastslash = path.lastIndexOf('/');
-			service.uploadFileAndCreateFoldersFromStringAsRoot(path.substring(lastslash), path.substring(lastslash+1),is,"text/xml",false);
+			service.uploadFileAndCreateFoldersFromStringAsRoot(path.substring(0,lastslash), path.substring(lastslash+1),is,"text/xml",false);
 			
 			is.close();
 			
