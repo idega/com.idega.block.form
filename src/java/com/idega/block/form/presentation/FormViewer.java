@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.76 2009/05/26 15:05:11 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.77 2009/06/08 07:54:56 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -64,10 +64,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/05/26 15:05:11 $ by $Author: valdas $
+ * Last modified: $Date: 2009/06/08 07:54:56 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.76 $
+ * @version $Revision: 1.77 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -130,21 +130,29 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				
 			} else {
 				
-				String submissionUUID = getSubmissionId(context);
+				String submissionId = getSubmissionId(context);
 				
-				if (!StringUtil.isEmpty(submissionUUID)) {
+				if (!StringUtil.isEmpty(submissionId)) {
 					
 					PersistenceManager persistenceManager = getPersistenceManager();
 					
+					String uniqueSubmissionId = null;
 					try {
-						PersistedFormDocument formDocument = persistenceManager
-						        .loadPopulatedForm(submissionUUID, isPdfViewer());
+						uniqueSubmissionId = persistenceManager.getSubmission(Long.valueOf(submissionId)).getSubmissionUUID();
+					} catch(NumberFormatException e) {
+						uniqueSubmissionId = submissionId;
+					}
+					
+					try {
+						PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(uniqueSubmissionId, isPdfViewer());
 						document = formDocument.getXformsDocument();
-						
+					
 					} catch (InvalidSubmissionException e) {
-						
 						Text text = new Text("The form was already submitted");
 						getFacets().put(invalidSubmissionFacet, text);
+						
+					} catch(Exception e) {
+						log.log(Level.SEVERE, "Error loading form by unique submission ID: " + uniqueSubmissionId, e);
 					}
 				}
 			}
@@ -458,7 +466,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		return sessionKey;
 	}
 	
-	public String getSubmissionId(FacesContext context) {
+	private String getSubmissionId(FacesContext context) {
 		
 		String submissionId = getSubmissionId();
 		
