@@ -54,7 +54,7 @@ import com.idega.xformsmanager.component.FormDocument;
 
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.43 $ Last modified: $Date: 2009/06/08 07:53:58 $ by $Author: valdas $
+ * @version $Revision: 1.44 $ Last modified: $Date: 2009/06/08 08:34:45 $ by $Author: valdas $
  */
 @Scope("singleton")
 @XFormPersistenceType("slide")
@@ -188,9 +188,13 @@ public class FormsSlidePersistence implements PersistenceManager {
 		try {
 			IWSlideService service = getIWSlideService();
 			
-			stream = service.getInputStream(resourcePath);
+			WebdavResource resource = service.getWebdavResourceAuthenticatedAsRoot(resourcePath);
+			stream = resource.getMethodData();
 			
-			return XmlUtil.getXMLDocument(stream);
+			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
+			Document resourceDocument = docBuilder.parse(stream);
+			
+			return resourceDocument;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
