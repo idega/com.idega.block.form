@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.77 2009/06/08 07:54:56 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.78 2009/06/08 07:58:46 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -64,10 +64,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/06/08 07:54:56 $ by $Author: valdas $
+ * Last modified: $Date: 2009/06/08 07:58:46 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.77 $
+ * @version $Revision: 1.78 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -141,6 +141,13 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 						uniqueSubmissionId = persistenceManager.getSubmission(Long.valueOf(submissionId)).getSubmissionUUID();
 					} catch(NumberFormatException e) {
 						uniqueSubmissionId = submissionId;
+					} catch(Exception e) {
+						log.log(Level.WARNING, "Error resolving unique submission id from submission id: " + submissionId, e);
+					}
+					
+					if (StringUtil.isEmpty(uniqueSubmissionId)) {
+						log.warning("Unique submission ID was not resolved by submission id: " + submissionId);
+						return null;
 					}
 					
 					try {
