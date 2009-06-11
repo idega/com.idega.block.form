@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.78 2009/06/08 07:58:46 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.79 2009/06/11 07:18:16 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -41,7 +41,6 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
-import com.idega.block.pdf.PDFRenderedComponent;
 import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
 import com.idega.block.web2.business.Web2Business;
@@ -51,6 +50,7 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
+import com.idega.presentation.PDFRenderedComponent;
 import com.idega.presentation.text.Text;
 import com.idega.util.CoreConstants;
 import com.idega.util.PresentationUtil;
@@ -64,10 +64,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/06/08 07:58:46 $ by $Author: valdas $
+ * Last modified: $Date: 2009/06/11 07:18:16 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.78 $
+ * @version $Revision: 1.79 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
