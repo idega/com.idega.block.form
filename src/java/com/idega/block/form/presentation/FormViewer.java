@@ -1,5 +1,5 @@
 /*
- * $Id: FormViewer.java,v 1.79 2009/06/11 07:18:16 valdas Exp $ Created on
+ * $Id: FormViewer.java,v 1.80 2009/06/19 11:27:16 valdas Exp $ Created on
  * Aug 17, 2006
  * 
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
@@ -64,10 +64,10 @@ import com.idega.xformsmanager.business.PersistenceManager;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
- * Last modified: $Date: 2009/06/11 07:18:16 $ by $Author: valdas $
+ * Last modified: $Date: 2009/06/19 11:27:16 $ by $Author: valdas $
  * 
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
- * @version $Revision: 1.79 $
+ * @version $Revision: 1.80 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
 	
@@ -175,7 +175,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		
 		List<String> scriptsUris = new ArrayList<String>();
 		
-		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);		
+		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);	
 		try {
 			// scripts for xforms - DO NOT change order of scripts!
 			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
@@ -206,8 +206,10 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			e.printStackTrace();
 		}
 		
-		PresentationUtil.addJavaScriptActionToBody(iwc, new StringBuilder("djConfig.baseScriptUri = '")
-			.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/")).append("';").toString());
+		String initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '")
+			.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/")).append("', locale: '").append(iwc.getCurrentLocale().toString())
+		.append("'});").toString();
+		PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
 	}
 	
 	protected void initializeXForms(FacesContext context) {
