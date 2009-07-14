@@ -22,9 +22,9 @@ import com.idega.util.expression.ELUtil;
 /**
  * 
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * 
- *          Last modified: $Date: 2008/10/29 11:21:14 $ by $Author: civilis $
+ *          Last modified: $Date: 2009/07/14 16:23:05 $ by $Author: valdas $
  * 
  */
 public class UIFormsEntriesViewer extends IWBaseComponent {
@@ -101,121 +101,10 @@ public class UIFormsEntriesViewer extends IWBaseComponent {
 		try {
 			scripts.add(web2Business.getBundleURIToMootoolsLib());
 		} catch (RemoteException e) {
-			// TODO: handle exception
 		}
 		scripts.add(web2Business.getCodePressScriptFilePath());
-		
-//		/idegaweb/bundles/com.idega.block.web2.0.bundle/resources/javascript/codepress/codepress.js,
-		
+
 		PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scripts);
-		
-		/*
-		 * Web2Business web2Business =
-		 * getBeanInstance(Web2Business.SPRING_BEAN_IDENTIFIER); IWBundle bundle
-		 * = getBundle((FacesContext)iwc, IWBundleStarter.IW_BUNDLE_IDENTIFIER);
-		 * 
-		 * // CSS sources List<String> cssFiles = new ArrayList<String>();
-		 * cssFiles.add(web2Business.getBundleURIToJQGridStyles());
-		 * cssFiles.add(
-		 * web2Business.getBundleUriToHumanizedMessagesStyleSheet()); if
-		 * (isAllowPDFSigning()) {
-		 * cssFiles.add(web2Business.getBundleUtiToGreyBoxStyleSheet()); }
-		 * PresentationUtil.addStyleSheetsToHeader(iwc, cssFiles);
-		 * 
-		 * boolean isSingle = CoreUtil.isSingleComponentRenderingProcess(iwc);
-		 * 
-		 * // JS sources List<String> scripts = new ArrayList<String>(); if
-		 * (!isSingle) { scripts.add(web2Business.getBundleURIToJQueryLib()); }
-		 * scripts.add(web2Business.getBundleURIToJQGrid());
-		 * scripts.add(CoreConstants.DWR_ENGINE_SCRIPT);
-		 * scripts.add(CoreConstants.DWR_UTIL_SCRIPT);
-		 * scripts.add("/dwr/interface/BPMProcessAssets.js"); if
-		 * (isAllowPDFSigning()) {
-		 * scripts.add(web2Business.getBundleUtiToGreyBoxScript());
-		 * scripts.add("/dwr/interface/PDFGeneratorFromProcess.js"); }
-		 * scripts.add(web2Business.getBundleUriToHumanizedMessagesScript());
-		 * scripts
-		 * .add(bundle.getResourcesVirtualPath()+"/javascript/CasesBPMAssets.js"
-		 * ); PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scripts);
-		 * 
-		 * // JS actions IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-		 * String gridLocalization = new StringBuilder(
-		 * "if(CasesBPMAssets.Loc == null || !CasesBPMAssets.Loc.inited) { \nif(CasesBPMAssets.Loc == null) { CasesBPMAssets.Loc = { inited: false }; }\n"
-		 * )
-		 * 
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_CONTACT_NAME = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.human_name",
-		 * "Name")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_TASK_NAME = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.task_name",
-		 * "Task name")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_FORM_NAME = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.document_name",
-		 * "Document name")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_SENDER = '")
-		 * .append(iwrb.getLocalizedString("sender", "Sender")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_DATE = '")
-		 * .append(iwrb.getLocalizedString("date", "Date")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_TAKEN_BY = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.assigned_to",
-		 * "Taken by")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_EMAIL_ADDRESS = '")
-		 * .append(iwrb.getLocalizedString("email_address",
-		 * "E-mail address")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_PHONE_NUMBER = '")
-		 * .append(iwrb.getLocalizedString("phone_number",
-		 * "Phone number")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_ADDRESS = '")
-		 * .append(iwrb.getLocalizedString("address", "Address")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_SUBJECT = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.subject",
-		 * "Subject")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_FILE_DESCRIPTION = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.file_description",
-		 * "Descriptive name")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_FILE_NAME = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.file_name",
-		 * "File name")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_CHANGE_ACCESS_RIGHTS = '"
-		 * ) .append(iwrb.getLocalizedString("cases_bpm.change_access_rights",
-		 * "Change access rights")).append("';\n").append(
-		 * "CasesBPMAssets.Loc.CASE_GRID_STRING_DOWNLOAD_DOCUMENT_AS_PDF = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.get_document_as_pdf",
-		 * "Download document")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_FILE_SIZE = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.file_size",
-		 * "File size")).append("';\n")
-		 * .append("CasesBPMAssets.Loc.CASE_GRID_STRING_SUBMITTED_BY = '")
-		 * .append(iwrb.getLocalizedString("cases_bpm.submitted_by",
-		 * "Submitted by")).append("';\n")
-		 * 
-		 * .append("CasesBPMAssets.Loc.inited = true; }\n")
-		 * 
-		 * .toString();
-		 * 
-		 * String clientId = container.getClientId(iwc); if (clientId == null) {
-		 * container.setId(iwc.getViewRoot().createUniqueId()); clientId =
-		 * container.getClientId(iwc); }
-		 * 
-		 * CasesBPMAssetsState stateBean =
-		 * getBeanInstance(CasesBPMAssetsState.beanIdentifier); Long
-		 * processInstanceId = stateBean.getProcessInstanceId(); Integer caseId
-		 * = stateBean.getCaseId();
-		 * 
-		 * String mainAction = newStringBuffer(gridLocalization).append(
-		 * "\n CasesBPMAssets.initGrid(jQuery('div."
-		 * ).append(clientId).append("')[0], ")
-		 * .append(processInstanceId.toString
-		 * ()).append(", ").append(caseId.toString
-		 * ()).append(", ").append(isUsePdfDownloadColumn()).append(", ")
-		 * .append(isAllowPDFSigning()).append(");").toString();
-		 * 
-		 * if (!isSingle) { mainAction = new
-		 * StringBuffer("jQuery(document).ready(function() {\n"
-		 * ).append(mainAction).append("\n});").toString(); }
-		 * 
-		 * PresentationUtil.addJavaScriptActionToBody(iwc, mainAction);
-		 */
 	}
 
 	Web2Business getWeb2Business() {
