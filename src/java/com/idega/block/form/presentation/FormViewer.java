@@ -177,7 +177,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		
 		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);	
 		try {
-			// scripts for xforms - DO NOT change order of scripts!
+			// scripts for XForms - DO NOT change order of scripts!
 			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
 			
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
@@ -198,6 +198,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
 			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+			
+			//	TinyMCE
+			scriptsUris.addAll(web2.getScriptsForTinyMCE());
 			
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 			
