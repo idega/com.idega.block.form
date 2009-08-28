@@ -179,6 +179,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		try {
 			// scripts for XForms - DO NOT change order of scripts!
 			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
+			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.MASKED_INPUT));
 			
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
 			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
