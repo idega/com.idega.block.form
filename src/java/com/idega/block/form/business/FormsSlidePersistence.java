@@ -815,7 +815,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 			xformSubmission.setDateSubmitted(new Date());
 			xformSubmission.setSubmissionStorageIdentifier(path);
 			xformSubmission.setIsFinalSubmission(isFinalSubmission);
-			xformSubmission.setFormSubmitter(formSubmitter);
+			if (xformSubmission.getFormSubmitter() != null && formSubmitter == null) {
+				logger.info("Not setting null value for form submitter column! Form ID: " + formId + ", identifier: " + identifier + ", submission UUID: " +
+						submissionUUID);
+			} else {
+				xformSubmission.setFormSubmitter(formSubmitter);
+			}
 			xformSubmission = getXformsDAO().merge(xformSubmission);
 		}
 		
