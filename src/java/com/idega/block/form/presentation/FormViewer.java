@@ -53,6 +53,7 @@ import com.idega.presentation.IWContext;
 import com.idega.presentation.PDFRenderedComponent;
 import com.idega.presentation.text.Text;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.expression.ELUtil;
@@ -217,19 +218,17 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 	
 	protected void initializeXForms(FacesContext context) {
-		addResources(IWContext.getIWContext(context));
+		IWContext iwc = IWContext.getIWContext(context);
+		addResources(iwc);
 		
 		Document document = resolveXFormsDocument(context);
 		
 		if (document == null)
 			return;
 		
-		HttpServletRequest request = (HttpServletRequest) context
-		        .getExternalContext().getRequest();
-		HttpServletResponse response = (HttpServletResponse) context
-		        .getExternalContext().getResponse();
-		HttpSession session = (HttpSession) context.getExternalContext()
-		        .getSession(true);
+		HttpServletRequest request = iwc.getRequest();
+		HttpServletResponse response = iwc.getResponse();
+		HttpSession session = (HttpSession) iwc.getExternalContext().getSession(true);
 		
 		XFormsSessionManager sessionManager = null;
 		XFormsSession xformsSession = null;
@@ -237,19 +236,16 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		try {
 			sessionManager = getXFormsSessionManager(session);
 			// get IdegaXFormsSessionBase instance
-			xformsSession = sessionManager.createXFormsSession(request,
-			    response, session);
-		} catch (XFormsConfigException e2) {
-			e2.printStackTrace();
-		} catch (XFormsException e1) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e1);
+			xformsSession = sessionManager.createXFormsSession(request, response, session);
+		} catch (XFormsConfigException e) {
+			log.log(Level.WARNING, "Error creating XFormsSession", e);
+		} catch (Exception e) {
+			log.log(Level.WARNING, "Error creating XFormsSession", e);
+			CoreUtil.sendExceptionNotification(e);
 		}
 		
 		WebAdapter adapter = xformsSession.getAdapter();
-		// xformsSession.setAdapter(adapter);
 		try {
-			// setupDocument(context, document);
 			setupAdapter(adapter, document, xformsSession, context);
 			adapter.init();
 			
