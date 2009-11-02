@@ -196,7 +196,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			return resourceDocument;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Error loading file: " + resourcePath, e);
 		} finally {
 			IOUtil.closeInputStream(stream);
 		}
