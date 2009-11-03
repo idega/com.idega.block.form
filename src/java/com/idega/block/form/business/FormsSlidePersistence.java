@@ -4,19 +4,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.webdav.lib.WebdavResource;
-import org.apache.webdav.lib.WebdavResources;
 import org.chiba.xml.dom.DOMUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -29,12 +23,12 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.idgenerator.business.UUIDGenerator;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
-import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
@@ -188,8 +182,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		try {
 			IWSlideService service = getIWSlideService();
 			
-			WebdavResource resource = service.getWebdavResourceAuthenticatedAsRoot(resourcePath);
-			stream = resource.getMethodData();
+			stream = service.getInputStream(resourcePath);
 			
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			Document resourceDocument = docBuilder.parse(stream);
@@ -202,66 +195,48 @@ public class FormsSlidePersistence implements PersistenceManager {
 		}
 	}
 	
-	// protected WebdavExtendedResource loadSubmittedDataFolderResource(String
-	// form_id) {
-	//		
-	// try {
-	// WebdavExtendedResource webdav_resource =
-	// getWebdavExtendedResource(getSubmittedDataResourcePath(form_id, ""));
-	//
-	// return !webdav_resource.exists() ? null : webdav_resource;
-	//			
-	// } catch (IOException e) {
-	// logger.log(Level.SEVERE,
-	// "Error loading form submitted data folder from Webdav: " + form_id, e);
-	// return null;
-	// }
-	// }
-	
-	protected void saveExistingXFormsDocumentToSlide(Document xformsDoc,
-	        String path) {
-		
+	protected void saveExistingXFormsDocumentToSlide(Document xformsDoc, String path) {
+		ByteArrayOutputStream out = null;
+		InputStream in = null;
 		try {
 			IWSlideService service = getIWSlideService();
 			
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			out = new ByteArrayOutputStream();
 			DOMUtil.prettyPrintDOM(xformsDoc, out);
-			InputStream is = new ByteArrayInputStream(out.toByteArray());
-			int lastslash = path.lastIndexOf('/');
-			service.uploadFileAndCreateFoldersFromStringAsRoot(path.substring(0,lastslash), path.substring(lastslash+1),is,"text/xml",false);
-			
-			is.close();
-			
+			in = new ByteArrayInputStream(out.toByteArray());
+			int lastslash = path.lastIndexOf(CoreConstants.SLASH);
+			service.uploadFileAndCreateFoldersFromStringAsRoot(path.substring(0,lastslash), path.substring(lastslash+1), in, MimeTypeUtil.MIME_TYPE_XML, false);
 		} catch (IllegalArgumentException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Error saving XForm to Slide: " + path, e);
+		} finally {
+			IOUtil.close(out);
+			IOUtil.close(in);
 		}
 	}
 	
-	protected String saveXFormsDocumentToSlide(Document xformsDoc,
-	        String formIdentifier, String formType, String formBasePath) {
-		
+	protected String saveXFormsDocumentToSlide(Document xformsDoc, String formIdentifier, String formType, String formBasePath) {
+		ByteArrayOutputStream out = null;
+		InputStream in = null;
 		try {
-			String formResourcePath = getFormResourcePath(formType,
-			    formIdentifier, formBasePath, true);
+			String formResourcePath = getFormResourcePath(formType, formIdentifier, formBasePath, true);
 			
-			String pathToFileFolder = getFormResourcePath(formType,
-			    formIdentifier, formBasePath, false);
+			String pathToFileFolder = getFormResourcePath(formType, formIdentifier, formBasePath, false);
 			String fileName = formIdentifier + FORMS_FILE_EXTENSION;
 			
 			IWSlideService slideService = getIWSlideService();
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			out = new ByteArrayOutputStream();
 			DOMUtil.prettyPrintDOM(xformsDoc, out);
-			InputStream is = new ByteArrayInputStream(out.toByteArray());
-			slideService.uploadFileAndCreateFoldersFromStringAsRoot(
-			    pathToFileFolder, fileName, is, "text/xml", false);
-			is.close();
+			in = new ByteArrayInputStream(out.toByteArray());
+			slideService.uploadFileAndCreateFoldersFromStringAsRoot(pathToFileFolder, fileName, in, MimeTypeUtil.MIME_TYPE_XML, false);
 			
 			return formResourcePath;
-			
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Error saving XForm '" + formIdentifier + "' to Slide", e);
+		} finally {
+			IOUtil.close(out);
+			IOUtil.close(in);
 		}
 	}
 	
@@ -626,27 +601,14 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return iwac;
 	}
 	
-	private WebdavExtendedResource getWebdavExtendedResource(String path)
-	        throws HttpException, IOException, RemoteException,
-	        IBOLookupException {
-		IWSlideService service = getIWSlideService();
-		return service.getWebdavExtendedResource(path, service
-		        .getRootUserCredentials());
-	}
-	
-	public Document loadSubmittedData(String formId,
-	        String submittedDataFilename) throws Exception {
+	public Document loadSubmittedData(String formId, String submittedDataFilename) throws Exception {
 		IWSlideService service = getIWSlideService();
 		
 		if (submittedDataFilename == null || formId == null)
-			throw new NullPointerException(
-			        "submitted_data_id or formId is not provided");
+			throw new NullPointerException("submitted_data_id or formId is not provided");
 		
-		String resourcePath = getSubmittedDataResourcePath(formId,
-		    submittedDataFilename);
+		String resourcePath = getSubmittedDataResourcePath(formId, submittedDataFilename);
 		InputStream is = service.getInputStream(resourcePath);
-		
-		// InputStream is = service.getInputStream(resourcePath);
 		
 		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 		Document submitted_data = docBuilder.parse(is);
@@ -654,16 +616,10 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return submitted_data;
 	}
 	
-	public List<SubmittedDataBean> listSubmittedData(String formId)
-	        throws Exception {
-		// IWSlideService service = getIWSlideService();
+	public List<SubmittedDataBean> listSubmittedData(String formId) throws Exception {
+		throw new UnsupportedOperationException("Not supported yet, implement with new submission storage");
 		
-		// todo use api calls
-		
-		if (true)
-			throw new UnsupportedOperationException(
-			        "Not supported yet, implement with new submission storage");
-		if (formId == null)
+		/*if (formId == null)
 			throw new NullPointerException("Form identifier is not set");
 		
 		WebdavResource form_folder = getWebdavExtendedResource(new StringBuilder(
@@ -710,7 +666,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 				    "Error when retrieving/parsing submitted data file", e);
 			}
 		}
-		return submitted_data;
+		return submitted_data;*/
 	}
 	
 	@Transactional(readOnly = false)

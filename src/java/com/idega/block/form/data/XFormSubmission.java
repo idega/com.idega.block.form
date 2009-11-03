@@ -1,9 +1,7 @@
 package com.idega.block.form.data;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.rmi.RemoteException;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
@@ -18,7 +16,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.Table;
 import javax.xml.parsers.DocumentBuilder;
 
-import org.apache.commons.httpclient.HttpException;
 import org.w3c.dom.Document;
 
 import com.idega.business.IBOLookup;
@@ -26,7 +23,6 @@ import com.idega.business.IBOLookupException;
 import com.idega.xformsmanager.business.Submission;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
-import com.idega.slide.util.WebdavExtendedResource;
 import com.idega.util.CoreConstants;
 import com.idega.util.xml.XmlUtil;
 
@@ -148,14 +144,10 @@ public class XFormSubmission implements Serializable, Submission {
 	private Document loadXMLResourceFromSlide(String resourcePath) {
 		
 		try {
-			WebdavExtendedResource resource = getWebdavExtendedResource(resourcePath);
+			if (!getSlideService().getExistence(resourcePath))
+				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: " + resourcePath);
 			
-			if (!resource.exists())
-				throw new IllegalArgumentException(
-				        "Expected webdav resource doesn't exist. Path provided: "
-				                + resourcePath);
-			
-			InputStream is = resource.getMethodData();
+			InputStream is = getSlideService().getInputStream(resourcePath);
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			Document resourceDocument = docBuilder.parse(is);
 			return resourceDocument;
@@ -167,20 +159,8 @@ public class XFormSubmission implements Serializable, Submission {
 		}
 	}
 	
-	private WebdavExtendedResource getWebdavExtendedResource(String path)
-	        throws HttpException, IOException, RemoteException,
-	        IBOLookupException {
-		
-		IWSlideService service;
-		try {
-			service = (IWSlideService) IBOLookup.getServiceInstance(
-			    IWMainApplication.getDefaultIWApplicationContext(),
-			    IWSlideService.class);
-		} catch (IBOLookupException e) {
-			throw e;
-		}
-		return service.getWebdavExtendedResource(path, service
-		        .getRootUserCredentials());
+	private IWSlideService getSlideService() throws IBOLookupException {
+		return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
 	}
 	
 	public String getSubmissionUUID() {
