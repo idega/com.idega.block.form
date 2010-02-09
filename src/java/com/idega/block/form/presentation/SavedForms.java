@@ -39,6 +39,7 @@ import com.idega.presentation.TableCell2;
 import com.idega.presentation.TableHeaderCell;
 import com.idega.presentation.TableHeaderRowGroup;
 import com.idega.presentation.TableRow;
+import com.idega.presentation.text.Heading3;
 import com.idega.presentation.text.Link;
 import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.DropdownMenu;
@@ -80,8 +81,10 @@ public class SavedForms extends IWBaseComponent {
 		super.initializeComponent(context);
 		
 		IWContext iwc = IWContext.getIWContext(context);
-		PresentationUtil.addStyleSheetToHeader(iwc, getBundle(context, IWBundleStarter.BUNDLE_IDENTIFIER)
-				.getVirtualPathWithFileNameString("style/formsEntries.css"));
+		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
+		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
+		
+		PresentationUtil.addStyleSheetToHeader(iwc, bundle.getVirtualPathWithFileNameString("style/formsEntries.css"));
 		
 		ELUtil.getInstance().autowire(this);
 		
@@ -92,6 +95,11 @@ public class SavedForms extends IWBaseComponent {
 		container.setValue("div");
 		container.setStyleClass("savedFormsViewer");
 		this.getChildren().add(container);
+		
+		if (!iwc.isLoggedOn()) {
+			container.getChildren().add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
+			return;
+		}
 		
 		List<XFormSubmission> submissions = getAllSubmissions(context);
 		if (ListUtil.isEmpty(submissions)) {
@@ -139,9 +147,6 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
-		
-		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
-		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 		
 		Table2 table = new Table2();
 		container.getChildren().add(table);
