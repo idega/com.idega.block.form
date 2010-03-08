@@ -79,8 +79,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	
 	private static final String invalidSubmissionFacet = "InvalidSubmission";
 	
-	protected static final Logger log = Logger.getLogger(FormViewer.class
-	        .getName());
+	protected static final Logger LOGGER = Logger.getLogger(FormViewer.class.getName());
 	
 	private PersistenceManager persistenceManager;
 	private String formId;
@@ -143,11 +142,11 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 					} catch(NumberFormatException e) {
 						uniqueSubmissionId = submissionId;
 					} catch(Exception e) {
-						log.log(Level.WARNING, "Error resolving unique submission id from submission id: " + submissionId, e);
+						LOGGER.log(Level.WARNING, "Error resolving unique submission id from submission id: " + submissionId, e);
 					}
 					
 					if (StringUtil.isEmpty(uniqueSubmissionId)) {
-						log.warning("Unique submission ID was not resolved by submission id: " + submissionId);
+						LOGGER.warning("Unique submission ID was not resolved by submission id: " + submissionId);
 						return null;
 					}
 					
@@ -160,7 +159,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 						getFacets().put(invalidSubmissionFacet, text);
 						
 					} catch(Exception e) {
-						log.log(Level.SEVERE, "Error loading form by unique submission ID: " + uniqueSubmissionId, e);
+						LOGGER.log(Level.SEVERE, "Error loading form by unique submission ID: " + uniqueSubmissionId, e);
 					}
 				}
 			}
@@ -175,6 +174,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 		
 		List<String> scriptsUris = new ArrayList<String>();
+		
+		boolean addTestScript = false;
 		
 		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);	
 		try {
@@ -204,8 +205,15 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			//	TinyMCE
 			scriptsUris.addAll(web2.getScriptsForTinyMCE());
 			
+			//	Test script
+			addTestScript = iwc.getApplicationSettings().getBoolean("load_xforms_test_script", Boolean.FALSE);
+			if (addTestScript) {
+				scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/XFormsTester.js"));
+			}
+			
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 			
+			//	CSS
 			PresentationUtil.addStyleSheetToHeader(iwc, web2.getBundleUriToHumanizedMessagesStyleSheet());
 		} catch (RemoteException e) {
 			e.printStackTrace();
@@ -215,6 +223,13 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/")).append("', locale: '").append(iwc.getCurrentLocale().toString())
 		.append("'});").toString();
 		PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
+		
+		if (addTestScript) {
+			String amount = iwc.getApplicationSettings().getProperty("open_test_sessions", String.valueOf(10));
+			String action = "jQuery(window).load(function() {XFormsTester.OPENED_SESSIONS = " +
+				(IdegaXFormSessionManagerImpl.getXFormsSessionManager().getSessionCount()+1)+"; XFormsTester.openSessions("+amount+");});";
+			PresentationUtil.addJavaScriptActionToBody(iwc, action);
+		}
 	}
 	
 	protected void initializeXForms(FacesContext context) {
@@ -238,9 +253,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			// get IdegaXFormsSessionBase instance
 			xformsSession = sessionManager.createXFormsSession(request, response, session);
 		} catch (XFormsConfigException e) {
-			log.log(Level.WARNING, "Error creating XFormsSession", e);
+			LOGGER.log(Level.WARNING, "Error creating XFormsSession", e);
 		} catch (Exception e) {
-			log.log(Level.WARNING, "Error creating XFormsSession", e);
+			LOGGER.log(Level.WARNING, "Error creating XFormsSession", e);
 			CoreUtil.sendExceptionNotification(e);
 		}
 		
@@ -249,8 +264,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			setupAdapter(adapter, document, xformsSession, context);
 			adapter.init();
 			
-			EventTarget eventTarget = (EventTarget) ((Document) adapter
-			        .getXForms()).getDocumentElement();
+			EventTarget eventTarget = (EventTarget) ((Document) adapter.getXForms()).getDocumentElement();
 			
 			EventListener eventListener = new EventListener() {
 				
@@ -260,23 +274,18 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 						id = ((Element) event.getTarget()).getAttribute("id");
 					}
 					
-					log.info("Got event, type=" + event.getType() + ", id="
-					        + id);
-					
+					LOGGER.info("Got event, type=" + event.getType() + ", id=" + id);
 				}
 			};
 			
-			eventTarget.addEventListener(XFormsEventNames.SUBMIT_DONE,
-			    eventListener, true);
-			eventTarget.addEventListener(XFormsEventNames.SUBMIT_ERROR,
-			    eventListener, true);
+			eventTarget.addEventListener(XFormsEventNames.SUBMIT_DONE, eventListener, true);
+			eventTarget.addEventListener(XFormsEventNames.SUBMIT_ERROR, eventListener, true);
 			
 			XMLEvent exitEvent = adapter.checkForExitEvent();
 			if (exitEvent != null) {
 				handleExit(exitEvent, xformsSession, session, request, response);
 			} else {
-				
-				// actually add the XFormsSession ot the manager
+				// actually add the XFormsSession at the manager
 				sessionManager.addXFormsSession(xformsSession);
 				setSessionKey(xformsSession.getKey());
 				
@@ -284,10 +293,10 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				// xFormsSession.setProperty(XFormsSession.REFERER, request.getQueryString());
 			}
 		} catch (IOException e) {
-			log.log(Level.WARNING, "handleExit failed", e);
+			LOGGER.log(Level.WARNING, "handleExit failed", e);
 			return;
 		} catch (XFormsException e) {
-			log.log(Level.WARNING, "Could not set XML container", e);
+			LOGGER.log(Level.WARNING, "Could not set XML container", e);
 			shutdown(adapter, session, xformsSession.getKey());
 			return;
 		}
@@ -302,34 +311,27 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			
 		} else {
 			
-			if (getFormId(context) != null || getSubmissionId(context) != null
-			        || xDoc != null) {
+			if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
 				
-				HttpSession session = (HttpSession) context
-				        .getExternalContext().getSession(true);
+				HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 				WebAdapter webAdapter = null;
 				try {
 					XFormsSessionManager manager = getXFormsSessionManager(session);
-					XFormsSession xFormsSession = manager
-					        .getXFormsSession(getSessionKey());
+					XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
 					
 					if (xFormsSession == null) {
 						initializeXForms(context);
-						xFormsSession = manager
-						        .getXFormsSession(getSessionKey());
+						xFormsSession = manager.getXFormsSession(getSessionKey());
 					}
 					
-					HttpServletRequest request = (HttpServletRequest) context
-					        .getExternalContext().getRequest();
+					HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
 					
 					xFormsSession.setRequest(request);
-					xFormsSession
-					        .setBaseURI(request.getRequestURL().toString());
+					xFormsSession.setBaseURI(request.getRequestURL().toString());
 					
 					xFormsSession.handleRequest();
-					
 				} catch (Exception e) {
-					log.log(Level.SEVERE, "Error rendering form", e);
+					LOGGER.log(Level.SEVERE, "Error rendering form", e);
 					shutdown(webAdapter, session, getSessionKey());
 				}
 			}
@@ -339,21 +341,17 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 	
 	public String getFormId() {
-		
 		return formId;
 	}
 	
 	public String getFormId(FacesContext context) {
-		
 		String formId = getFormId();
-		
 		if (formId == null) {
 			
 			formId = getExpressionValue(context, formIdParam);
 			
 			if (formId == null)
-				formId = context.getExternalContext().getRequestParameterMap()
-				        .get(formIdParam);
+				formId = context.getExternalContext().getRequestParameterMap().get(formIdParam);
 			
 			formId = StringUtil.isEmpty(formId) ? null : formId;
 			setFormId(formId);
@@ -363,7 +361,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 	
 	public void setFormId(String formId) {
-		
 		this.formId = formId;
 	}
 	
@@ -387,25 +384,24 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		pdfViewer = values[3] instanceof Boolean ? (Boolean) values[3] : false;
 	}
 	
-	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession,
-	        HttpSession session, HttpServletRequest request,
-	        HttpServletResponse response) throws IOException {
+	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+		
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
-			response.sendRedirect(response.encodeRedirectURL(request
-			        .getContextPath()
-			        + "/SubmissionResponse?sessionKey="
-			        + xFormsSession.getKey()));
+			response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
 		} else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
-			if (exitEvent.getContextInfo("show") != null) {
-				String loadURI = (String) exitEvent.getContextInfo("uri");
-				// kill XFormsSession
-				xFormsSession.getManager().deleteXFormsSession(
-				    xFormsSession.getKey());
+			Object showContextInfo = exitEvent.getContextInfo("show");
+			if (showContextInfo != null) {
+				LOGGER.info("Killing XForms session '" + xFormsSession.getKey() + "', because context info 'show' is: " + showContextInfo +
+						", expected value: 'replace'");
+				xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
 				setSessionKey(null);
+				
+				String loadURI = (String) exitEvent.getContextInfo("uri");
 				response.sendRedirect(response.encodeRedirectURL(loadURI));
 			}
 		}
-		log.fine("Exited during XForms model init");
+		LOGGER.fine("Exited during XForms model init");
 	}
 	
 	protected void setupAdapter(WebAdapter adapter, Document document,
