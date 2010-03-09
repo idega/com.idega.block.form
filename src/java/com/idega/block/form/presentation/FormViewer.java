@@ -44,6 +44,7 @@ import org.w3c.dom.events.EventTarget;
 import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
 import com.idega.block.web2.business.Web2Business;
+import com.idega.chiba.ChibaUtils;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
 import com.idega.idegaweb.IWBundle;
@@ -52,6 +53,7 @@ import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.PDFRenderedComponent;
 import com.idega.presentation.text.Text;
+import com.idega.presentation.ui.OutdatedBrowserInformation;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.PresentationUtil;
@@ -90,6 +92,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	private String sessionKey;
 	
 	private boolean pdfViewer;
+	private boolean validBrowser = Boolean.TRUE;
 	
 	@Autowired
 	private JQuery jQuery;
@@ -108,34 +111,32 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	
 	@Override
 	protected void initializeComponent(FacesContext context) {
-		
 		super.initializeComponent(context);
+		
+		if (!isPdfViewer()) {
+			IWContext iwc = IWContext.getIWContext(context);
+			if (iwc.isIE() && iwc.getBrowserVersion() < 7) {
+				getChildren().add(new OutdatedBrowserInformation(Boolean.FALSE));
+				validBrowser = Boolean.FALSE;
+				return;
+			}
+		}
+		
 		initializeXForms(context);
 	}
 	
 	protected Document resolveXFormsDocument(FacesContext context) {
-		
 		Document document = xDoc;
-		
 		if (document == null) {
-			
 			String formId = getFormId(context);
-			
 			if (!StringUtil.isEmpty(formId)) {
-				
 				PersistenceManager persistenceManager = getPersistenceManager();
-				PersistedFormDocument formDocument = persistenceManager
-				        .loadForm(new Long(formId));
+				PersistedFormDocument formDocument = persistenceManager.loadForm(new Long(formId));
 				document = formDocument.getXformsDocument();
-				
 			} else {
-				
 				String submissionId = getSubmissionId(context);
-				
 				if (!StringUtil.isEmpty(submissionId)) {
-					
 					PersistenceManager persistenceManager = getPersistenceManager();
-					
 					String uniqueSubmissionId = null;
 					try {
 						uniqueSubmissionId = persistenceManager.getSubmission(Long.valueOf(submissionId)).getSubmissionUUID();
@@ -153,11 +154,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 					try {
 						PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(uniqueSubmissionId, isPdfViewer());
 						document = formDocument.getXformsDocument();
-					
 					} catch (InvalidSubmissionException e) {
 						Text text = new Text("The form was already submitted");
 						getFacets().put(invalidSubmissionFacet, text);
-						
 					} catch(Exception e) {
 						LOGGER.log(Level.SEVERE, "Error loading form by unique submission ID: " + uniqueSubmissionId, e);
 					}
@@ -168,9 +167,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		return document;
 	}
 	
-	
 	private void addResources(IWContext iwc) {
-		String styleSheet = new StringBuilder().append("/content").append(IWBundleStarter.SLIDE_STYLES_PATH).append(IWBundleStarter.CHIBA_CSS).toString();
+		String styleSheet = new StringBuilder().append(CoreConstants.WEBDAV_SERVLET_URI).append(IWBundleStarter.SLIDE_STYLES_PATH)
+			.append(IWBundleStarter.CHIBA_CSS).toString();
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 		
 		List<String> scriptsUris = new ArrayList<String>();
@@ -225,9 +224,15 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
 		
 		if (addTestScript) {
+			int openedSessions = 0;
+			if (iwc.isLoggedOn()) {
+				String httpSessionId = iwc.getSessionId();
+				openedSessions = ChibaUtils.getInstance().getNumberOfXFormSessionsForHttpSession(httpSessionId) + 1;
+			} else {
+				openedSessions = IdegaXFormSessionManagerImpl.getXFormsSessionManager().getSessionCount() + 1;
+			}
 			String amount = iwc.getApplicationSettings().getProperty("open_test_sessions", String.valueOf(10));
-			String action = "jQuery(window).load(function() {XFormsTester.OPENED_SESSIONS = " +
-				(IdegaXFormSessionManagerImpl.getXFormsSessionManager().getSessionCount()+1)+"; XFormsTester.openSessions("+amount+");});";
+			String action = "jQuery(window).load(function() {XFormsTester.OPENED_SESSIONS = " + openedSessions +"; XFormsTester.openSessions(" + amount + ");});";
 			PresentationUtil.addJavaScriptActionToBody(iwc, action);
 		}
 	}
@@ -304,35 +309,34 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
-		
-		if (getFacets().containsKey(invalidSubmissionFacet)) {
-			
-			renderChild(context, getFacet(invalidSubmissionFacet));
-			
-		} else {
-			
-			if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
+		if (validBrowser) {
+			if (getFacets().containsKey(invalidSubmissionFacet)) {
+				renderChild(context, getFacet(invalidSubmissionFacet));
+			} else {
 				
-				HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
-				WebAdapter webAdapter = null;
-				try {
-					XFormsSessionManager manager = getXFormsSessionManager(session);
-					XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
+				if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
 					
-					if (xFormsSession == null) {
-						initializeXForms(context);
-						xFormsSession = manager.getXFormsSession(getSessionKey());
+					HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
+					WebAdapter webAdapter = null;
+					try {
+						XFormsSessionManager manager = getXFormsSessionManager(session);
+						XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
+						
+						if (xFormsSession == null) {
+							initializeXForms(context);
+							xFormsSession = manager.getXFormsSession(getSessionKey());
+						}
+						
+						HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
+						
+						xFormsSession.setRequest(request);
+						xFormsSession.setBaseURI(request.getRequestURL().toString());
+						
+						xFormsSession.handleRequest();
+					} catch (Exception e) {
+						LOGGER.log(Level.SEVERE, "Error rendering form", e);
+						shutdown(webAdapter, session, getSessionKey());
 					}
-					
-					HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-					
-					xFormsSession.setRequest(request);
-					xFormsSession.setBaseURI(request.getRequestURL().toString());
-					
-					xFormsSession.handleRequest();
-				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE, "Error rendering form", e);
-					shutdown(webAdapter, session, getSessionKey());
 				}
 			}
 		}
@@ -366,11 +370,12 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	
 	@Override
 	public Object saveState(FacesContext ctx) {
-		Object values[] = new Object[4];
+		Object values[] = new Object[5];
 		values[0] = super.saveState(ctx);
 		values[1] = formId;
 		values[2] = sessionKey;
 		values[3] = Boolean.valueOf(isPdfViewer());
+		values[4] = Boolean.valueOf(validBrowser);
 		
 		return values;
 	}
@@ -381,7 +386,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		super.restoreState(ctx, values[0]);
 		formId = (String) values[1];
 		sessionKey = (String) values[2];
-		pdfViewer = values[3] instanceof Boolean ? (Boolean) values[3] : false;
+		pdfViewer = values[3] instanceof Boolean ? (Boolean) values[3] : Boolean.FALSE;
+		validBrowser = values[4] instanceof Boolean ? (Boolean) values[3] : Boolean.TRUE;
 	}
 	
 	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response)
