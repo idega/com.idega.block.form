@@ -398,9 +398,17 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		} else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
 			Object showContextInfo = exitEvent.getContextInfo("show");
 			if (showContextInfo != null) {
-				LOGGER.info("Killing XForms session '" + xFormsSession.getKey() + "', because context info 'show' is: " + showContextInfo +
-						", expected value: 'replace'");
-				xFormsSession.getManager().deleteXFormsSession(xFormsSession.getKey());
+				String sessionId = xFormsSession.getKey();
+				String explanation = "Killing XForm session '".concat(sessionId).concat("', because context info 'show' is: ")
+					.concat(showContextInfo.toString()).concat(", expected value: 'replace'");
+				
+				XFormsSessionManager manager = xFormsSession.getManager();
+				if (manager instanceof IdegaXFormSessionManagerImpl) {
+					((IdegaXFormSessionManagerImpl) manager).deleteXFormsSession(sessionId, explanation);
+				} else {
+					LOGGER.warning("Using not standard XForm manager to delete XForm session: ".concat(manager.toString()).concat(" ").concat(explanation));
+					manager.deleteXFormsSession(sessionId);
+				}
 				setSessionKey(null);
 				
 				String loadURI = (String) exitEvent.getContextInfo("uri");
