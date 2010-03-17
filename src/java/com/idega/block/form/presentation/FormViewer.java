@@ -402,6 +402,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				String explanation = "Killing XForm session '".concat(sessionId).concat("', because context info 'show' is: ")
 					.concat(showContextInfo.toString()).concat(", expected value: 'replace'");
 				
+				ChibaUtils.getInstance().markXFormSessionFinished(sessionId, Boolean.TRUE);
+				
 				XFormsSessionManager manager = xFormsSession.getManager();
 				if (manager instanceof IdegaXFormSessionManagerImpl) {
 					((IdegaXFormSessionManagerImpl) manager).deleteXFormsSession(sessionId, explanation);
