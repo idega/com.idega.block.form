@@ -19,8 +19,8 @@
 					<t:column>
 						<h:graphicImage value="#{IWURIResource.res['/idegaweb/bundles/com.idega.block.form.bundle/resources/images/pageIcons/documents.png']}"/>
 						<iwc:DownloadLink downloadWriter="#{formsEntries.downloadWriter}" value="#{file.fileName}">
-							<f:param id="submissionId" value="#{formsEntries.submissionId}"/>
-							<f:param id="fileId" value="#{file.id}"/>
+							<f:param id="submissionId" name="submissionId" value="#{formsEntries.submissionId}"/>
+							<f:param id="fileId" name="fileId" value="#{file.id}"/>
 						</iwc:DownloadLink>
 					</t:column>
 	            </t:dataTable>

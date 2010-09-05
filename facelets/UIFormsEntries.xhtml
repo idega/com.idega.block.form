@@ -38,7 +38,7 @@
 	                #{localizedStrings['com.idega.block.form']['download_form_document']}
 	            </f:facet>
 				<iwc:DownloadLink downloadWriter="#{formsEntries.documentDownloader}" value="#{localizedStrings['com.idega.block.form']['download']}">
-					<f:param id="XFormSubmitionId" value="#{entry.submission.submissionId}"/>
+					<f:param id="XFormSubmitionId" name="XFormSubmitionId" value="#{entry.submission.submissionId}"/>
 				</iwc:DownloadLink>
 	        </t:column>
 	    </t:dataTable>
