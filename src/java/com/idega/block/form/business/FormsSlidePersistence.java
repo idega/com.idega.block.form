@@ -68,8 +68,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 	private DocumentManagerFactory documentManagerFactory;
 	
 	public static final String FORMS_PATH = "/files/forms";
-	public static final String STANDALONE_FORMS_PATH = FORMS_PATH
-	        + "/standalone";
+	public static final String STANDALONE_FORMS_PATH = FORMS_PATH  + "/standalone";
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
 	public static final String SUBMITTED_DATA_PATH = "/files/forms/submissions";
 	
@@ -81,22 +80,16 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return logger;
 	}
 	
-	protected String getFormResourcePath(String formType,
-	        String formIdentifier, String formBasePath, boolean withFile) {
-		
-		StringBuilder b;
-		
-		if (formBasePath != null) {
-			
-			b = new StringBuilder(formBasePath);
-			
-		} else {
-			
-			b = new StringBuilder(FORMS_PATH).append(CoreConstants.SLASH)
-			        .append(formType).append(CoreConstants.SLASH);
-		}
+	protected String getFormResourcePath(String formType, String formIdentifier, String formBasePath, boolean withFile) {
+		StringBuilder b = StringUtil.isEmpty(formBasePath) ?
+				new StringBuilder(FORMS_PATH).append(CoreConstants.SLASH).append(formType).append(CoreConstants.SLASH) :
+				new StringBuilder(formBasePath);
 		
 		if (withFile) {
+			if (!b.toString().endsWith(CoreConstants.SLASH)) {
+				b.append(CoreConstants.SLASH);
+			}
+			
 			b = b.append(formIdentifier).append(FORMS_FILE_EXTENSION);
 		}
 		return b.toString();
@@ -104,7 +97,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	@Transactional(readOnly = true)
 	public PersistedFormDocument loadForm(Long formId) {
-		
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 		
 		String formPath = xform.getFormStorageIdentifier();
@@ -124,20 +116,13 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = true)
-	public PersistedFormDocument loadPopulatedForm(String submissionUUID,
-	        boolean pdfView) {
-		
-		XFormSubmission xformSubmission = getXformsDAO()
-		        .getSubmissionBySubmissionUUID(submissionUUID);
+	public PersistedFormDocument loadPopulatedForm(String submissionUUID, boolean pdfView) {
+		XFormSubmission xformSubmission = getXformsDAO().getSubmissionBySubmissionUUID(submissionUUID);
 		final PersistedFormDocument formDoc;
 		
 		if (xformSubmission != null) {
-			
-			if (xformSubmission.getIsValidSubmission() != null
-			        && !xformSubmission.getIsValidSubmission()) {
-				throw new InvalidSubmissionException(
-				        "The submission is invalid, submissionUUID="
-				                + submissionUUID);
+			if (xformSubmission.getIsValidSubmission() != null && !xformSubmission.getIsValidSubmission()) {
+				throw new InvalidSubmissionException("The submission is invalid, submissionUUID=" + submissionUUID);
 			}
 			
 			XForm xform = xformSubmission.getXform();
@@ -149,10 +134,8 @@ public class FormsSlidePersistence implements PersistenceManager {
 			
 			// TODO: load with submitted data
 			
-			DocumentManager documentManager = getDocumentManagerFactory()
-			        .newDocumentManager(null);
-			com.idega.xformsmanager.business.Document form = documentManager
-			        .openFormLazy(xformsDoc);
+			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(null);
+			com.idega.xformsmanager.business.Document form = documentManager.openFormLazy(xformsDoc);
 			
 			form.populateSubmissionDataWithXML(submissionDoc, true);
 			form.setReadonly(xformSubmission.getIsFinalSubmission());
@@ -168,9 +151,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			formDoc.setVersion(xform.getVersion());
 			
 		} else {
-			logger.log(Level.WARNING,
-			    "No submission found by submissionId provided="
-			            + submissionUUID);
+			logger.log(Level.WARNING, "No submission found by submissionId provided=" + submissionUUID);
 			formDoc = null;
 		}
 		
@@ -205,7 +186,11 @@ public class FormsSlidePersistence implements PersistenceManager {
 			DOMUtil.prettyPrintDOM(xformsDoc, out);
 			in = new ByteArrayInputStream(out.toByteArray());
 			int lastslash = path.lastIndexOf(CoreConstants.SLASH);
-			service.uploadFileAndCreateFoldersFromStringAsRoot(path.substring(0,lastslash), path.substring(lastslash+1), in, MimeTypeUtil.MIME_TYPE_XML, false);
+			String parentPath = path.substring(0, lastslash + 1);
+			String fileName = path.substring(lastslash + 1);
+			if (!service.uploadFile(parentPath, fileName, MimeTypeUtil.MIME_TYPE_XML, in)) {
+				throw new RuntimeException("Unable to upload XForm to repository: " + path);
+			}
 		} catch (IllegalArgumentException e) {
 			throw e;
 		} catch (Exception e) {
@@ -223,15 +208,19 @@ public class FormsSlidePersistence implements PersistenceManager {
 			String formResourcePath = getFormResourcePath(formType, formIdentifier, formBasePath, true);
 			
 			String pathToFileFolder = getFormResourcePath(formType, formIdentifier, formBasePath, false);
+			if (!pathToFileFolder.endsWith(CoreConstants.SLASH)) {
+				pathToFileFolder = pathToFileFolder.concat(CoreConstants.SLASH);
+			}
 			String fileName = formIdentifier + FORMS_FILE_EXTENSION;
 			
 			IWSlideService slideService = getIWSlideService();
 			out = new ByteArrayOutputStream();
 			DOMUtil.prettyPrintDOM(xformsDoc, out);
 			in = new ByteArrayInputStream(out.toByteArray());
-			slideService.uploadFileAndCreateFoldersFromStringAsRoot(pathToFileFolder, fileName, in, MimeTypeUtil.MIME_TYPE_XML, false);
-			
-			return formResourcePath;
+			if (slideService.uploadFile(pathToFileFolder, fileName, MimeTypeUtil.MIME_TYPE_XML, in)) {
+				return formResourcePath;
+			}
+			throw new RuntimeException("Error uploading XForm '" + formIdentifier + "' to repository: " + pathToFileFolder + fileName);
 		} catch (Exception e) {
 			throw new RuntimeException("Error saving XForm '" + formIdentifier + "' to Slide", e);
 		} finally {
@@ -241,37 +230,29 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = false)
-	public PersistedFormDocument saveForm(FormDocument document)
-	        throws IllegalAccessException {
-		
+	public PersistedFormDocument saveForm(FormDocument document) throws IllegalAccessException {
 		return saveForm(document, null);
 	}
 	
 	@Transactional(readOnly = false)
-	public PersistedFormDocument saveForm(FormDocument document,
-	        String storeBasePath) throws IllegalAccessException {
-		
+	public PersistedFormDocument saveForm(FormDocument document, String storeBasePath) throws IllegalAccessException {
 		if (document == null)
 			throw new NullPointerException("FormDocument not provided");
 		
 		Long formId = document.getFormId();
-		String defaultFormName = document.getFormTitle().getString(
-		    document.getDefaultLocale());
+		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
 		PersistedFormDocument formDocument = new PersistedFormDocument();
 		
 		if (formId == null) {
-			
 			String formSlideId = generateFormId(defaultFormName);
-			String formType = document.getFormType() == null ? standaloneFormType
-			        : document.getFormType();
+			String formType = document.getFormType() == null ? standaloneFormType : document.getFormType();
 			
 			Document xformsDocument = document.getXformsDocument();
 			
 			if (storeBasePath != null)
 				storeBasePath = CoreConstants.PATH_FILES_ROOT + storeBasePath;
 			
-			String formPath = saveXFormsDocumentToSlide(xformsDocument,
-			    formSlideId, formType, storeBasePath);
+			String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, storeBasePath);
 			
 			Integer version = 1;
 			
@@ -291,23 +272,19 @@ public class FormsSlidePersistence implements PersistenceManager {
 			formDocument.setFormType(formType);
 			formDocument.setXformsDocument(xformsDocument);
 			formDocument.setVersion(version);
-			
 		} else {
-			
 			XForm xform = getXformsDAO().find(XForm.class, formId);
 			
 			if (xform.getFormState() != XFormState.FIRM) {
 				xform.setVersion(xform.getVersion() + 1);
 			} else {
 				String formSlideId = generateFormId(defaultFormName);
-				String formType = document.getFormType() == null ? standaloneFormType
-				        : document.getFormType();
+				String formType = document.getFormType() == null ? standaloneFormType  : document.getFormType();
 				
 				Document xformsDocument = document.getXformsDocument();
 				
 				// saving in a new file
-				String formPath = saveXFormsDocumentToSlide(xformsDocument,
-				    formSlideId, formType, null);
+				String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, null);
 				xform.setFormStorageIdentifier(formPath);
 			}
 			String formPath = xform.getFormStorageIdentifier();
@@ -327,14 +304,11 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = false)
-	public PersistedFormDocument saveAllVersions(final FormDocument document,
-	        final Long parentId) throws IllegalAccessException {
-		
+	public PersistedFormDocument saveAllVersions(final FormDocument document, final Long parentId) throws IllegalAccessException {
 		PersistedFormDocument persistedFormDocument = saveForm(document);
 		
 		Long formId = document.getFormId();
-		String defaultFormName = document.getFormTitle().getString(
-		    document.getDefaultLocale());
+		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
 		
 		List<XForm> list = getXformsDAO().getAllVersionsByParentId(parentId);
 		if (!formId.equals(parentId)) {
@@ -346,14 +320,12 @@ public class FormsSlidePersistence implements PersistenceManager {
 					xform.setVersion(xform.getVersion() + 1);
 				} else {
 					String formSlideId = generateFormId(defaultFormName);
-					String formType = document.getFormType() == null ? standaloneFormType
-					        : document.getFormType();
+					String formType = document.getFormType() == null ? standaloneFormType : document.getFormType();
 					
 					Document xformsDocument = document.getXformsDocument();
 					
 					// saving in a new file
-					String formPath = saveXFormsDocumentToSlide(xformsDocument,
-					    formSlideId, formType, null);
+					String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, null);
 					xform.setFormStorageIdentifier(formPath);
 				}
 				String formPath = xform.getFormStorageIdentifier();
@@ -370,35 +342,24 @@ public class FormsSlidePersistence implements PersistenceManager {
 	
 	@Transactional(readOnly = false)
 	public PersistedFormDocument takeForm(Long formId) {
-		
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 		PersistedFormDocument formDocument = new PersistedFormDocument();
 		
 		Document xformsDocument;
 		
 		if (xform.getFormState() == XFormState.FIRM) {
+			getLogger().log(Level.WARNING, "TakeForm on firm form. Is this the expected behavior?");
 			
-			getLogger().log(Level.WARNING,
-			    "TakeForm on firm form. Is this the expected behavior?");
-			
-			xformsDocument = loadXMLResourceFromSlide(xform
-			        .getFormStorageIdentifier());
-			
+			xformsDocument = loadXMLResourceFromSlide(xform.getFormStorageIdentifier());
 		} else if (xform.getFormState() == XFormState.FLUX) {
-			
 			// making firm
 			
-			XForm existingFirmXForm = getXformsDAO().getXFormByParentVersion(
-			    xform, xform.getVersion(), XFormState.FIRM);
+			XForm existingFirmXForm = getXformsDAO().getXFormByParentVersion(xform, xform.getVersion(), XFormState.FIRM);
 			
 			if (existingFirmXForm != null) {
-				
-				xformsDocument = loadXMLResourceFromSlide(existingFirmXForm
-				        .getFormStorageIdentifier());
+				xformsDocument = loadXMLResourceFromSlide(existingFirmXForm.getFormStorageIdentifier());
 				xform = existingFirmXForm;
-				
 			} else {
-				
 				// here we take flux state form, get it's contents, and store it as new firm form
 				String formStorageIdentifier = xform.getFormStorageIdentifier();
 				xformsDocument = loadXMLResourceFromSlide(formStorageIdentifier);
@@ -406,11 +367,9 @@ public class FormsSlidePersistence implements PersistenceManager {
 				String formType = xform.getFormType();
 				
 				// storing into the same folder as the parent form
-				String formBasePath = formStorageIdentifier.substring(0,
-				    formStorageIdentifier.lastIndexOf(CoreConstants.SLASH) + 1);
+				String formBasePath = formStorageIdentifier.substring(0, formStorageIdentifier.lastIndexOf(CoreConstants.SLASH) + 1);
 				
-				String formPath = saveXFormsDocumentToSlide(xformsDocument,
-				    formSlideId, formType, formBasePath);
+				String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, formBasePath);
 				
 				XForm newFirmForm = new XForm();
 				newFirmForm.setDateCreated(xform.getDateCreated());
@@ -425,12 +384,9 @@ public class FormsSlidePersistence implements PersistenceManager {
 				getXformsDAO().persist(newFirmForm);
 				
 				xform = newFirmForm;
-				
 			}
 		} else
-			throw new IllegalStateException(
-			        "XForm state not supported by slide persistence manager. State: "
-			                + xform.getFormState());
+			throw new IllegalStateException("XForm state not supported by slide persistence manager. State: " + xform.getFormState());
 		
 		formDocument.setFormId(xform.getFormId());
 		formDocument.setFormType(xform.getFormType());
@@ -440,12 +396,10 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return formDocument;
 	}
 	
-	public void duplicateForm(String formId, String new_title_for_default_locale)
-	        throws Exception {
+	public void duplicateForm(String formId, String new_title_for_default_locale) throws Exception {
 		
 		if (true)
-			throw new UnsupportedOperationException(
-			        "Not supported yet, make this call from document manager");
+			throw new UnsupportedOperationException("Not supported yet, make this call from document manager");
 		
 		// Document xformsDoc = loadFormNoLock(formId);
 		// com.idega.xformsmanager.business.Document document =
@@ -462,8 +416,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 		// saveForm(formId, xformsDoc, false);
 	}
 	
-	public void removeForm(String form_id, boolean remove_submitted_data)
-	        throws FormLockException, Exception {
+	public void removeForm(String form_id, boolean remove_submitted_data) throws FormLockException, Exception {
 		
 		if (true)
 			throw new UnsupportedOperationException();
@@ -509,41 +462,29 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	public List<Form> getStandaloneForms() {
-		
 		String formType = standaloneFormType;
 		String formStorageType = slideStorageType;
 		
-		List<Form> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(
-		    formType, formStorageType, XFormState.FLUX);
+		List<Form> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType, XFormState.FLUX);
 		return xforms;
 	}
 	
 	public List<Submission> getStandaloneFormSubmissions(long formId) {
-		
 		String formType = standaloneFormType;
 		String formStorageType = slideStorageType;
 		
-		List<Submission> subs = getXformsDAO()
-		        .getSubmissionsByTypeAndStorageType(formType, formStorageType,
-		            formId);
+		List<Submission> subs = getXformsDAO().getSubmissionsByTypeAndStorageType(formType, formStorageType, formId);
 		return subs;
 	}
 	
 	public List<Submission> getAllStandaloneFormsSubmissions() {
-		
-		List<Submission> submissions = getXformsDAO()
-		        .getResultListByInlineQuery(
-		            "select submissions from "
-		                    + "com.idega.block.form.data.XForm xforms inner join xforms."
-		                    + XForm.xformSubmissionsProperty + " submissions "
-		                    + "where xforms." + XForm.formTypeProperty + " = :"
-		                    + XForm.formTypeProperty + " and " + "submissions."
-		                    + XFormSubmission.isFinalSubmissionProperty
-		                    + " = :"
-		                    + XFormSubmission.isFinalSubmissionProperty,
-		            Submission.class,
-		            new Param(XForm.formTypeProperty, standaloneFormType),
-		            new Param(XFormSubmission.isFinalSubmissionProperty, true));
+		List<Submission> submissions = getXformsDAO().getResultListByInlineQuery(
+			"select submissions from com.idega.block.form.data.XForm xforms inner join xforms." + XForm.xformSubmissionsProperty + " submissions where xforms."
+				+ XForm.formTypeProperty + " = :" + XForm.formTypeProperty + " and submissions." + XFormSubmission.isFinalSubmissionProperty + " = :"
+		        + XFormSubmission.isFinalSubmissionProperty,
+		     Submission.class,
+		     new Param(XForm.formTypeProperty, standaloneFormType),
+		     new Param(XFormSubmission.isFinalSubmissionProperty, true));
 		
 		return submissions;
 	}
@@ -569,24 +510,17 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	public Submission getSubmission(long submissionId) {
-		
-		XFormSubmission submission = getXformsDAO().find(XFormSubmission.class,
-		    submissionId);
+		XFormSubmission submission = getXformsDAO().find(XFormSubmission.class, submissionId);
 		return submission;
 	}
 	
-	public String getSubmittedDataResourcePath(String formId,
-	        String submittedDataFilename) {
-		return new StringBuilder(SUBMITTED_DATA_PATH).append(
-		    CoreConstants.SLASH).append(formId).append(CoreConstants.SLASH)
-		        .append(submittedDataFilename).toString();
+	public String getSubmittedDataResourcePath(String formId, String submittedDataFilename) {
+		return new StringBuilder(SUBMITTED_DATA_PATH).append(CoreConstants.SLASH).append(formId).append(CoreConstants.SLASH).append(submittedDataFilename).toString();
 	}
 	
 	protected IWSlideService getIWSlideService() throws IBOLookupException {
-		
 		try {
-			return (IWSlideService) IBOLookup.getServiceInstance(
-			    getIWApplicationContext(), IWSlideService.class);
+			return IBOLookup.getServiceInstance(getIWApplicationContext(), IWSlideService.class);
 		} catch (IBOLookupException e) {
 			logger.log(Level.SEVERE, "Error getting IWSlideService");
 			throw e;
@@ -594,7 +528,6 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	private synchronized IWApplicationContext getIWApplicationContext() {
-		
 		if (iwac == null)
 			iwac = IWMainApplication.getDefaultIWApplicationContext();
 		
@@ -708,20 +641,18 @@ public class FormsSlidePersistence implements PersistenceManager {
 		return submissionUUID;
 	}
 	
-	private String storeSubmissionData(String formId, String identifier,
-	        InputStream is) throws IOException {
-		
+	private String storeSubmissionData(String formId, String identifier, InputStream is) throws IOException {
 		// path equals SUBMITTED_DATA_PATH + formId + identifier,
 		// so we get something similar like
 		// /files/forms/submissions/123/P-xx/submission.xml,
 		// and files at /files/forms/submissions/123/P-xx/uploads/file1.doc
-		String path = new StringBuilder(SUBMITTED_DATA_PATH).append(
-		    CoreConstants.SLASH).append(formId).append(CoreConstants.SLASH)
-		        .append(identifier).append(CoreConstants.SLASH).toString();
+		String path = new StringBuilder(SUBMITTED_DATA_PATH).append(CoreConstants.SLASH).append(formId).append(CoreConstants.SLASH).append(identifier)
+			.append(CoreConstants.SLASH).toString();
 		
 		IWSlideService service = getIWSlideService();
-		service.uploadFileAndCreateFoldersFromStringAsRoot(path,
-		    submissionFileName, is, "text/xml", false);
+		if (!service.uploadFile(path, submissionFileName, MimeTypeUtil.MIME_TYPE_XML, is)) {
+			throw new RuntimeException("Error uploading data to repository: " + path + submissionFileName);
+		}
 		
 		return path;
 	}
