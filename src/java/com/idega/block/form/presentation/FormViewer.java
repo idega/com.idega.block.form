@@ -45,13 +45,16 @@ import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.ChibaUtils;
+import com.idega.chiba.web.exception.IdegaChibaException;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.PDFRenderedComponent;
+import com.idega.presentation.text.Heading1;
 import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.OutdatedBrowserInformation;
 import com.idega.util.CoreConstants;
@@ -304,6 +307,20 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			LOGGER.log(Level.WARNING, "Could not set XML container", e);
 			shutdown(adapter, session, xformsSession.getKey());
 			return;
+		} catch (IdegaChibaException e) {
+			LOGGER.log(Level.WARNING, "Chiba exception", e);
+			
+			String messageToClient = e.getMessageToClient();
+			if (StringUtil.isEmpty(messageToClient)) {
+				IWResourceBundle iwrb = getIWResourceBundle(context, com.idega.block.form.IWBundleStarter.BUNDLE_IDENTIFIER);
+				messageToClient = iwrb.getLocalizedString("chiba_error_rendering_form", "We are very sorry, an error occurred... We are working on it. Please, try later.");
+			}
+			getChildren().add(new Heading1(messageToClient));
+			
+			shutdown(adapter, session, xformsSession.getKey());
+		
+			CoreUtil.sendExceptionNotification(e);
+			return;
 		}
 	}
 	
@@ -390,8 +407,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		validBrowser = values[4] instanceof Boolean ? (Boolean) values[3] : Boolean.TRUE;
 	}
 	
-	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response)
-		throws IOException {
+	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
 			response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
@@ -420,9 +436,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		LOGGER.fine("Exited during XForms model init");
 	}
 	
-	protected void setupAdapter(WebAdapter adapter, Document document,
-	        XFormsSession xforms_session, FacesContext context)
-	        throws XFormsException {
+	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
 		adapter.setXFormsSession(xforms_session);
 		adapter.setXForms(document);
 		
@@ -437,8 +451,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		// storeCookies(request, adapter);
 	}
 	
-	protected void shutdown(WebAdapter webAdapter, HttpSession session,
-	        String key) {
+	protected void shutdown(WebAdapter webAdapter, HttpSession session, String key) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
 			try {
@@ -461,19 +474,12 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		this.xDoc = xDoc;
 	}
 	
-	protected XFormsSessionManager getXFormsSessionManager(HttpSession session)
-	        throws XFormsConfigException {
-		
-		XFormsSessionManager manager = (XFormsSessionManager) session
-		        .getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
+	protected XFormsSessionManager getXFormsSessionManager(HttpSession session) throws XFormsConfigException {
+		XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
 		
 		if (manager == null) {
-			
-			manager = DefaultXFormsSessionManagerImpl
-			        .createXFormsSessionManager(IdegaXFormSessionManagerImpl.class
-			                .getName());
-			session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER,
-			    manager);
+			manager = DefaultXFormsSessionManagerImpl.createXFormsSessionManager(IdegaXFormSessionManagerImpl.class.getName());
+			session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, manager);
 		}
 		
 		return manager;
