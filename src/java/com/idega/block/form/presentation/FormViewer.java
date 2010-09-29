@@ -221,9 +221,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			e.printStackTrace();
 		}
 		
-		String initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '")
-			.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/")).append("', locale: '").append(iwc.getCurrentLocale().toString())
-		.append("'});").toString();
+		String locale = iwc.getCurrentLocale().toString();
+		String initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
+			.append("', locale: '").append(locale).append("'}); XFormsConfig.locale = '").append(locale).append("';").toString();
 		PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
 		
 		if (addTestScript) {
