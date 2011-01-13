@@ -45,6 +45,7 @@ import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
 import com.idega.block.web2.business.Web2Business;
 import com.idega.chiba.ChibaUtils;
+import com.idega.chiba.event.SubmissionEvent;
 import com.idega.chiba.web.exception.IdegaChibaException;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
@@ -274,12 +275,17 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			
 			EventTarget eventTarget = (EventTarget) ((Document) adapter.getXForms()).getDocumentElement();
 			
+			final WebAdapter eventAdapter = adapter;
 			EventListener eventListener = new EventListener() {
 				
 				public void handleEvent(Event event) {
 					String id = "";
 					if (event.getTarget() instanceof Element) {
 						id = ((Element) event.getTarget()).getAttribute("id");
+					}
+					
+					if (XFormsEventNames.SUBMIT_DONE.equals(event.getType())) {
+						ELUtil.getInstance().publishEvent(new SubmissionEvent(eventAdapter, event));
 					}
 					
 					LOGGER.info("Got event, type=" + event.getType() + ", id=" + id);
