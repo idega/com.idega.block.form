@@ -426,9 +426,9 @@ public class SaveFormAction extends AbstractBoundAction {
 			IWResourceBundle iwrb = getResourceBundle(iwc);
 			
 			String from = iwc.getApplicationSettings().getProperty(
-			    CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, "staff@idega.is");
+			    CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, CoreConstants.EMAIL_DEFAULT_FROM);
 			String host = iwc.getApplicationSettings().getProperty(
-			    CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, "mail.idega.is");
+			    CoreConstants.PROP_SYSTEM_SMTP_MAILSERVER, CoreConstants.EMAIL_DEFAULT_HOST);
 			String subject = iwrb.getLocalizedString(
 			    "save_form.linkToForm.subject", "Link to your saved form");
 			String text = iwrb.getLocalizedAndFormattedString(
