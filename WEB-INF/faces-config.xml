@@ -64,6 +64,11 @@ version="1.2">
       	<property-resolver>com.idega.user.handler.UserHandler</property-resolver>
       </property-extension>
     </property>
+    <property>
+      <display-name>Show latest saved forms</display-name>
+      <property-name>showLatestForms</property-name>
+      <property-class>boolean</property-class>
+    </property>
     <component-extension>
       <idegaweb-info>
         <builder-visible>true</builder-visible>

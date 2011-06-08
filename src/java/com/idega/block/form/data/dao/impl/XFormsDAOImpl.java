@@ -1,5 +1,6 @@
 package com.idega.block.form.data.dao.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Query;
@@ -13,6 +14,7 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.util.ListUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormState;
@@ -25,76 +27,82 @@ import com.idega.xformsmanager.business.XFormState;
 @Repository
 @Transactional(readOnly = true)
 public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
-	
+
+	@Override
 	public List<Form> getAllXFormsByTypeAndStorageType(String formType,
 	        String formStorageType, XFormState state) {
-		
+
 		String q = "from XForm xf where xf." + XForm.formTypeProperty + " = :"
 		        + XForm.formTypeProperty + " and xf."
 		        + XForm.formStorageTypeProperty + " = :"
 		        + XForm.formStorageTypeProperty + " and xf."
 		        + XForm.formStateProperty + " = :" + XForm.formStateProperty;
-		
+
 		@SuppressWarnings("unchecked")
 		List<Form> xforms = getEntityManager().createQuery(q).setParameter(
 		    XForm.formTypeProperty, formType).setParameter(
 		    XForm.formStorageTypeProperty, formStorageType).setParameter(
 		    XForm.formStateProperty, state).getResultList();
-		
+
 		// @SuppressWarnings("unchecked")
 		// List<Form> xforms =
 		// getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
 		// .setParameter(XForm.formTypeProperty, formType)
 		// .setParameter(XForm.formStorageTypeProperty, formStorageType)
 		// .getResultList();
-		
+
 		return xforms;
 	}
-	
+
+	@Override
 	public List<Submission> getSubmissionsByTypeAndStorageType(String formType,
 	        String formStorageType, long formId) {
-		
+
 		String q = "select sub from " + XForm.class.getName()
 		        + " as child inner join child.formParent as parent, "
 		        + XFormSubmission.class.getName() + " as sub"
 		        + " where sub.xform = child and parent.formId = :"
 		        + XForm.formIdProperty;
-		
+
 		List<Submission> submissions = getEntityManager().createQuery(q)
 		        .setParameter(XForm.formIdProperty, formId).getResultList();
-		
+
 		return submissions;
 	}
-	
+
+	@Override
 	public XForm getXFormByParentVersion(Form parentForm, Integer version,
 	        XFormState state) {
-		
+
 		@SuppressWarnings("unchecked")
 		List<XForm> xforms = getEntityManager().createNamedQuery(
 		    XForm.getByParentVersion).setParameter(XForm.formParentProperty,
 		    parentForm).setParameter(XForm.versionProperty, version)
 		        .setParameter(XForm.formStateProperty, state).getResultList();
-		
+
 		return xforms.isEmpty() ? null : xforms.iterator().next();
 	}
-	
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public List<XForm> getAllVersionsByParentId(Long parentId) {
 		Query query = getEntityManager().createQuery("select xf from XForm xf where xf.formParent.id = :parent order by xf.version desc");
 		query.setParameter("parent",parentId);
 		return query.getResultList();
 	}
-	
+
+	@Override
 	public XForm getXFormById(Long formId) {
 		XForm xform = (XForm) getEntityManager().createNamedQuery(
 		    XForm.getByFormId).setParameter(XForm.formIdProperty, formId)
 		        .getSingleResult();
-		
+
 		return xform;
 	}
-	
+
+	@Override
 	public XFormSubmission getSubmissionBySubmissionUUID(String submissionUUID) {
-		
+
 		return getSingleResultByInlineQuery("from "
 		        + XFormSubmission.class.getName() + " sub where sub."
 		        + XFormSubmission.submissionUUIDProperty + " = :"
@@ -113,10 +121,10 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		if (ownerId != null) {
 			query += " and submissions." + XFormSubmission.formSubmitterProperty + " = :" + XFormSubmission.formSubmitterProperty;
 		}
-		
+
 		List<XFormSubmission> submissions = null;
 		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, onlyFinal);
-		
+
 		if (ownerId == null) {
 			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty);
 		}
@@ -124,15 +132,51 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty,
 					new Param(XFormSubmission.formSubmitterProperty, ownerId));
 		}
-		
+
 		return submissions;
 	}
-	
+
+	@Override
 	public List<XFormSubmission> getAllNotFinalSubmissions() {
 		return getSubmissions(Boolean.FALSE, null);
 	}
 
+	@Override
 	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId) {
 		return getSubmissions(Boolean.FALSE, userId);
 	}
+
+	@Override
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId) {
+
+		List<XFormSubmission> submissions =  getSubmissions(Boolean.FALSE, userId);
+		if(ListUtil.isEmpty(submissions)){
+			return submissions;
+		}
+
+		List<XFormSubmission> latest = new ArrayList <XFormSubmission>();
+		// For each XForm find latest submission
+		while(!ListUtil.isEmpty(submissions)){
+			ArrayList <XFormSubmission> oneXFormSubmissionList = new ArrayList<XFormSubmission>();
+			XFormSubmission latestSubmission = submissions.get(0);
+			// Find latest submission and remember all other for this form
+			oneXFormSubmissionList.add(latestSubmission);
+			for(XFormSubmission submission : submissions){
+				if((latestSubmission.getXform().getFormId() == submission.getXform().getFormId())){
+					oneXFormSubmissionList.add(submission);
+					if(submission.getDateSubmitted().after(latestSubmission.getDateSubmitted())){
+						latestSubmission = submission;
+					}
+				}
+			}
+
+			// Add latest submission of form and remove submissions that belongs to this form from list
+			latest.add(latestSubmission);
+			submissions.removeAll(oneXFormSubmissionList);
+		}
+
+		return latest;
+
+	}
+
 }

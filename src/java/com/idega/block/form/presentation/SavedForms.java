@@ -63,66 +63,67 @@ public class SavedForms extends IWBaseComponent {
 
 	@Autowired
 	private XFormsDAO xformsDAO;
-	
+
 	@Autowired
 	private DocumentManagerFactory documentManager;
-	
+
 	@Autowired
 	private JQuery jQuery;
-	
+
 	private boolean showAll = Boolean.TRUE;
 	private boolean newestOnTop = Boolean.TRUE;
 	private boolean showTableHeader = Boolean.TRUE;
-	
+	private boolean showLatestForms = Boolean.FALSE;
+
 	private Integer userId;
 
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
-		
+
 		IWContext iwc = IWContext.getIWContext(context);
 		IWBundle bundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
-		
+
 		PresentationUtil.addStyleSheetToHeader(iwc, bundle.getVirtualPathWithFileNameString("style/formsEntries.css"));
-		
+
 		ELUtil.getInstance().autowire(this);
-		
+
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
-		
+
 		HtmlTag container = (HtmlTag) context.getApplication().createComponent(HtmlTag.COMPONENT_TYPE);
 		container.setValue("div");
 		container.setStyleClass("savedFormsViewer");
 		this.getChildren().add(container);
-		
+
 		if (!iwc.isLoggedOn()) {
 			container.getChildren().add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
 			return;
 		}
-		
+
 		List<XFormSubmission> submissions = getAllSubmissions(context);
 		if (ListUtil.isEmpty(submissions)) {
 			return;
 		}
-		
+
 		IWMainApplication iwma = iwc.getIWMainApplication();
 		Locale locale = iwc.getCurrentLocale();
-		
+
 		List<String> addedSubmissions = new ArrayList<String>();
 		List<SubmissionDataBean> submissionsData = new ArrayList<SubmissionDataBean>();
 		for (XFormSubmission submission: submissions) {
 			try {
 				Long formId = submission.getXform().getFormId();
 				String submissionUUID = submission.getSubmissionUUID();
-				
+
 				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.contains(submissionUUID)) {
 					SubmissionDataBean data = new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
 							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId()));
-					
+
 					LocalizedStringBean localizedTitle = getDocumentManager().newDocumentManager(iwma).openFormLazy(formId).getFormTitle();
 					data.setLocalizedTitle(localizedTitle.getString(locale));
-					
+
 					submissionsData.add(data);
 					addedSubmissions.add(submissionUUID);
 				}
@@ -130,13 +131,13 @@ public class SavedForms extends IWBaseComponent {
 				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID());
 			}
 		}
-		
+
 		if (ListUtil.isEmpty(submissionsData)) {
 			return;
 		}
-		
+
 		Collections.sort(submissionsData, new SubmissionDataComparator(isNewestOnTop()));
-		
+
 		BuilderService bs = null;
 		try {
 			bs = BuilderServiceFactory.getBuilderService(iwc);
@@ -147,7 +148,7 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
-		
+
 		Table2 table = new Table2();
 		container.getChildren().add(table);
 		table.setStyleClass("savedFormsViewerTable");
@@ -160,25 +161,25 @@ public class SavedForms extends IWBaseComponent {
 		headerRow.setStyleClass("header");
 		TableHeaderCell emailCell = headerRow.createHeaderCell();
 		emailCell.add(new Text(CoreConstants.EMPTY));
-		
+
 		TableHeaderCell formCell = headerRow.createHeaderCell();
 		formCell.add(new Text(iwrb.getLocalizedString("saved_forms.form", "Form")));
 		String sortTitle = iwrb.getLocalizedString("saved_forms.click_to_sort", "Click cell to sort data");
 		formCell.setTitle(sortTitle);
 		formCell.setStyleClass("savedFormsViewerFormHeaderRow");
-		
+
 		TableHeaderCell savedAtCell = headerRow.createHeaderCell();
 		savedAtCell.add(new Text(iwrb.getLocalizedString("saved_forms.saved_at", "Date")));
 		savedAtCell.setTitle(sortTitle);
 		savedAtCell.setStyleClass("savedFormsViewerSavedAtHeaderRow");
-		
+
 		if (isShowAll()) {
 			TableHeaderCell authorCell = headerRow.createHeaderCell();
 			authorCell.add(new Text(iwrb.getLocalizedString("saved_forms.submission_author", "Author")));
 			authorCell.setTitle(sortTitle);
 			authorCell.setStyleClass("savedFormsViewerAuthorHeaderRow");
 		}
-		
+
 		int index = 0;
 		String linkToForm = null;
 		TableBodyRowGroup body = table.createBodyRowGroup();
@@ -186,64 +187,64 @@ public class SavedForms extends IWBaseComponent {
 		for (SubmissionDataBean data: submissionsData) {
 			TableRow bodyRow = body.createRow();
 			bodyRow.setStyleClass(index % 2 == 0 ? "even" : "odd");
-			
+
 			URIUtil uriUtil = new URIUtil(url);
 			uriUtil.setParameter(FormViewer.submissionIdParam, data.getSubmissionUUID());
 			linkToForm = uriUtil.getUri();
-			
+
 			//	Email link
 			bodyRow.createCell().add(getLinkToSendEmail(iwc, data, bundle, iwrb, linkToForm));
-			
+
 			//	Link
 			Link linkToSavedForm = new Link(data.getLocalizedTitle());
-			
+
 			linkToSavedForm.setURL(linkToForm);
 			bodyRow.createCell().add(linkToSavedForm);
-			
+
 			//	Date
 			TableCell2 dataCell = bodyRow.createCell();
 			String date = getSubmissionDate(data, locale);
 			dataCell.add(new Text(StringUtil.isEmpty(date) ? CoreConstants.EMPTY : date));
-			
+
 			if (isShowAll()) {
 				//	Author
 				TableCell2 authorCell = bodyRow.createCell();
 				authorCell.add(new Text(data.getFormAuthor() == null ? CoreConstants.EMPTY : data.getFormAuthor().getName()));
 			}
-			
+
 			index++;
 		}
-		
+
 		boolean addPager = submissionsData.size() > 10;
 		Layer pagerContainer = null;
 		if (addPager) {
 			PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER_PAGER));
-			
+
 			//	Pager
 			pagerContainer = new Layer();
 			container.getChildren().add(pagerContainer);
 			pagerContainer.setStyleClass("savedFormsViewerPager");
-			
+
 			Image first = bundle.getImage("images/pager_first.png");
 			first.setStyleClass("first");
 			pagerContainer.add(first);
-			
+
 			Image previous = bundle.getImage("images/pager_prev.png");
 			previous.setStyleClass("prev");
 			pagerContainer.add(previous);
-			
-			GenericInput pageDisplay = new TextInput(); 
+
+			GenericInput pageDisplay = new TextInput();
 			pageDisplay.setStyleClass("pagedisplay");
 			pagerContainer.add(pageDisplay);
-			
+
 			Image next = bundle.getImage("images/pager_next.png");
 			next.setStyleClass("next");
 			pagerContainer.add(next);
-			
+
 			Image last = bundle.getImage("images/pager_last.png");
 			last.setStyleClass("last");
 			pagerContainer.add(last);
-			
+
 			DropdownMenu pageSizeSelector = new DropdownMenu();
 			pageSizeSelector.setStyleClass("pagesize");
 			pageSizeSelector.add(new SelectOption(String.valueOf(10), String.valueOf(10)));
@@ -253,7 +254,7 @@ public class SavedForms extends IWBaseComponent {
 			pageSizeSelector.add(new SelectOption(String.valueOf(50), String.valueOf(50)));
 			pagerContainer.add(pageSizeSelector);
 		}
-		
+
 		String initAction = new StringBuilder("jQuery('#").append(table.getId()).append("').tablesorter({")
 			.append(addPager ? "widthFixed: true, " : CoreConstants.EMPTY).append("headers: { 0: {sorter: false}}})").toString();
 		if (addPager) {
@@ -264,24 +265,24 @@ public class SavedForms extends IWBaseComponent {
 		}
 		PresentationUtil.addJavaScriptActionToBody(iwc, initAction);
 	}
-	
+
 	private Link getLinkToSendEmail(IWContext iwc, SubmissionDataBean data, IWBundle bundle, IWResourceBundle iwrb, String linkToForm) {
 		Link sendEmail = new Link(bundle.getImage("images/email.png", iwrb.getLocalizedString("saved_forms.send_email", "Send e-mail")));
-		
+
 		sendEmail.setForceToReplaceAfterEncoding(true);
 		if (iwc.isWindows()) {
 			sendEmail.setCharEncoding("ISO-8859-1");	//	TODO
 		}
-		
+
 		sendEmail.setURL(getEmailAddressMailtoFormattedWithSubject(iwc, data.getFormAuthor(),
 				iwrb.getLocalizedString("saved_forms.link_to_a_saved_form", "Link to a saved form"), linkToForm));
-		
+
 		return sendEmail;
 	}
-	
+
 	private String getEmailAddressMailtoFormattedWithSubject(IWApplicationContext iwac, User formAuthor, String subject, String body) {
 		String emailAddress = null;
-		
+
 		if (formAuthor != null) {
 			Email email = null;
 			try {
@@ -294,19 +295,19 @@ public class SavedForms extends IWBaseComponent {
 		if (StringUtil.isEmpty(emailAddress)) {
 			emailAddress = iwac.getApplicationSettings().getProperty(CoreConstants.PROP_SYSTEM_ACCOUNT);
 		}
-		
+
 		if (StringUtil.isEmpty(emailAddress)) {
 			return body;
 		}
-		
+
 		return new StringBuilder("mailto:").append(emailAddress).append("?subject=").append(subject).append("&body=").append(body).toString();
 	}
-	
+
 	private String getSubmissionDate(SubmissionDataBean data, Locale locale) {
 		if (data.getSubmittedDate() == null) {
 			return null;
 		}
-		
+
 		IWTimestamp date = new IWTimestamp(data.getSubmittedDate());
 		return date.getLocaleDateAndTime(locale, IWTimestamp.SHORT, IWTimestamp.SHORT);
 	}
@@ -315,7 +316,7 @@ public class SavedForms extends IWBaseComponent {
 		if (id == null) {
 			return null;
 		}
-		
+
 		UserBusiness userBusiness = getUserBusiness(iwac);
 		if (userBusiness == null) {
 			return null;
@@ -326,10 +327,10 @@ public class SavedForms extends IWBaseComponent {
 		} catch (RemoteException e) {
 			Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting user by id: " + id, e);
 		}
-		
+
 		return null;
 	}
-	
+
 	private UserBusiness getUserBusiness(IWApplicationContext iwac) {
 		try {
 			return (UserBusiness) IBOLookup.getServiceInstance(iwac, UserBusiness.class);
@@ -338,7 +339,7 @@ public class SavedForms extends IWBaseComponent {
 		}
 		return null;
 	}
-	
+
 	private List<XFormSubmission> getAllSubmissions(FacesContext context) {
 		Integer currentUserId = null;
 		if (!isShowAll()) {
@@ -347,10 +348,13 @@ public class SavedForms extends IWBaseComponent {
 				currentUserId = iwc.getCurrentUserId();
 			}
 		}
-		
+
+		if(this.showLatestForms){
+			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId);
+		}
 		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId);
 	}
-	
+
 	@Override
 	public void restoreState(FacesContext ctx, Object state) {
 		Object values[] = (Object[]) state;
@@ -419,5 +423,13 @@ public class SavedForms extends IWBaseComponent {
 	public void setUserId(Integer userId) {
 		this.userId = userId;
 	}
-	
+
+	public boolean isShowLatestForms() {
+		return showLatestForms;
+	}
+
+	public void setShowLatestForms(boolean showLatestForms) {
+		this.showLatestForms = showLatestForms;
+	}
+
 }
