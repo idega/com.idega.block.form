@@ -1,6 +1,5 @@
 package com.idega.block.form.data.dao.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Query;
@@ -14,7 +13,6 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
-import com.idega.util.ListUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormState;
@@ -149,33 +147,31 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 	@Override
 	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId) {
 
-		List<XFormSubmission> submissions =  getSubmissions(Boolean.FALSE, userId);
-		if(ListUtil.isEmpty(submissions)){
-			return submissions;
+		String query = "select submissions from " + XFormSubmission.class.getName() + " submissions where submissions." +
+		XFormSubmission.isFinalSubmissionProperty + " = :" + XFormSubmission.isFinalSubmissionProperty;
+		query += " and (submissions." + XFormSubmission.isValidSubmissionProperty + " = true or submissions." + XFormSubmission.isValidSubmissionProperty +
+			" is null)";
+
+
+		if (userId != null) {
+			query += " and submissions." + XFormSubmission.formSubmitterProperty + " = :" + XFormSubmission.formSubmitterProperty;
+		}
+		query += " and submissions." + XFormSubmission.dateSubmittedProperty + " = (SELECT max(s." +
+				XFormSubmission.dateSubmittedProperty + ") FROM " + XFormSubmission.class.getName() +
+				" s where submissions." + XFormSubmission.xformProperty + " = s." + XFormSubmission.xformProperty + ")";
+
+		List<XFormSubmission> submissions = null;
+		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, Boolean.FALSE);
+
+		if (userId == null) {
+			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty);
+		}
+		else {
+			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty,
+					new Param(XFormSubmission.formSubmitterProperty, userId));
 		}
 
-		List<XFormSubmission> latest = new ArrayList <XFormSubmission>();
-		// For each XForm find latest submission
-		while(!ListUtil.isEmpty(submissions)){
-			ArrayList <XFormSubmission> oneXFormSubmissionList = new ArrayList<XFormSubmission>();
-			XFormSubmission latestSubmission = submissions.get(0);
-			// Find latest submission and remember all other for this form
-			oneXFormSubmissionList.add(latestSubmission);
-			for(XFormSubmission submission : submissions){
-				if((latestSubmission.getXform().getFormId() == submission.getXform().getFormId())){
-					oneXFormSubmissionList.add(submission);
-					if(submission.getDateSubmitted().after(latestSubmission.getDateSubmitted())){
-						latestSubmission = submission;
-					}
-				}
-			}
-
-			// Add latest submission of form and remove submissions that belongs to this form from list
-			latest.add(latestSubmission);
-			submissions.removeAll(oneXFormSubmissionList);
-		}
-
-		return latest;
+		return submissions;
 
 	}
 
