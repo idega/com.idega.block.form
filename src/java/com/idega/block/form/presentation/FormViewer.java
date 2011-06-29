@@ -12,6 +12,7 @@ package com.idega.block.form.presentation;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -214,10 +215,16 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/XFormsTester.js"));
 			}
 			
+			// Fancybox
+			scriptsUris.addAll(web2.getBundleURIsToFancyBoxScriptFiles());
+			
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 			
 			//	CSS
-			PresentationUtil.addStyleSheetToHeader(iwc, web2.getBundleUriToHumanizedMessagesStyleSheet());
+			PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
+					web2.getBundleUriToHumanizedMessagesStyleSheet(),
+					web2.getBundleURIToFancyBoxStyleFile()
+			));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
