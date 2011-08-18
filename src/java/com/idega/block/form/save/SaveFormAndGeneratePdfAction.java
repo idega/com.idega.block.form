@@ -73,17 +73,17 @@ public class SaveFormAndGeneratePdfAction extends SaveFormAction {
 	protected void saveForm() throws XFormsException {
 		super.perform();
 		saveSubmission();
+		
+		doRebuild(true);
+		doRecalculate(true);
+		doRevalidate(true);
+		doRefresh(true);
 	}
 	
 	@Override
 	public void perform() throws XFormsException {
 		saveForm();
 		final String submissionUUID = getSubmissionUUID();
-		
-		doRebuild(true);
-		doRecalculate(true);
-		doRevalidate(true);
-		doRefresh(true);
 		
 		Instance instance = getInstance();
 		
