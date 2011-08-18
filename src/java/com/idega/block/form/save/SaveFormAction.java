@@ -474,7 +474,7 @@ public class SaveFormAction extends AbstractBoundAction {
 		}
 	}
 	
-	Instance getInstance() {
+	protected Instance getInstance() {
 		
 		if (instance == null) {
 			

@@ -70,13 +70,14 @@ public class SaveFormAndGeneratePdfAction extends SaveFormAction {
 		}
 	}
 	
+	protected void saveForm() throws XFormsException {
+		super.perform();
+		saveSubmission();
+	}
+	
 	@Override
 	public void perform() throws XFormsException {
-		super.perform();
-		
-		Instance instance = getInstance();
-		
-		saveSubmission();
+		saveForm();
 		final String submissionUUID = getSubmissionUUID();
 		
 		doRebuild(true);
@@ -84,13 +85,11 @@ public class SaveFormAndGeneratePdfAction extends SaveFormAction {
 		doRevalidate(true);
 		doRefresh(true);
 		
-		URIUtil uriUtil = new URIUtil(IWMainApplication
-		        .getDefaultIWMainApplication().getMediaServletURI());
-		uriUtil.setParameter(MediaWritable.PRM_WRITABLE_CLASS,
-		    IWMainApplication.getEncryptedClassName(getWriterProvider()
-		            .getPDFWriterClass()));
-		uriUtil.setParameter(getWriterProvider()
-		        .getFormSubmissionUniqueIdParameterName(), submissionUUID);
+		Instance instance = getInstance();
+		
+		URIUtil uriUtil = new URIUtil(IWMainApplication.getDefaultIWMainApplication().getMediaServletURI());
+		uriUtil.setParameter(MediaWritable.PRM_WRITABLE_CLASS, IWMainApplication.getEncryptedClassName(getWriterProvider().getPDFWriterClass()));
+		uriUtil.setParameter(getWriterProvider().getFormSubmissionUniqueIdParameterName(), submissionUUID);
 		
 		ModelItem mi = instance.getModelItem(getLinkExp());
 		mi.setValue(uriUtil.getUri());
