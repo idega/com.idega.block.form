@@ -50,6 +50,7 @@ import com.idega.chiba.event.SubmissionEvent;
 import com.idega.chiba.web.exception.IdegaChibaException;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
+import com.idega.chiba.web.xml.xforms.util.XFormsUtil;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
@@ -204,7 +205,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
 			
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
-			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+//			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
+			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TEXT_AREA_AUTO_GROW));
 			
 			//	TinyMCE
 			scriptsUris.addAll(web2.getScriptsForTinyMCE());
@@ -230,9 +232,16 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		}
 		
 		String locale = iwc.getCurrentLocale().toString();
-		String initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
-			.append("', locale: '").append(locale).append("'}); XFormsConfig.locale = '").append(locale).append("';").toString();
-		PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
+		String initScript = null;
+		try {
+			initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
+				.append("', locale: '").append(locale).append("', maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength()).append("}); XFormsConfig.locale = '")
+				.append(locale).append("';").toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (initScript != null)
+			PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
 		
 		if (addTestScript) {
 			int openedSessions = 0;
