@@ -669,31 +669,19 @@ public class FormsSlidePersistence implements PersistenceManager {
 	}
 	
 	@Transactional(readOnly = false)
-	public String saveSubmittedDataByExistingSubmission(String submissionUUID,
-	        Long formId, InputStream is, String identifier,
-	        Integer formSubmitter) throws IOException {
-		
-		if (identifier == null || identifier.length() == 0) {
+	public String saveSubmittedDataByExistingSubmission(String submissionUUID, Long formId, InputStream is, String identifier, Integer formSubmitter) throws IOException {
+		if (StringUtil.isEmpty(identifier))
 			identifier = String.valueOf(System.currentTimeMillis());
-		}
 		
 		boolean isFinalSubmission = false;
-		XFormSubmission xformSubmission;
-		
+		XFormSubmission xformSubmission = null;
 		if (submissionUUID != null)
-			xformSubmission = getXformsDAO().getSubmissionBySubmissionUUID(
-			    submissionUUID);
-		else
-			xformSubmission = null;
+			xformSubmission = getXformsDAO().getSubmissionBySubmissionUUID(submissionUUID);
 		
 		if (xformSubmission == null) {
-			
-			submissionUUID = saveSubmittedData(formId, is, identifier,
-			    isFinalSubmission, formSubmitter);
+			submissionUUID = saveSubmittedData(formId, is, identifier, isFinalSubmission, formSubmitter);
 		} else {
-			
 			if (submissionUUID.length() != 36) {
-				
 				submissionUUID = UUIDGenerator.getInstance().generateUUID();
 				xformSubmission.setSubmissionUUID(submissionUUID);
 			}
@@ -703,8 +691,7 @@ public class FormsSlidePersistence implements PersistenceManager {
 			xformSubmission.setSubmissionStorageIdentifier(path);
 			xformSubmission.setIsFinalSubmission(isFinalSubmission);
 			if (xformSubmission.getFormSubmitter() != null && formSubmitter == null) {
-				logger.info("Not setting null value for form submitter column! Form ID: " + formId + ", identifier: " + identifier + ", submission UUID: " +
-						submissionUUID);
+				logger.info("Not setting null value for form submitter column! Form ID: " + formId + ", identifier: " + identifier + ", submission UUID: " + submissionUUID);
 			} else {
 				xformSubmission.setFormSubmitter(formSubmitter);
 			}
