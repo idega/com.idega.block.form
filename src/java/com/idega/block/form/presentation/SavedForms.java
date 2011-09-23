@@ -24,6 +24,7 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
+import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
@@ -76,6 +77,7 @@ public class SavedForms extends IWBaseComponent {
 	private boolean showLatestForms = Boolean.FALSE;
 
 	private Integer userId;
+	private ICPage responsePage;
 
 	@Override
 	protected void initializeComponent(FacesContext context) {
@@ -197,8 +199,13 @@ public class SavedForms extends IWBaseComponent {
 
 			//	Link
 			Link linkToSavedForm = new Link(data.getLocalizedTitle());
-
-			linkToSavedForm.setURL(linkToForm);
+			if (getResponsePage() != null) {
+				linkToSavedForm.setPage(getResponsePage());
+				linkToSavedForm.addParameter(FormViewer.submissionIdParam, data.getSubmissionUUID());
+			}
+			else {
+				linkToSavedForm.setURL(linkToForm);
+			}
 			bodyRow.createCell().add(linkToSavedForm);
 
 			//	Date
@@ -430,6 +437,14 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setShowLatestForms(boolean showLatestForms) {
 		this.showLatestForms = showLatestForms;
+	}
+
+	public ICPage getResponsePage() {
+		return responsePage;
+	}
+
+	public void setResponsePage(ICPage responsePage) {
+		this.responsePage = responsePage;
 	}
 
 }
