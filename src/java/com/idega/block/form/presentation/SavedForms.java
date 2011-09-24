@@ -78,6 +78,8 @@ public class SavedForms extends IWBaseComponent {
 
 	private Integer userId;
 	private ICPage responsePage;
+	
+	private String allowedTypes;
 
 	@Override
 	protected void initializeComponent(FacesContext context) {
@@ -126,8 +128,15 @@ public class SavedForms extends IWBaseComponent {
 					LocalizedStringBean localizedTitle = getDocumentManager().newDocumentManager(iwma).openFormLazy(formId).getFormTitle();
 					data.setLocalizedTitle(localizedTitle.getString(locale));
 
-					submissionsData.add(data);
-					addedSubmissions.add(submissionUUID);
+					boolean add = true;
+					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
+						add = false;
+					}
+					
+					if (add) {
+						submissionsData.add(data);
+						addedSubmissions.add(submissionUUID);
+					}
 				}
 			} catch(Exception e) {
 				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID());
@@ -445,6 +454,14 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setResponsePage(ICPage responsePage) {
 		this.responsePage = responsePage;
+	}
+
+	public String getAllowedTypes() {
+		return allowedTypes;
+	}
+
+	public void setAllowedTypes(String allowedTypes) {
+		this.allowedTypes = allowedTypes;
 	}
 
 }
