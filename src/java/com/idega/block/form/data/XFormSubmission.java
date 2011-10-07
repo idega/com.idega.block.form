@@ -18,11 +18,9 @@ import javax.xml.parsers.DocumentBuilder;
 
 import org.w3c.dom.Document;
 
-import com.idega.business.IBOLookup;
-import com.idega.business.IBOLookupException;
-import com.idega.idegaweb.IWMainApplication;
-import com.idega.slide.business.IWSlideService;
+import com.idega.repository.RepositoryService;
 import com.idega.util.CoreConstants;
+import com.idega.util.expression.ELUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.Submission;
 
@@ -34,7 +32,7 @@ import com.idega.xformsmanager.business.Submission;
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
-@NamedQueries( {})
+@NamedQueries({})
 public class XFormSubmission implements Serializable, Submission {
 
 	private static final long serialVersionUID = -7231560026323818449L;
@@ -152,10 +150,10 @@ public class XFormSubmission implements Serializable, Submission {
 	private Document loadXMLResourceFromSlide(String resourcePath) {
 
 		try {
-			if (!getSlideService().getExistence(resourcePath))
+			if (!getRepositoryService().getExistence(resourcePath))
 				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: " + resourcePath);
 
-			InputStream is = getSlideService().getInputStream(resourcePath);
+			InputStream is = getRepositoryService().getInputStream(resourcePath);
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			Document resourceDocument = docBuilder.parse(is);
 			return resourceDocument;
@@ -167,8 +165,9 @@ public class XFormSubmission implements Serializable, Submission {
 		}
 	}
 
-	private IWSlideService getSlideService() throws IBOLookupException {
-		return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
+	private RepositoryService getRepositoryService() {
+		RepositoryService repository = ELUtil.getInstance().getBean(RepositoryService.BEAN_NAME);
+		return repository;
 	}
 
 	@Override
