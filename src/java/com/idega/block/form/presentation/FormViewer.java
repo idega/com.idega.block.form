@@ -346,7 +346,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 
 				String identifier = getFormId(context);
 				identifier = StringUtil.isEmpty(identifier) ? getSubmissionId(context) : identifier;
-//				CoreUtil.sendExceptionNotification("Error opening XForm: " + identifier, exception);
+				CoreUtil.sendExceptionNotification("Error opening XForm: " + identifier, exception);
 			}
 		}
 	}
