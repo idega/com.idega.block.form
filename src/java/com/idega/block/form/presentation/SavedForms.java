@@ -78,7 +78,7 @@ public class SavedForms extends IWBaseComponent {
 
 	private Integer userId;
 	private ICPage responsePage;
-	
+
 	private String allowedTypes;
 
 	@Override
@@ -132,14 +132,14 @@ public class SavedForms extends IWBaseComponent {
 					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
 						add = false;
 					}
-					
+
 					if (add) {
 						submissionsData.add(data);
 						addedSubmissions.add(submissionUUID);
 					}
 				}
 			} catch(Exception e) {
-				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID());
+				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID(), e);
 			}
 		}
 
