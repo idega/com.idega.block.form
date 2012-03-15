@@ -1,9 +1,11 @@
 package com.idega.block.form.data.dao.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.Query;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,7 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.util.StringUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormState;
@@ -21,9 +24,9 @@ import com.idega.xformsmanager.business.XFormState;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.14 $ Last modified: $Date: 2009/02/12 16:53:52 $ by $Author: donatas $
  */
-@Scope("singleton")
 @Repository
 @Transactional(readOnly = true)
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
 	@Override
@@ -42,36 +45,22 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		    XForm.formStorageTypeProperty, formStorageType).setParameter(
 		    XForm.formStateProperty, state).getResultList();
 
-		// @SuppressWarnings("unchecked")
-		// List<Form> xforms =
-		// getEntityManager().createNamedQuery(XForm.getAllByTypeAndStorageType)
-		// .setParameter(XForm.formTypeProperty, formType)
-		// .setParameter(XForm.formStorageTypeProperty, formStorageType)
-		// .getResultList();
-
 		return xforms;
 	}
 
 	@Override
-	public List<Submission> getSubmissionsByTypeAndStorageType(String formType,
-	        String formStorageType, long formId) {
-
+	public List<Submission> getSubmissionsByTypeAndStorageType(String formType, String formStorageType, long formId) {
 		String q = "select sub from " + XForm.class.getName()
 		        + " as child inner join child.formParent as parent, "
 		        + XFormSubmission.class.getName() + " as sub"
 		        + " where sub.xform = child and parent.formId = :"
 		        + XForm.formIdProperty;
 
-		List<Submission> submissions = getEntityManager().createQuery(q)
-		        .setParameter(XForm.formIdProperty, formId).getResultList();
-
-		return submissions;
+		return getResultListByInlineQuery(q, Submission.class, new Param(XForm.formIdProperty, formId));
 	}
 
 	@Override
-	public XForm getXFormByParentVersion(Form parentForm, Integer version,
-	        XFormState state) {
-
+	public XForm getXFormByParentVersion(Form parentForm, Integer version, XFormState state) {
 		@SuppressWarnings("unchecked")
 		List<XForm> xforms = getEntityManager().createNamedQuery(
 		    XForm.getByParentVersion).setParameter(XForm.formParentProperty,
@@ -173,6 +162,25 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
 		return submissions;
 
+	}
+
+	@Override
+	public List<XForm> getXFormsByNameAndStorageIndetifierAndType(String name, String storageIdentifier, String type) {
+		if (StringUtil.isEmpty(name) || StringUtil.isEmpty(storageIdentifier) || StringUtil.isEmpty(type))
+			return Collections.emptyList();
+
+		String q = "select distinct xf from XForm xf where xf." + XForm.formTypeProperty + " = :"
+		        + XForm.formTypeProperty + " and xf."
+		        + XForm.formStorageIdentifierProperty + " like :"
+		        + XForm.formStorageIdentifierProperty + " and xf."
+		        + XForm.displayNameProperty + " = :" + XForm.displayNameProperty;
+
+		List<XForm> xforms = getResultListByInlineQuery(q, XForm.class,
+				new Param(XForm.formTypeProperty, type),
+				new Param(XForm.formStorageIdentifierProperty, "%" + storageIdentifier + "%"),
+				new Param(XForm.displayNameProperty, name)
+		);
+		return xforms;
 	}
 
 }

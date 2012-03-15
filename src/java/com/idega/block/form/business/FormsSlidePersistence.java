@@ -32,6 +32,7 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.DocumentManager;
@@ -316,11 +317,23 @@ public class FormsSlidePersistence implements PersistenceManager {
 		Long formId = document.getFormId();
 		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
 
-		List<XForm> list = getXformsDAO().getAllVersionsByParentId(parentId);
-		if (!formId.equals(parentId)) {
-			list.add(getXformsDAO().find(XForm.class, parentId));
+		List<XForm> previousVersions = getXformsDAO().getAllVersionsByParentId(parentId);
+		if (ListUtil.isEmpty(previousVersions)) {
+			try {
+				XForm xform = getXformsDAO().find(XForm.class, formId);
+				String storageIdentifier = xform.getFormStorageIdentifier();
+				storageIdentifier = storageIdentifier.split(CoreConstants.MINUS)[0];
+				String type = xform.getFormType();
+				previousVersions = getXformsDAO().getXFormsByNameAndStorageIndetifierAndType(defaultFormName, storageIdentifier, type);
+			} catch (Exception e) {
+				getLogger().log(Level.WARNING, "Error getting previous versions for XForm: " + formId, e);
+			}
 		}
-		for (XForm xform : list) {
+
+		if (!formId.equals(parentId)) {
+			previousVersions.add(getXformsDAO().find(XForm.class, parentId));
+		}
+		for (XForm xform : previousVersions) {
 			if (!xform.getFormId().equals(formId)) {
 				if (xform.getFormState() != XFormState.FIRM) {
 					xform.setVersion(xform.getVersion() + 1);
