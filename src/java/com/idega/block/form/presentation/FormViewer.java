@@ -53,6 +53,7 @@ import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
 import com.idega.chiba.web.xml.xforms.util.XFormsUtil;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -211,13 +212,16 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.addAll(web2.getScriptsForTinyMCE());
 
 			//	Test script
-			addTestScript = iwc.getApplicationSettings().getBoolean("load_xforms_test_script", Boolean.FALSE);
-			if (addTestScript) {
+			IWMainApplicationSettings settings = iwc.getApplicationSettings();
+			if (settings.getBoolean("load_xforms_test_script", Boolean.FALSE))
 				scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/XFormsTester.js"));
-			}
 
 			// Fancybox
 			scriptsUris.addAll(web2.getBundleURIsToFancyBoxScriptFiles());
+
+			//	Firefox Lite for IE
+			if (settings.getBoolean("load_firebug_ie", Boolean.FALSE) && iwc.isIE())
+				scriptsUris.add("https://getfirebug.com/firebug-lite.js");
 
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 
