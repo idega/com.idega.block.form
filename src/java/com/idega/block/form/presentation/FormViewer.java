@@ -190,7 +190,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.MASKED_INPUT));
 
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
-			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
+			scriptsUris.add(web2.getBundleURIToScriptaculousLib() + "?load=builder,effects,dragdrop,controls,slider");
 
 			scriptsUris.add(CoreConstants.DWR_ENGINE_SCRIPT);
 			scriptsUris.add("/dwr/interface/Flux.js");
