@@ -235,11 +235,17 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		}
 
 		String locale = iwc.getCurrentLocale().toString();
+		IWResourceBundle iwrb = chibaBundle.getResourceBundle(iwc);
 		String initScript = null;
 		try {
-			initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
-				.append("', locale: '").append(locale).append("', maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength()).append("}); XFormsConfig.locale = '")
-				.append(locale).append("';").toString();
+			initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '")
+				.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
+				.append("', locale: '").append(locale).append("', maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength())
+				.append("}); XFormsConfig.locale = '").append(locale).append("';").append(" Localization.CONFIRM_TO_LEAVE_NOT_SUBMITTED_FORM = '")
+				.append(iwrb.getLocalizedString("confirm_to_leave_unfinished_xform", "Are you sure you want to navigate from unfinished form?"))
+				.append("'; ").append("Localization.CONFIRM_TO_LEAVE_WHILE_UPLOAD_IN_PROGRESS = '")
+				.append(iwrb.getLocalizedString("confirm_to_leave_xform_while_upload_in_progress",
+						"Are you sure you want to navigate from this page while upload is in progress?")).append("';").toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
