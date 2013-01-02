@@ -3,6 +3,8 @@ package com.idega.block.form.data;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -20,6 +22,8 @@ import org.w3c.dom.Document;
 
 import com.idega.repository.RepositoryService;
 import com.idega.util.CoreConstants;
+import com.idega.util.IOUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.expression.ELUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.Submission;
@@ -148,21 +152,40 @@ public class XFormSubmission implements Serializable, Submission {
 	}
 
 	private Document loadXMLResourceFromSlide(String resourcePath) {
+		Document xform = null;
+		InputStream stream = null;
+		DocumentBuilder docBuilder = null;
 
 		try {
 			if (!getRepositoryService().getExistence(resourcePath))
 				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: " + resourcePath);
 
-			InputStream is = getRepositoryService().getInputStream(resourcePath);
-			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
-			Document resourceDocument = docBuilder.parse(is);
-			return resourceDocument;
+			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
+			docBuilder = XmlUtil.getDocumentBuilder();
+			xform = docBuilder.parse(stream);
+		} catch (Exception e) {
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error loading resource: " + resourcePath, e);
+		} finally {
+			IOUtil.close(stream);
+		}
 
-		} catch (RuntimeException e) {
-			throw e;
+		if (xform != null)
+			return xform;
+
+		try {
+			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
+			String content = XmlUtil.getCleanedXml(stream);
+			IOUtil.close(stream);
+
+			stream = StringHandler.getStreamFromString(content);
+			xform = docBuilder.parse(stream);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			IOUtil.close(stream);
 		}
+
+		return xform;
 	}
 
 	private RepositoryService getRepositoryService() {

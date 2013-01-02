@@ -26,7 +26,7 @@ import com.idega.xformsmanager.business.XFormState;
 /**
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.8 $
- * 
+ *
  *          Last modified: $Date: 2008/12/28 11:39:50 $ by $Author: civilis $
  */
 @Entity
@@ -72,6 +72,7 @@ public class XForm implements Serializable, Form {
 	@JoinColumn(name = "FORM_PARENT")
 	private XForm formParent;
 
+	public static final String formStorageIdentifierProperty = "formStorageIdentifier";
 	@Column(name = "FORM_STORAGE_IDENTIFIER", nullable = false)
 	private String formStorageIdentifier;
 
@@ -95,6 +96,7 @@ public class XForm implements Serializable, Form {
 	@Column(name = "DATE_CREATED")
 	private Date dateCreated;
 
+	public static final String displayNameProperty = "displayName";
 	@Column(name = "DISPLAY_NAME")
 	private String displayName;
 
@@ -103,6 +105,7 @@ public class XForm implements Serializable, Form {
 			CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH }, fetch = FetchType.LAZY)
 	private List<XFormSubmission> xformSubmissions;
 
+	@Override
 	public String getFormStorageType() {
 		return formStorageType;
 	}
@@ -111,6 +114,7 @@ public class XForm implements Serializable, Form {
 		this.formStorageType = formStorageType;
 	}
 
+	@Override
 	public String getFormType() {
 		return formType;
 	}
@@ -119,6 +123,7 @@ public class XForm implements Serializable, Form {
 		this.formType = formType;
 	}
 
+	@Override
 	public Long getFormId() {
 		return formId;
 	}
@@ -127,6 +132,7 @@ public class XForm implements Serializable, Form {
 		this.formId = formId;
 	}
 
+	@Override
 	public XForm getFormParent() {
 		return formParent;
 	}
@@ -135,6 +141,7 @@ public class XForm implements Serializable, Form {
 		this.formParent = formParent;
 	}
 
+	@Override
 	public String getFormStorageIdentifier() {
 		return formStorageIdentifier;
 	}
@@ -151,6 +158,7 @@ public class XForm implements Serializable, Form {
 		this.formState = formState;
 	}
 
+	@Override
 	public Integer getVersion() {
 		return version;
 	}
@@ -159,6 +167,7 @@ public class XForm implements Serializable, Form {
 		this.version = version;
 	}
 
+	@Override
 	public Date getDateCreated() {
 		return dateCreated;
 	}
@@ -167,6 +176,7 @@ public class XForm implements Serializable, Form {
 		this.dateCreated = dateCreated;
 	}
 
+	@Override
 	public String getDisplayName() {
 		return displayName;
 	}
@@ -175,6 +185,7 @@ public class XForm implements Serializable, Form {
 		this.displayName = displayName;
 	}
 
+	@Override
 	public List<XFormSubmission> getXformSubmissions() {
 		return xformSubmissions;
 	}

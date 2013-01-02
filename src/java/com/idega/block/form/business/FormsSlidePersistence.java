@@ -4,10 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.jcr.RepositoryException;
 import javax.xml.parsers.DocumentBuilder;
@@ -27,7 +27,6 @@ import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.idgenerator.business.UUIDGenerator;
 import com.idega.core.persistence.Param;
-import com.idega.idegaweb.IWApplicationContext;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
@@ -59,8 +58,6 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 	private static final String standaloneFormType = "standalone";
 	private static final String submissionFileName = "submission.xml";
 
-	private final Logger logger;
-	private IWApplicationContext iwac;
 	private XFormsDAO xformsDAO;
 	private DocumentManagerFactory documentManagerFactory;
 
@@ -68,15 +65,6 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 	public static final String STANDALONE_FORMS_PATH = FORMS_PATH  + "/standalone";
 	public static final String FORMS_FILE_EXTENSION = ".xhtml";
 	public static final String SUBMITTED_DATA_PATH = "/files/forms/submissions";
-
-	public FormsSlidePersistence() {
-		logger = Logger.getLogger(getClass().getName());
-	}
-
-	@Override
-	protected Logger getLogger() {
-		return logger;
-	}
 
 	protected String getFormResourcePath(String formType, String formIdentifier, String formBasePath, boolean withFile) {
 		StringBuilder b = StringUtil.isEmpty(formBasePath) ?
@@ -152,7 +140,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 			formDoc.setVersion(xform.getVersion());
 
 		} else {
-			logger.log(Level.WARNING, "No submission found by submissionId provided=" + submissionUUID);
+			getLogger().log(Level.WARNING, "No submission found by submissionId provided=" + submissionUUID);
 			formDoc = null;
 		}
 
@@ -162,7 +150,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 	protected Document loadXMLResourceFromSlide(String resourcePath) {
 		InputStream stream = null;
 		try {
-			stream = getRepositoryService().getInputStream(resourcePath);
+			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
 
 			DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 			Document resourceDocument = docBuilder.parse(stream);
@@ -309,11 +297,29 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 		Long formId = document.getFormId();
 		String defaultFormName = document.getFormTitle().getString(document.getDefaultLocale());
 
-		List<XForm> list = getXformsDAO().getAllVersionsByParentId(parentId);
-		if (!formId.equals(parentId)) {
-			list.add(getXformsDAO().find(XForm.class, parentId));
+		List<XForm> previousVersions = getXformsDAO().getAllVersionsByParentId(parentId);
+		if (previousVersions != null)
+			previousVersions = new ArrayList<XForm>(previousVersions);
+
+		//	Double checking if all forms were found...
+		try {
+			XForm xform = getXformsDAO().find(XForm.class, formId);
+			String storageIdentifier = xform.getFormStorageIdentifier();
+			storageIdentifier = storageIdentifier.split(CoreConstants.MINUS)[0];
+			String type = xform.getFormType();
+			List<XForm> formsByQuery = getXformsDAO().getXFormsByNameAndStorageIndetifierAndType(defaultFormName, storageIdentifier, type);
+			if (previousVersions == null)
+				previousVersions = formsByQuery;
+			else if (formsByQuery != null)
+				previousVersions.addAll(formsByQuery);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error getting previous versions for XForm: " + formId, e);
 		}
-		for (XForm xform : list) {
+
+		if (!formId.equals(parentId))
+			previousVersions.add(getXformsDAO().find(XForm.class, parentId));
+
+		for (XForm xform : previousVersions) {
 			if (!xform.getFormId().equals(formId)) {
 				if (xform.getFormState() != XFormState.FIRM) {
 					xform.setVersion(xform.getVersion() + 1);
@@ -527,7 +533,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 			throw new NullPointerException("submitted_data_id or formId is not provided");
 
 		String resourcePath = getSubmittedDataResourcePath(formId, submittedDataFilename);
-		InputStream is = getRepositoryService().getInputStream(resourcePath);
+		InputStream is = getRepositoryService().getInputStreamAsRoot(resourcePath);
 
 		DocumentBuilder docBuilder = XmlUtil.getDocumentBuilder();
 		Document submitted_data = docBuilder.parse(is);
@@ -661,31 +667,19 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 
 	@Override
 	@Transactional(readOnly = false)
-	public String saveSubmittedDataByExistingSubmission(String submissionUUID,
-	        Long formId, InputStream is, String identifier,
-	        Integer formSubmitter) throws IOException {
-
-		if (identifier == null || identifier.length() == 0) {
+	public String saveSubmittedDataByExistingSubmission(String submissionUUID, Long formId, InputStream is, String identifier, Integer formSubmitter) throws IOException {
+		if (StringUtil.isEmpty(identifier))
 			identifier = String.valueOf(System.currentTimeMillis());
-		}
 
 		boolean isFinalSubmission = false;
-		XFormSubmission xformSubmission;
-
+		XFormSubmission xformSubmission = null;
 		if (submissionUUID != null)
-			xformSubmission = getXformsDAO().getSubmissionBySubmissionUUID(
-			    submissionUUID);
-		else
-			xformSubmission = null;
+			xformSubmission = getXformsDAO().getSubmissionBySubmissionUUID(submissionUUID);
 
 		if (xformSubmission == null) {
-
-			submissionUUID = saveSubmittedData(formId, is, identifier,
-			    isFinalSubmission, formSubmitter);
+			submissionUUID = saveSubmittedData(formId, is, identifier, isFinalSubmission, formSubmitter);
 		} else {
-
 			if (submissionUUID.length() != 36) {
-
 				submissionUUID = UUIDGenerator.getInstance().generateUUID();
 				xformSubmission.setSubmissionUUID(submissionUUID);
 			}
@@ -696,12 +690,12 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 			} catch (RepositoryException e) {
 				throw new IOException(e);
 			}
+
 			xformSubmission.setDateSubmitted(new Date());
 			xformSubmission.setSubmissionStorageIdentifier(path);
 			xformSubmission.setIsFinalSubmission(isFinalSubmission);
 			if (xformSubmission.getFormSubmitter() != null && formSubmitter == null) {
-				logger.info("Not setting null value for form submitter column! Form ID: " + formId + ", identifier: " + identifier + ", submission UUID: " +
-						submissionUUID);
+				getLogger().info("Not setting null value for form submitter column! Form ID: " + formId + ", identifier: " + identifier + ", submission UUID: " + submissionUUID);
 			} else {
 				xformSubmission.setFormSubmitter(formSubmitter);
 			}

@@ -1,9 +1,9 @@
 /*
  * $Id: FormViewer.java,v 1.80 2009/06/19 11:27:16 valdas Exp $ Created on
  * Aug 17, 2006
- * 
+ *
  * Copyright (C) 2006 Idega Software hf. All Rights Reserved.
- * 
+ *
  * This software is the proprietary information of Idega hf. Use is subject to
  * license terms.
  */
@@ -50,8 +50,10 @@ import com.idega.chiba.event.SubmissionEvent;
 import com.idega.chiba.web.exception.IdegaChibaException;
 import com.idega.chiba.web.session.impl.IdegaXFormSessionManagerImpl;
 import com.idega.chiba.web.upload.XFormTmpFileResolverImpl;
+import com.idega.chiba.web.xml.xforms.util.XFormsUtil;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -73,51 +75,51 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
  * Last modified: $Date: 2009/06/19 11:27:16 $ by $Author: valdas $
- * 
+ *
  * @author <a href="mailto:gediminas@idega.com">Gediminas Paulauskas</a>
  * @version $Revision: 1.80 $
  */
 public class FormViewer extends IWBaseComponent implements PDFRenderedComponent {
-	
+
 	public static final String COMPONENT_TYPE = "FormViewer";
 	public static final String formIdParam = "formId";
 	public static final String submissionIdParam = "submissionId";
 	public static final String formviewerPageType = "formsviewer";
-	
+
 	private static final String invalidSubmissionFacet = "InvalidSubmission";
-	
+
 	protected static final Logger LOGGER = Logger.getLogger(FormViewer.class.getName());
-	
+
 	private PersistenceManager persistenceManager;
 	private String formId;
 	private String submissionId;
 	private DocumentManagerFactory documentManagerFactory;
-	
+
 	private Document xDoc;
 	private String sessionKey;
-	
+
 	private boolean pdfViewer;
 	private boolean validBrowser = Boolean.TRUE;
-	
+
 	@Autowired
 	private JQuery jQuery;
 	@Autowired
 	private Web2Business web2;
-	
+
 	public FormViewer() {
 		super();
 		ELUtil.getInstance().autowire(this);
 	}
-	
+
 	@Override
 	public String getRendererType() {
 		return null;
 	}
-	
+
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
-		
+
 		if (!isPdfViewer()) {
 			IWContext iwc = IWContext.getIWContext(context);
 			if (iwc.isIE() && iwc.getBrowserVersion() < 7) {
@@ -126,10 +128,10 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				return;
 			}
 		}
-		
+
 		initializeXForms(context);
 	}
-	
+
 	protected Document resolveXFormsDocument(FacesContext context) {
 		Document document = xDoc;
 		if (document == null) {
@@ -150,12 +152,12 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 					} catch(Exception e) {
 						LOGGER.log(Level.WARNING, "Error resolving unique submission id from submission id: " + submissionId, e);
 					}
-					
+
 					if (StringUtil.isEmpty(uniqueSubmissionId)) {
 						LOGGER.warning("Unique submission ID was not resolved by submission id: " + submissionId);
 						return null;
 					}
-					
+
 					try {
 						PersistedFormDocument formDocument = persistenceManager.loadPopulatedForm(uniqueSubmissionId, isPdfViewer());
 						document = formDocument.getXformsDocument();
@@ -168,32 +170,33 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				}
 			}
 		}
-		
+
 		return document;
 	}
-	
+
 	private void addResources(IWContext iwc) {
 		String styleSheet = new StringBuilder().append(CoreConstants.WEBDAV_SERVLET_URI).append(IWBundleStarter.SLIDE_STYLES_PATH)
 			.append(IWBundleStarter.CHIBA_CSS).toString();
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
-		
+
 		List<String> scriptsUris = new ArrayList<String>();
-		
+
 		boolean addTestScript = false;
-		
-		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);	
+
+		IWBundle chibaBundle = iwc.getIWMainApplication().getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		try {
 			// scripts for XForms - DO NOT change order of scripts!
 			scriptsUris.add(jQuery.getBundleURIToJQueryLib());
 			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.MASKED_INPUT));
-			
+			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.URL_PARSER));
+
 			scriptsUris.add(web2.getBundleURIToPrototypeLib());
-			scriptsUris.add(web2.getBundleURIToScriptaculousLib());
-			
+			scriptsUris.add(web2.getBundleURIToScriptaculousLib() + "?load=builder,effects,dragdrop,controls,slider");
+
 			scriptsUris.add(CoreConstants.DWR_ENGINE_SCRIPT);
 			scriptsUris.add("/dwr/interface/Flux.js");
 			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
-			
+
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xforms-util.js"));
@@ -202,24 +205,27 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/htmltext.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/fckeditor/fckeditor.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
-			
+
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
-			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.AUTO_RESIZE));
-			
+			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TEXT_AREA_AUTO_GROW));
+
 			//	TinyMCE
 			scriptsUris.addAll(web2.getScriptsForTinyMCE());
-			
+
 			//	Test script
-			addTestScript = iwc.getApplicationSettings().getBoolean("load_xforms_test_script", Boolean.FALSE);
-			if (addTestScript) {
+			IWMainApplicationSettings settings = iwc.getApplicationSettings();
+			if (settings.getBoolean("load_xforms_test_script", Boolean.FALSE))
 				scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/XFormsTester.js"));
-			}
-			
+
 			// Fancybox
 			scriptsUris.addAll(web2.getBundleURIsToFancyBoxScriptFiles());
-			
+
+			//	Firefox Lite for IE
+			if (settings.getBoolean("load_firebug_ie", Boolean.FALSE) && iwc.isIE())
+				scriptsUris.add("https://getfirebug.com/firebug-lite.js");
+
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
-			
+
 			//	CSS
 			PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
 					web2.getBundleUriToHumanizedMessagesStyleSheet(),
@@ -228,12 +234,25 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-		
+
 		String locale = iwc.getCurrentLocale().toString();
-		String initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
-			.append("', locale: '").append(locale).append("'}); XFormsConfig.locale = '").append(locale).append("';").toString();
-		PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
-		
+		IWResourceBundle iwrb = chibaBundle.getResourceBundle(iwc);
+		String initScript = null;
+		try {
+			initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '")
+				.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
+				.append("', locale: '").append(locale).append("', maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength())
+				.append("}); XFormsConfig.locale = '").append(locale).append("'; Localization.CONFIRM_TO_LEAVE_NOT_SUBMITTED_FORM = '")
+				.append(iwrb.getLocalizedString("confirm_to_leave_unfinished_xform", "Are you sure you want to navigate from unfinished form?"))
+				.append("'; Localization.CONFIRM_TO_LEAVE_WHILE_UPLOAD_IN_PROGRESS = '")
+				.append(iwrb.getLocalizedString("confirm_to_leave_xform_while_upload_in_progress",
+						"Are you sure you want to navigate from this page while upload is in progress?")).append("';").toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (initScript != null)
+			PresentationUtil.addJavaScriptActionToBody(iwc, initScript);
+
 		if (addTestScript) {
 			int openedSessions = 0;
 			if (iwc.isLoggedOn()) {
@@ -247,23 +266,23 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			PresentationUtil.addJavaScriptActionToBody(iwc, action);
 		}
 	}
-	
+
 	protected void initializeXForms(FacesContext context) {
 		IWContext iwc = IWContext.getIWContext(context);
 		addResources(iwc);
-		
+
 		Document document = resolveXFormsDocument(context);
-		
+
 		if (document == null)
 			return;
-		
+
 		HttpServletRequest request = iwc.getRequest();
 		HttpServletResponse response = iwc.getResponse();
 		HttpSession session = (HttpSession) iwc.getExternalContext().getSession(true);
-		
+
 		XFormsSessionManager sessionManager = null;
 		XFormsSession xformsSession = null;
-		
+
 		try {
 			sessionManager = getXFormsSessionManager(session);
 			// get IdegaXFormsSessionBase instance
@@ -274,34 +293,35 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			LOGGER.log(Level.WARNING, "Error creating XFormsSession", e);
 			CoreUtil.sendExceptionNotification(e);
 		}
-		
+
+		Throwable exception = null;
 		WebAdapter adapter = xformsSession.getAdapter();
 		try {
 			setupAdapter(adapter, document, xformsSession, context);
 			adapter.init();
-			
+
 			EventTarget eventTarget = (EventTarget) ((Document) adapter.getXForms()).getDocumentElement();
-			
+
 			final WebAdapter eventAdapter = adapter;
 			EventListener eventListener = new EventListener() {
-				
+				@Override
 				public void handleEvent(Event event) {
 					String id = "";
 					if (event.getTarget() instanceof Element) {
 						id = ((Element) event.getTarget()).getAttribute("id");
 					}
-					
+
 					if (XFormsEventNames.SUBMIT_DONE.equals(event.getType())) {
 						ELUtil.getInstance().publishEvent(new SubmissionEvent(eventAdapter, event));
 					}
-					
+
 					LOGGER.info("Got event, type=" + event.getType() + ", id=" + id);
 				}
 			};
-			
+
 			eventTarget.addEventListener(XFormsEventNames.SUBMIT_DONE, eventListener, true);
 			eventTarget.addEventListener(XFormsEventNames.SUBMIT_ERROR, eventListener, true);
-			
+
 			XMLEvent exitEvent = adapter.checkForExitEvent();
 			if (exitEvent != null) {
 				handleExit(exitEvent, xformsSession, session, request, response);
@@ -309,59 +329,64 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				// actually add the XFormsSession at the manager
 				sessionManager.addXFormsSession(xformsSession);
 				setSessionKey(xformsSession.getKey());
-				
-				// store queryString as 'referer' in XFormsSession
-				// xFormsSession.setProperty(XFormsSession.REFERER, request.getQueryString());
 			}
 		} catch (IOException e) {
+			exception = e;
+
 			LOGGER.log(Level.WARNING, "handleExit failed", e);
-			return;
 		} catch (XFormsException e) {
+			exception = e;
+
 			LOGGER.log(Level.WARNING, "Could not set XML container", e);
 			shutdown(adapter, session, xformsSession.getKey());
-			return;
 		} catch (IdegaChibaException e) {
+			exception = e;
+
 			LOGGER.log(Level.WARNING, "Chiba exception", e);
-			
-			String messageToClient = e.getMessageToClient();
-			if (StringUtil.isEmpty(messageToClient)) {
-				IWResourceBundle iwrb = getIWResourceBundle(context, com.idega.block.form.IWBundleStarter.BUNDLE_IDENTIFIER);
-				messageToClient = iwrb.getLocalizedString("chiba_error_rendering_form", "We are very sorry, an error occurred... We are working on it. Please, try later.");
+		} finally {
+			if (exception != null) {
+				String messageToClient = exception instanceof IdegaChibaException ? ((IdegaChibaException) exception).getMessageToClient() : null;
+				if (StringUtil.isEmpty(messageToClient)) {
+					IWResourceBundle iwrb = getIWResourceBundle(context, com.idega.block.form.IWBundleStarter.BUNDLE_IDENTIFIER);
+					messageToClient = iwrb.getLocalizedString("chiba_error_rendering_form",
+							"We are very sorry, an error occurred... We are working on it. Please, try later.");
+				}
+				getChildren().add(new Heading1(messageToClient));
+
+				shutdown(adapter, session, xformsSession.getKey());
+
+				String identifier = getFormId(context);
+				identifier = StringUtil.isEmpty(identifier) ? getSubmissionId(context) : identifier;
+				CoreUtil.sendExceptionNotification("Error opening XForm: " + identifier, exception);
 			}
-			getChildren().add(new Heading1(messageToClient));
-			
-			shutdown(adapter, session, xformsSession.getKey());
-		
-			CoreUtil.sendExceptionNotification(e);
-			return;
 		}
 	}
-	
+
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
 		if (validBrowser) {
 			if (getFacets().containsKey(invalidSubmissionFacet)) {
 				renderChild(context, getFacet(invalidSubmissionFacet));
 			} else {
-				
+
 				if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
-					
+
 					HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 					WebAdapter webAdapter = null;
 					try {
 						XFormsSessionManager manager = getXFormsSessionManager(session);
 						XFormsSession xFormsSession = manager.getXFormsSession(getSessionKey());
-						
+
 						if (xFormsSession == null) {
 							initializeXForms(context);
 							xFormsSession = manager.getXFormsSession(getSessionKey());
 						}
-						
+
 						HttpServletRequest request = (HttpServletRequest) context.getExternalContext().getRequest();
-						
+
 						xFormsSession.setRequest(request);
 						xFormsSession.setBaseURI(request.getRequestURL().toString());
-						
+
 						xFormsSession.handleRequest();
 					} catch (Exception e) {
 						LOGGER.log(Level.SEVERE, "Error rendering form", e);
@@ -370,34 +395,34 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				}
 			}
 		}
-		
+
 		super.encodeEnd(context);
 	}
-	
+
 	public String getFormId() {
 		return formId;
 	}
-	
+
 	public String getFormId(FacesContext context) {
 		String formId = getFormId();
 		if (formId == null) {
-			
+
 			formId = getExpressionValue(context, formIdParam);
-			
+
 			if (formId == null)
 				formId = context.getExternalContext().getRequestParameterMap().get(formIdParam);
-			
+
 			formId = StringUtil.isEmpty(formId) ? null : formId;
 			setFormId(formId);
 		}
-		
+
 		return formId;
 	}
-	
+
 	public void setFormId(String formId) {
 		this.formId = formId;
 	}
-	
+
 	@Override
 	public Object saveState(FacesContext ctx) {
 		Object values[] = new Object[5];
@@ -406,10 +431,10 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		values[2] = sessionKey;
 		values[3] = Boolean.valueOf(isPdfViewer());
 		values[4] = Boolean.valueOf(validBrowser);
-		
+
 		return values;
 	}
-	
+
 	@Override
 	public void restoreState(FacesContext ctx, Object state) {
 		Object values[] = (Object[]) state;
@@ -419,9 +444,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		pdfViewer = values[3] instanceof Boolean ? (Boolean) values[3] : Boolean.FALSE;
 		validBrowser = values[4] instanceof Boolean ? (Boolean) values[3] : Boolean.TRUE;
 	}
-	
+
 	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response) throws IOException {
-		
+
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
 			response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
 		} else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
@@ -430,9 +455,9 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				String sessionId = xFormsSession.getKey();
 				String explanation = "Killing XForm session '".concat(sessionId).concat("', because context info 'show' is: ")
 					.concat(showContextInfo.toString()).concat(", expected value: 'replace'");
-				
+
 				ChibaUtils.getInstance().markXFormSessionFinished(sessionId, Boolean.TRUE);
-				
+
 				XFormsSessionManager manager = xFormsSession.getManager();
 				if (manager instanceof IdegaXFormSessionManagerImpl) {
 					((IdegaXFormSessionManagerImpl) manager).deleteXFormsSession(sessionId, explanation);
@@ -441,29 +466,29 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 					manager.deleteXFormsSession(sessionId);
 				}
 				setSessionKey(null);
-				
+
 				String loadURI = (String) exitEvent.getContextInfo("uri");
 				response.sendRedirect(response.encodeRedirectURL(loadURI));
 			}
 		}
 		LOGGER.fine("Exited during XForms model init");
 	}
-	
+
 	protected void setupAdapter(WebAdapter adapter, Document document, XFormsSession xforms_session, FacesContext context) throws XFormsException {
 		adapter.setXFormsSession(xforms_session);
 		adapter.setXForms(document);
-		
+
 		Map<String, String> servletMap = new HashMap<String, String>();
 		servletMap.put(WebAdapter.SESSION_ID, xforms_session.getKey());
 		adapter.setContextParam(XFormsConstants.SUBMISSION, servletMap);
-		
+
 		IWMainApplication app = IWMainApplication.getIWMainApplication(context);
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
 		adapter.setBaseURI(bundle.getResourcesVirtualPath());
 		adapter.setUploadDestination(XFormTmpFileResolverImpl.UPLOADS_PATH);
 		// storeCookies(request, adapter);
 	}
-	
+
 	protected void shutdown(WebAdapter webAdapter, HttpSession session, String key) {
 		// attempt to shutdown processor
 		if (webAdapter != null) {
@@ -482,114 +507,116 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		// response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/"
 		// + request.getSession().getServletContext().getInitParameter("error.page")));
 	}
-	
+
 	public void setXFormsDocument(Document xDoc) {
 		this.xDoc = xDoc;
 	}
-	
+
 	protected XFormsSessionManager getXFormsSessionManager(HttpSession session) throws XFormsConfigException {
 		XFormsSessionManager manager = (XFormsSessionManager) session.getAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER);
-		
+
 		if (manager == null) {
 			manager = DefaultXFormsSessionManagerImpl.createXFormsSessionManager(IdegaXFormSessionManagerImpl.class.getName());
 			session.setAttribute(XFormsSessionManager.XFORMS_SESSION_MANAGER, manager);
 		}
-		
+
 		return manager;
 	}
-	
+
 	public void setSessionKey(String sessionKey) {
 		this.sessionKey = sessionKey;
 	}
-	
+
 	public String getSessionKey() {
 		return sessionKey;
 	}
-	
+
 	private String getSubmissionId(FacesContext context) {
-		
+
 		String submissionId = getSubmissionId();
-		
+
 		if (submissionId == null) {
-			
+
 			submissionId = getExpressionValue(context, submissionIdParam);
-			
+
 			if (submissionId == null)
 				submissionId = context.getExternalContext()
 				        .getRequestParameterMap().get(submissionIdParam);
-			
+
 			submissionId = StringUtil.isEmpty(submissionId) ? null
 			        : submissionId;
 			setSubmissionId(submissionId);
 		}
-		
+
 		return submissionId;
 	}
-	
+
 	public String getSubmissionId() {
 		return submissionId;
 	}
-	
+
 	public void setSubmissionId(String submissionId) {
 		this.submissionId = submissionId;
 	}
-	
+
 	public PersistenceManager getPersistenceManager() {
 		return persistenceManager;
 	}
-	
+
 	@Autowired
 	@XFormPersistenceType("slide")
 	public void setPersistenceManager(PersistenceManager persistenceManager) {
 		this.persistenceManager = persistenceManager;
 	}
-	
+
+	@Override
 	public boolean isPdfViewer() {
 		return pdfViewer;
 	}
-	
+
+	@Override
 	public void setPdfViewer(boolean pdfViewer) {
 		if (pdfViewer)
 			getFormDocument().setPdfForm(pdfViewer);
-		
+
 		this.pdfViewer = pdfViewer;
 	}
-	
+
 	public DocumentManagerFactory getDocumentManagerFactory() {
 		return documentManagerFactory;
 	}
-	
+
 	@Autowired
 	public void setDocumentManagerFactory(
 	        DocumentManagerFactory documentManagerFactory) {
 		this.documentManagerFactory = documentManagerFactory;
 	}
-	
+
 	protected com.idega.xformsmanager.business.Document getFormDocument() {
-		
+
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
 			IWMainApplication iwma = fctx == null ? IWMainApplication
 			        .getDefaultIWMainApplication() : IWMainApplication
 			        .getIWMainApplication(fctx);
-			
+
 			DocumentManager documentManager = getDocumentManagerFactory()
 			        .newDocumentManager(iwma);
-			
+
 			if (xDoc == null) {
 				xDoc = resolveXFormsDocument(fctx);
 			}
-			
+
 			com.idega.xformsmanager.business.Document form = documentManager
 			        .openFormLazy(xDoc);
-			
+
 			return form;
-			
+
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 }

@@ -47,4 +47,6 @@ public interface XFormsDAO extends GenericDao {
 	 * @return
 	 */
 	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId);
+
+	public List<XForm> getXFormsByNameAndStorageIndetifierAndType(String name, String storageIdentifier, String type);
 }

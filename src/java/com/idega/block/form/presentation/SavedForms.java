@@ -24,6 +24,7 @@ import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
+import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
@@ -76,6 +77,9 @@ public class SavedForms extends IWBaseComponent {
 	private boolean showLatestForms = Boolean.FALSE;
 
 	private Integer userId;
+	private ICPage responsePage;
+
+	private String allowedTypes;
 
 	@Override
 	protected void initializeComponent(FacesContext context) {
@@ -124,11 +128,18 @@ public class SavedForms extends IWBaseComponent {
 					LocalizedStringBean localizedTitle = getDocumentManager().newDocumentManager(iwma).openFormLazy(formId).getFormTitle();
 					data.setLocalizedTitle(localizedTitle.getString(locale));
 
-					submissionsData.add(data);
-					addedSubmissions.add(submissionUUID);
+					boolean add = true;
+					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
+						add = false;
+					}
+
+					if (add) {
+						submissionsData.add(data);
+						addedSubmissions.add(submissionUUID);
+					}
 				}
 			} catch(Exception e) {
-				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID());
+				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID(), e);
 			}
 		}
 
@@ -197,8 +208,13 @@ public class SavedForms extends IWBaseComponent {
 
 			//	Link
 			Link linkToSavedForm = new Link(data.getLocalizedTitle());
-
-			linkToSavedForm.setURL(linkToForm);
+			if (getResponsePage() != null) {
+				linkToSavedForm.setPage(getResponsePage());
+				linkToSavedForm.addParameter(FormViewer.submissionIdParam, data.getSubmissionUUID());
+			}
+			else {
+				linkToSavedForm.setURL(linkToForm);
+			}
 			bodyRow.createCell().add(linkToSavedForm);
 
 			//	Date
@@ -430,6 +446,22 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setShowLatestForms(boolean showLatestForms) {
 		this.showLatestForms = showLatestForms;
+	}
+
+	public ICPage getResponsePage() {
+		return responsePage;
+	}
+
+	public void setResponsePage(ICPage responsePage) {
+		this.responsePage = responsePage;
+	}
+
+	public String getAllowedTypes() {
+		return allowedTypes;
+	}
+
+	public void setAllowedTypes(String allowedTypes) {
+		this.allowedTypes = allowedTypes;
 	}
 
 }
