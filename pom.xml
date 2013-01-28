@@ -72,5 +72,10 @@
       <version>${com.google.common-google-collect-version}</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+        <groupId>com.idega.block.addon</groupId>
+        <artifactId>org.jboss.jbpm</artifactId>
+        <version>4.1.3-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>
