@@ -55,8 +55,6 @@ import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWMainApplicationSettings;
 import com.idega.idegaweb.IWResourceBundle;
-import com.idega.jbpm.exe.BPMFactory;
-import com.idega.jbpm.exe.TaskInstanceW;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.PDFRenderedComponent;
@@ -618,17 +616,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		}
 	}
 
-	@Autowired
-	protected BPMFactory bpmFactory;
-
-	protected BPMFactory getBPMFactory() {
-		if (this.bpmFactory == null) {
-			ELUtil.getInstance().autowire(this);
-		}
-
-		return this.bpmFactory;
-	}
-
 	/**
 	 *
 	 * <p>Checks if forms should be should full or in traditional way.</p>
@@ -638,37 +625,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	protected boolean doDisplayFullForm(IWContext iwc) {
-		if (iwc == null) {
-			iwc = CoreUtil.getIWContext();
-		}
-
-		if (iwc == null) {
-			return Boolean.FALSE;
-		}
-
-		if (!getIWMainApplication(iwc).getSettings()
-				.getBoolean(DISPLAY_FULL_FORM, Boolean.FALSE)) {
-			return Boolean.FALSE;
-		}
-
-		String taskInstanceID = iwc.getParameter("tiId");
-		if (StringUtil.isEmpty(taskInstanceID)) {
-			return Boolean.FALSE;
-		}
-
-		Long idValue = null;
-		try {
-			idValue = Long.valueOf(taskInstanceID);
-		} catch (NumberFormatException e) {
-			return Boolean.FALSE;
-		}
-
-		TaskInstanceW taskInstance = getBPMFactory().getTaskInstanceW(idValue);
-		if (taskInstance == null) {
-			return Boolean.FALSE;
-		}
-
-		return taskInstance.isSubmitted();
+		return isSubmitted();
 	}
 
 	public boolean isSubmitted() {
