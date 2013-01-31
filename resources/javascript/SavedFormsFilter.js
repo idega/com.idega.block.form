@@ -80,7 +80,7 @@ SavedFormsFilter.loadFilteredForms = function(parameters) {
 		properties.push({id: 'setVariablesWithValues', value: variableString});
 	}
 	
-	IWCORE.renderComponent(instanceID, parentContainer, function(result) {
+	IWCORE.renderComponent(instanceID.substring(3), parentContainer, function(result) {
 		closeAllLoadingMessages();
 	}, properties, {append: true});
 }

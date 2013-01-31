@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
-import org.apache.myfaces.custom.htmlTag.HtmlTag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 import org.w3c.tidy.Attribute;
@@ -69,8 +68,8 @@ import com.idega.xformsmanager.business.DocumentManagerFactory;
 import com.idega.xformsmanager.component.beans.LocalizedStringBean;
 
 public class SavedForms extends IWBaseComponent {
-	
-	public static final String PERSONAL_ID_VARIABLE = "string_ownerKennitala"; 
+
+	public static final String PERSONAL_ID_VARIABLE = "string_ownerKennitala";
 
 	@Autowired
 	private XFormsDAO xformsDAO;
@@ -104,30 +103,30 @@ public class SavedForms extends IWBaseComponent {
 	public void setVariablesWithValues(String variablesWithValues) {
 		this.variablesWithValues = variablesWithValues;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * <p>Splits {@link String} of BPM variables to {@link Collection}
 	 * of {@link String}, where each {@link String} has single variable. </p>
 	 * @param variablesWithValues to split, not <code>null</code>.
-	 * @return split {@link Collection} of separate variables or 
+	 * @return split {@link Collection} of separate variables or
 	 * {@link Collections#emptyList()} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	protected Collection<String> getSplittedVariablesWithValues(String variablesWithValues) {
 		Collection<String> splittedVariablesWithValues = new ArrayList<String>();
-		
+
 		if (StringUtil.isEmpty(variablesWithValues)) {
 			return splittedVariablesWithValues;
 		}
-		
+
 		String[] tmpArray = variablesWithValues.split(CoreConstants.COMMA);
 		splittedVariablesWithValues.addAll(Arrays.asList(tmpArray));
 		return splittedVariablesWithValues;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param data to be shown or not, not <code>null</code>.
 	 * @return <code>true</code> if data matches search criteria,
 	 * <code>false</code> otherwise.
@@ -137,49 +136,49 @@ public class SavedForms extends IWBaseComponent {
 		if (data == null) {
 			return Boolean.FALSE;
 		}
-		
+
 		return data.containsAll(getSplittedVariablesWithValues(getVariablesWithValues()));
 	}
-	
+
 	protected String getPersonalIDValueFromVariables() {
 		if (StringUtil.isEmpty(getVariablesWithValues())) {
 			return null;
 		}
-		
+
 		if (!getVariablesWithValues().contains(PERSONAL_ID_VARIABLE)) {
 			return null;
 		}
-		
+
 		int index = getVariablesWithValues().indexOf(PERSONAL_ID_VARIABLE);
 		if (index < 0 || index > getVariablesWithValues().length()) {
 			return null;
 		}
-		
+
 		String substring = getVariablesWithValues().substring(index);
 		if (StringUtil.isEmpty(substring)) {
 			return null;
 		}
-		
+
 		if (substring.contains(CoreConstants.COMMA)) {
 			index = substring.indexOf(CoreConstants.COMMA);
 			if (index < 0 || index > substring.length()) {
 				return null;
 			}
-			
+
 			substring = substring.substring(0, index);
 			if (StringUtil.isEmpty(substring)) {
 				return null;
 			}
 		}
-		
+
 		String[] variable = substring.split(CoreConstants.EQ);
 		if (variable.length != 2) {
 			return null;
 		}
-		
+
 		return variable[1];
 	}
-		
+
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
@@ -195,11 +194,12 @@ public class SavedForms extends IWBaseComponent {
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
 
-		HtmlTag container = (HtmlTag) context.getApplication().createComponent(HtmlTag.COMPONENT_TYPE);
-		container.setValue("div");
+		Layer container = new Layer();
 		container.setStyleClass("savedFormsViewer");
-		container.setId(BuilderLogic.getInstance().getInstanceId(this));
-		this.getChildren().add(container);
+		String uuid = BuilderLogic.getInstance().getInstanceId(this);
+		if (!StringUtil.isEmpty(uuid))
+			container.setId("id_".concat(uuid));
+		add(container);
 
 		if (!iwc.isLoggedOn()) {
 			container.getChildren().add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
@@ -223,17 +223,17 @@ public class SavedForms extends IWBaseComponent {
 				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.contains(submissionUUID)) {
 					SubmissionDataBean data = new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
 							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId()));
-					
+
 					data.addVariables(submission);
-					
+
 					LocalizedStringBean localizedTitle = getLocalizedTitle(submission, locale);
 					data.setLocalizedTitle(localizedTitle.getString(locale));
-					
+
 					boolean add = true;
 					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
 						add = false;
 					}
-					
+
 					if (!doMatchCriteria(data)) {
 						add = false;
 					}
@@ -388,9 +388,9 @@ public class SavedForms extends IWBaseComponent {
 	}
 
 	/**
-	 * 
-	 * <p>Checks for {@link Node} with {@link Attribute} 
-	 * "mapping=string_caseDescription", if none found, then 
+	 *
+	 * <p>Checks for {@link Node} with {@link Attribute}
+	 * "mapping=string_caseDescription", if none found, then
 	 * searches for {@link com.idega.xformsmanager.business.Document#getFormTitle()}.</p>
 	 * @param submission - where to search; not <code>null</code>;
 	 * @param locale - {@link Locale} of text to be returned;
@@ -401,16 +401,16 @@ public class SavedForms extends IWBaseComponent {
 		if (submission == null) {
 			return null;
 		}
-		
+
 		org.w3c.dom.Document submissionDocument = submission.getSubmissionDocument();
 		if (submissionDocument == null) {
 			return getLocalizedTitle(submission.getXform());
 		}
-		
+
 		List<Node> nodes = XmlUtil.getChildNodes(
-				submissionDocument.getDocumentElement(), 
+				submissionDocument.getDocumentElement(),
 				null, null, "mapping", "string_caseDescription");
-		
+
 		if (ListUtil.isEmpty(nodes)) {
 			return getLocalizedTitle(submission.getXform());
 		}
@@ -418,19 +418,19 @@ public class SavedForms extends IWBaseComponent {
 		if (locale == null) {
 			locale = CoreUtil.getCurrentLocale();
 		}
-		
+
 		Node node = nodes.get(0);
 		if (node == null || StringUtil.isEmpty(node.getTextContent())) {
 			return getLocalizedTitle(submission.getXform());
 		}
-		
+
 		LocalizedStringBean lsb = new LocalizedStringBean();
 		lsb.setString(locale, node.getTextContent());
 		return lsb;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param xform which title to get, not <code>null</code>;
 	 * @return {@link com.idega.xformsmanager.business.Document#getFormTitle()}
 	 * or <code>null</code> on failure.
@@ -446,12 +446,12 @@ public class SavedForms extends IWBaseComponent {
 		if (documentmanagerLocal == null) {
 			return null;
 		}
-		
+
 		Document document = documentmanagerLocal.openFormLazy(xform.getFormId());
 		if (document == null) {
 			return null;
 		}
-		
+
 		return document.getFormTitle();
 	}
 
@@ -533,28 +533,28 @@ public class SavedForms extends IWBaseComponent {
 		if (StringUtil.isEmpty(personalID)) {
 			return getAllSubmissions(context);
 		}
-		
+
 		IWContext iwc = IWContext.getIWContext(context);
 		if (!iwc.isLoggedOn()) {
 			return null;
 		}
-		
-		if (!(iwc.hasRole("bpm_development_fund_handler") || 
-				iwc.hasRole("bpm_development_fund_manager") || 
+
+		if (!(iwc.hasRole("bpm_development_fund_handler") ||
+				iwc.hasRole("bpm_development_fund_manager") ||
 				iwc.hasRole("bpm_development_fund_caseHandler") ||
 				iwc.hasRole("bpm_development_fund_invited")) && !isShowAll()) {
-			
+
 			return null;
 		}
-		
+
 		if(this.showLatestForms){
 			return getXformsDAO().getAllLatestSubmissionsByUser(personalID);
 		}
-		
+
 		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID);
 	}
-	
-	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {		
+
+	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {
 		Integer currentUserId = null;
 		if (!isShowAll()) {
 			IWContext iwc = IWContext.getIWContext(context);
