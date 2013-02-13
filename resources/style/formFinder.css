@@ -1,7 +1,7 @@
 @CHARSET "UTF-8";
 input.value {
 	float: right;
-	size: 1cm;
+	width: 5cm;
 }
 
 .bpm_input {
