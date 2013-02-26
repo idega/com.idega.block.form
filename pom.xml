@@ -72,5 +72,9 @@
       <version>${com.google.common-google-collect-version}</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+        <groupId>com.idega.block.platform</groupId>
+        <artifactId>com.idega.hibernate</artifactId>
+    </dependency>
   </dependencies>
 </project>

@@ -2,6 +2,8 @@ package com.idega.block.form.presentation;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -10,16 +12,19 @@ import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
-import org.apache.myfaces.custom.htmlTag.HtmlTag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Node;
+import org.w3c.tidy.Attribute;
 
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.SubmissionDataBean;
 import com.idega.block.form.business.SubmissionDataComparator;
+import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
+import com.idega.builder.business.BuilderLogic;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.builder.business.BuilderService;
@@ -28,7 +33,6 @@ import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
-import com.idega.idegaweb.IWMainApplication;
 import com.idega.idegaweb.IWResourceBundle;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
@@ -57,10 +61,15 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 import com.idega.util.expression.ELUtil;
+import com.idega.util.xml.XmlUtil;
+import com.idega.xformsmanager.business.Document;
+import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
 import com.idega.xformsmanager.component.beans.LocalizedStringBean;
 
 public class SavedForms extends IWBaseComponent {
+
+	public static final String PERSONAL_ID_VARIABLE = "string_ownerKennitala";
 
 	@Autowired
 	private XFormsDAO xformsDAO;
@@ -79,7 +88,96 @@ public class SavedForms extends IWBaseComponent {
 	private Integer userId;
 	private ICPage responsePage;
 
-	private String allowedTypes;
+	private String allowedTypes, variablesWithValues;
+
+	/**
+	 * @return the variablesWithValues
+	 */
+	public String getVariablesWithValues() {
+		return variablesWithValues;
+	}
+
+	/**
+	 * @param variablesWithValues the variablesWithValues to set
+	 */
+	public void setVariablesWithValues(String variablesWithValues) {
+		this.variablesWithValues = variablesWithValues;
+	}
+
+	/**
+	 *
+	 * <p>Splits {@link String} of BPM variables to {@link Collection}
+	 * of {@link String}, where each {@link String} has single variable. </p>
+	 * @param variablesWithValues to split, not <code>null</code>.
+	 * @return split {@link Collection} of separate variables or
+	 * {@link Collections#emptyList()} on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	protected Collection<String> getSplittedVariablesWithValues(String variablesWithValues) {
+		Collection<String> splittedVariablesWithValues = new ArrayList<String>();
+
+		if (StringUtil.isEmpty(variablesWithValues)) {
+			return splittedVariablesWithValues;
+		}
+
+		String[] tmpArray = variablesWithValues.split(CoreConstants.COMMA);
+		splittedVariablesWithValues.addAll(Arrays.asList(tmpArray));
+		return splittedVariablesWithValues;
+	}
+
+	/**
+	 *
+	 * @param data to be shown or not, not <code>null</code>.
+	 * @return <code>true</code> if data matches search criteria,
+	 * <code>false</code> otherwise.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public boolean doMatchCriteria(SubmissionDataBean data) {
+		if (data == null) {
+			return Boolean.FALSE;
+		}
+
+		return data.containsAll(getSplittedVariablesWithValues(getVariablesWithValues()));
+	}
+
+	protected String getPersonalIDValueFromVariables() {
+		if (StringUtil.isEmpty(getVariablesWithValues())) {
+			return null;
+		}
+
+		if (!getVariablesWithValues().contains(PERSONAL_ID_VARIABLE)) {
+			return null;
+		}
+
+		int index = getVariablesWithValues().indexOf(PERSONAL_ID_VARIABLE);
+		if (index < 0 || index > getVariablesWithValues().length()) {
+			return null;
+		}
+
+		String substring = getVariablesWithValues().substring(index);
+		if (StringUtil.isEmpty(substring)) {
+			return null;
+		}
+
+		if (substring.contains(CoreConstants.COMMA)) {
+			index = substring.indexOf(CoreConstants.COMMA);
+			if (index < 0 || index > substring.length()) {
+				return null;
+			}
+
+			substring = substring.substring(0, index);
+			if (StringUtil.isEmpty(substring)) {
+				return null;
+			}
+		}
+
+		String[] variable = substring.split(CoreConstants.EQ);
+		if (variable.length != 2) {
+			return null;
+		}
+
+		return variable[1];
+	}
 
 	@Override
 	protected void initializeComponent(FacesContext context) {
@@ -96,22 +194,23 @@ public class SavedForms extends IWBaseComponent {
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
 
-		HtmlTag container = (HtmlTag) context.getApplication().createComponent(HtmlTag.COMPONENT_TYPE);
-		container.setValue("div");
+		Layer container = new Layer();
 		container.setStyleClass("savedFormsViewer");
-		this.getChildren().add(container);
+		String uuid = BuilderLogic.getInstance().getInstanceId(this);
+		if (!StringUtil.isEmpty(uuid))
+			container.setId("id_".concat(uuid));
+		add(container);
 
 		if (!iwc.isLoggedOn()) {
 			container.getChildren().add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
 			return;
 		}
 
-		List<XFormSubmission> submissions = getAllSubmissions(context);
+		List<XFormSubmission> submissions = getAllSubmissions(context, getPersonalIDValueFromVariables());
 		if (ListUtil.isEmpty(submissions)) {
 			return;
 		}
 
-		IWMainApplication iwma = iwc.getIWMainApplication();
 		Locale locale = iwc.getCurrentLocale();
 
 		List<String> addedSubmissions = new ArrayList<String>();
@@ -125,11 +224,17 @@ public class SavedForms extends IWBaseComponent {
 					SubmissionDataBean data = new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
 							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId()));
 
-					LocalizedStringBean localizedTitle = getDocumentManager().newDocumentManager(iwma).openFormLazy(formId).getFormTitle();
+					data.addVariables(submission);
+
+					LocalizedStringBean localizedTitle = getLocalizedTitle(submission, locale);
 					data.setLocalizedTitle(localizedTitle.getString(locale));
 
 					boolean add = true;
 					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
+						add = false;
+					}
+
+					if (!doMatchCriteria(data)) {
 						add = false;
 					}
 
@@ -282,6 +387,74 @@ public class SavedForms extends IWBaseComponent {
 		PresentationUtil.addJavaScriptActionToBody(iwc, initAction);
 	}
 
+	/**
+	 *
+	 * <p>Checks for {@link Node} with {@link Attribute}
+	 * "mapping=string_caseDescription", if none found, then
+	 * searches for {@link com.idega.xformsmanager.business.Document#getFormTitle()}.</p>
+	 * @param submission - where to search; not <code>null</code>;
+	 * @param locale - {@link Locale} of text to be returned;
+	 * @return Localized text or <code>null</code> on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	protected LocalizedStringBean getLocalizedTitle(XFormSubmission submission, Locale locale) {
+		if (submission == null) {
+			return null;
+		}
+
+		org.w3c.dom.Document submissionDocument = submission.getSubmissionDocument();
+		if (submissionDocument == null) {
+			return getLocalizedTitle(submission.getXform());
+		}
+
+		List<Node> nodes = XmlUtil.getChildNodes(
+				submissionDocument.getDocumentElement(),
+				null, null, "mapping", "string_caseDescription");
+
+		if (ListUtil.isEmpty(nodes)) {
+			return getLocalizedTitle(submission.getXform());
+		}
+
+		if (locale == null) {
+			locale = CoreUtil.getCurrentLocale();
+		}
+
+		Node node = nodes.get(0);
+		if (node == null || StringUtil.isEmpty(node.getTextContent())) {
+			return getLocalizedTitle(submission.getXform());
+		}
+
+		LocalizedStringBean lsb = new LocalizedStringBean();
+		lsb.setString(locale, node.getTextContent());
+		return lsb;
+	}
+
+	/**
+	 *
+	 * @param xform which title to get, not <code>null</code>;
+	 * @return {@link com.idega.xformsmanager.business.Document#getFormTitle()}
+	 * or <code>null</code> on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	protected LocalizedStringBean getLocalizedTitle(XForm xform) {
+		if (xform == null) {
+			return null;
+		}
+
+		DocumentManager documentmanagerLocal = getDocumentManager()
+				.newDocumentManager(getIWMainApplication(getFacesContext()));
+		if (documentmanagerLocal == null) {
+			return null;
+		}
+
+		Document document = documentmanagerLocal.openFormLazy(xform.getFormId());
+		if (document == null) {
+			return null;
+		}
+
+		return document.getFormTitle();
+	}
+
 	private Link getLinkToSendEmail(IWContext iwc, SubmissionDataBean data, IWBundle bundle, IWResourceBundle iwrb, String linkToForm) {
 		Link sendEmail = new Link(bundle.getImage("images/email.png", iwrb.getLocalizedString("saved_forms.send_email", "Send e-mail")));
 
@@ -356,7 +529,32 @@ public class SavedForms extends IWBaseComponent {
 		return null;
 	}
 
-	private List<XFormSubmission> getAllSubmissions(FacesContext context) {
+	protected List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
+		if (StringUtil.isEmpty(personalID)) {
+			return getAllSubmissions(context);
+		}
+
+		IWContext iwc = IWContext.getIWContext(context);
+		if (!iwc.isLoggedOn()) {
+			return null;
+		}
+
+		if (!(iwc.hasRole("bpm_development_fund_handler") ||
+				iwc.hasRole("bpm_development_fund_manager") ||
+				iwc.hasRole("bpm_development_fund_caseHandler") ||
+				iwc.hasRole("bpm_development_fund_invited")) && !isShowAll()) {
+
+			return null;
+		}
+
+		if(this.showLatestForms){
+			return getXformsDAO().getAllLatestSubmissionsByUser(personalID);
+		}
+
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID);
+	}
+
+	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {
 		Integer currentUserId = null;
 		if (!isShowAll()) {
 			IWContext iwc = IWContext.getIWContext(context);

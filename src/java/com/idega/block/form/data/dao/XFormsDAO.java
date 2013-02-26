@@ -1,10 +1,12 @@
 package com.idega.block.form.data.dao;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.core.persistence.GenericDao;
+import com.idega.user.data.User;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormState;
@@ -49,4 +51,28 @@ public interface XFormsDAO extends GenericDao {
 	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId);
 
 	public List<XForm> getXFormsByNameAndStorageIndetifierAndType(String name, String storageIdentifier, String type);
+
+	/**
+	 * 
+	 * @param personalID - {@link User#getPersonalID()} or 
+	 * {@link User#getPersonalID()} of Company#getCEO, not <code>null</code>;
+	 * @return {@link List} of {@link XFormSubmission}s, where 
+	 * {@value XFormSubmission#isFinalSubmissionProperty} is <code>false</code>
+	 * and not only lastest by date {@link XFormSubmission}s are selected. 
+	 * {@link Collections#emptyList()} on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID);
+
+	/**
+	 * 
+	 * @param personalID - {@link User#getPersonalID()} or 
+	 * {@link User#getPersonalID()} of Company#getCEO, not <code>null</code>;
+	 * @return {@link List} of {@link XFormSubmission}s, where 
+	 * {@value XFormSubmission#isFinalSubmissionProperty} is <code>false</code>
+	 * and only lastest by date {@link XFormSubmission}s are selected. 
+	 * {@link Collections#emptyList()} on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID);
 }

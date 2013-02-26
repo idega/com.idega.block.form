@@ -1,0 +1,19 @@
+@CHARSET "UTF-8";
+input.value {
+	float: right;
+	width: 5cm;
+}
+
+.bpm_input {
+	margin-top: 12pt;
+    margin-bottom: 12pt;
+    vertical-align: middle;
+}
+
+div.parametersLayer {
+	margin-bottom: 12pt;
+}
+
+div.buttonsLayer .button {
+	float: right;
+}

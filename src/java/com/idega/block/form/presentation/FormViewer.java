@@ -71,6 +71,7 @@ import com.idega.xformsmanager.business.DocumentManagerFactory;
 import com.idega.xformsmanager.business.InvalidSubmissionException;
 import com.idega.xformsmanager.business.PersistedFormDocument;
 import com.idega.xformsmanager.business.PersistenceManager;
+import com.idega.xformsmanager.business.Submission;
 import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
@@ -85,6 +86,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	public static final String formIdParam = "formId";
 	public static final String submissionIdParam = "submissionId";
 	public static final String formviewerPageType = "formsviewer";
+	public static final String DISPLAY_FULL_FORM = "display_full_form";
 
 	private static final String invalidSubmissionFacet = "InvalidSubmission";
 
@@ -98,8 +100,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	private Document xDoc;
 	private String sessionKey;
 
-	private boolean pdfViewer;
-	private boolean validBrowser = Boolean.TRUE;
+	private boolean pdfViewer, validBrowser = Boolean.TRUE, submitted;
 
 	@Autowired
 	private JQuery jQuery;
@@ -146,7 +147,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 					PersistenceManager persistenceManager = getPersistenceManager();
 					String uniqueSubmissionId = null;
 					try {
-						uniqueSubmissionId = persistenceManager.getSubmission(Long.valueOf(submissionId)).getSubmissionUUID();
+						Submission submission = persistenceManager.getSubmission(Long.valueOf(submissionId));
+						uniqueSubmissionId = submission.getSubmissionUUID();
 					} catch(NumberFormatException e) {
 						uniqueSubmissionId = submissionId;
 					} catch(Exception e) {
@@ -239,14 +241,20 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		IWResourceBundle iwrb = chibaBundle.getResourceBundle(iwc);
 		String initScript = null;
 		try {
-			initScript = new StringBuilder("XFormsConfig.setConfiguration({baseScriptUri: '")
-				.append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/"))
-				.append("', locale: '").append(locale).append("', maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength())
-				.append("}); XFormsConfig.locale = '").append(locale).append("'; Localization.CONFIRM_TO_LEAVE_NOT_SUBMITTED_FORM = '")
+			initScript = new StringBuilder("XFormsConfig.setConfiguration({")
+				.append("baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/', "))
+				.append("locale: '").append(locale).append("', ")
+				.append("displayFullForm: '").append(doDisplayFullForm(iwc)).append("', ")
+				.append("maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength())
+				.append("}); ")
+				.append("XFormsConfig.locale = '").append(locale).append("'; ")
+				.append("Localization.CONFIRM_TO_SAVE_FORM = '").append(iwrb.getLocalizedString("save_form_before_exit", "Save form before exit?")).append("'; ")
+				.append("Localization.CONFIRM_TO_LEAVE_NOT_SUBMITTED_FORM = '")
 				.append(iwrb.getLocalizedString("confirm_to_leave_unfinished_xform", "Are you sure you want to navigate from unfinished form?"))
 				.append("'; Localization.CONFIRM_TO_LEAVE_WHILE_UPLOAD_IN_PROGRESS = '")
 				.append(iwrb.getLocalizedString("confirm_to_leave_xform_while_upload_in_progress",
-						"Are you sure you want to navigate from this page while upload is in progress?")).append("';").toString();
+						"Are you sure you want to navigate from this page while upload is in progress?")).append("';")
+				.append("FluxInterfaceHelper.SUBMITTED = ").append(isSubmitted()).append(";").toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -306,7 +314,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			EventListener eventListener = new EventListener() {
 				@Override
 				public void handleEvent(Event event) {
-					String id = "";
+					String id = CoreConstants.EMPTY;
 					if (event.getTarget() instanceof Element) {
 						id = ((Element) event.getTarget()).getAttribute("id");
 					}
@@ -332,16 +340,13 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			}
 		} catch (IOException e) {
 			exception = e;
-
 			LOGGER.log(Level.WARNING, "handleExit failed", e);
 		} catch (XFormsException e) {
 			exception = e;
-
 			LOGGER.log(Level.WARNING, "Could not set XML container", e);
 			shutdown(adapter, session, xformsSession.getKey());
 		} catch (IdegaChibaException e) {
 			exception = e;
-
 			LOGGER.log(Level.WARNING, "Chiba exception", e);
 		} finally {
 			if (exception != null) {
@@ -368,9 +373,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			if (getFacets().containsKey(invalidSubmissionFacet)) {
 				renderChild(context, getFacet(invalidSubmissionFacet));
 			} else {
-
 				if (getFormId(context) != null || getSubmissionId(context) != null || xDoc != null) {
-
 					HttpSession session = (HttpSession) context.getExternalContext().getSession(true);
 					WebAdapter webAdapter = null;
 					try {
@@ -446,7 +449,6 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 
 	protected void handleExit(XMLEvent exitEvent, XFormsSession xFormsSession, HttpSession session, HttpServletRequest request, HttpServletResponse response) throws IOException {
-
 		if (ChibaEventNames.REPLACE_ALL.equals(exitEvent.getType())) {
 			response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/SubmissionResponse?sessionKey=" + xFormsSession.getKey()));
 		} else if (ChibaEventNames.LOAD_URI.equals(exitEvent.getType())) {
@@ -593,30 +595,45 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 
 	protected com.idega.xformsmanager.business.Document getFormDocument() {
-
 		try {
 			FacesContext fctx = FacesContext.getCurrentInstance();
-			IWMainApplication iwma = fctx == null ? IWMainApplication
-			        .getDefaultIWMainApplication() : IWMainApplication
-			        .getIWMainApplication(fctx);
+			IWMainApplication iwma = fctx == null ?
+					IWMainApplication.getDefaultIWMainApplication() :
+					IWMainApplication.getIWMainApplication(fctx);
 
-			DocumentManager documentManager = getDocumentManagerFactory()
-			        .newDocumentManager(iwma);
+			DocumentManager documentManager = getDocumentManagerFactory().newDocumentManager(iwma);
 
-			if (xDoc == null) {
+			if (xDoc == null)
 				xDoc = resolveXFormsDocument(fctx);
-			}
 
-			com.idega.xformsmanager.business.Document form = documentManager
-			        .openFormLazy(xDoc);
+			com.idega.xformsmanager.business.Document form = documentManager.openFormLazy(xDoc);
 
 			return form;
-
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 *
+	 * <p>Checks if forms should be should full or in traditional way.</p>
+	 * @param iwc - current context;
+	 * @return <code>true</code> if form should be shown full or
+	 * <code>false</code> if in traditional way.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	protected boolean doDisplayFullForm(IWContext iwc) {
+		return isSubmitted();
+	}
+
+	public boolean isSubmitted() {
+		return submitted;
+	}
+
+	public void setSubmitted(boolean submitted) {
+		this.submitted = submitted;
 	}
 
 }

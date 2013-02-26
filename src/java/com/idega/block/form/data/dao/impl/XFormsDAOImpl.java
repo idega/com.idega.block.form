@@ -1,10 +1,13 @@
 package com.idega.block.form.data.dao.impl;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.Query;
 
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
@@ -15,6 +18,9 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
+import com.idega.user.data.User;
+import com.idega.util.CoreConstants;
+import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.Submission;
@@ -98,25 +104,107 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		            XFormSubmission.submissionUUIDProperty, submissionUUID));
 	}
 
-	private List<XFormSubmission> getSubmissions(boolean onlyFinal, Integer ownerId) {
-		String query = "select submissions from " + XFormSubmission.class.getName() + " submissions where submissions." +
-			XFormSubmission.isFinalSubmissionProperty + " = :" + XFormSubmission.isFinalSubmissionProperty;
-		if (!onlyFinal) {
-			query += " and (submissions." + XFormSubmission.isValidSubmissionProperty + " = true or submissions." + XFormSubmission.isValidSubmissionProperty +
-			" is null)";
+	private List<XFormSubmission> getSubmissions(boolean onlyFinal, 
+			Integer ownerId) {
+		return getSubmissions(onlyFinal, ownerId, null, Boolean.FALSE);
+	}
+	
+	@Override
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID) {
+		if (StringUtil.isEmpty(personalID)) {
+			return null;
 		}
+		
+		Long value = null;
+		try {
+			value = Long.valueOf(personalID);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+		
+		return getSubmissions(Boolean.FALSE, null, value, Boolean.TRUE);
+	}
+	
+	/**
+	 * 
+	 * <p>Searches for {@link XFormSubmission}s by:</p>
+	 * @param onlyFinal - {@value XFormSubmission#isFinalSubmissionProperty};
+	 * @param ownerId - {@link User#getPrimaryKey()};
+	 * @param personalIDs - {@link User#getPersonalID()} or 
+	 * Company#getCEO()#getPersonalID();
+	 * @param doSelectLastest - newest by {@link XFormSubmission#dateSubmittedProperty};
+	 * @return {@link List} of {@link XFormSubmission} matching one of criteria 
+	 * or {@link Collections#emptyList()} on failure.
+	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
+	 */
+	private List<XFormSubmission> getSubmissions(boolean onlyFinal, 
+			Integer ownerId, Long personalIDs, 
+			boolean doSelectLastest) {
+		
+		StringBuilder query = new StringBuilder();
+		query.append("select submissions from ")
+		.append(XFormSubmission.class.getName())
+		.append(" submissions where submissions.")
+		.append(XFormSubmission.isFinalSubmissionProperty)
+		.append(" = :").append(XFormSubmission.isFinalSubmissionProperty);
+		
+		if (!onlyFinal) {
+			query.append(" and (submissions.")
+			.append(XFormSubmission.isValidSubmissionProperty)
+			.append(" = true or submissions.")
+			.append(XFormSubmission.isValidSubmissionProperty)
+			.append(" is null)");
+		}
+		
 		if (ownerId != null) {
-			query += " and submissions." + XFormSubmission.formSubmitterProperty + " = :" + XFormSubmission.formSubmitterProperty;
+			query.append(" and submissions.")
+			.append(XFormSubmission.formSubmitterProperty)
+			.append(" = :")
+			.append(XFormSubmission.formSubmitterProperty);
+		} else if (personalIDs != null) {
+			StringBuilder querySQL = new StringBuilder();
+			querySQL.append("SELECT DISTINCT i.IC_USER_ID FROM ic_user i, ic_company c ")
+			.append("WHERE i.PERSONAL_ID LIKE '%" + personalIDs + "%' ")
+			.append("OR (c.CEO_ID = i.IC_USER_ID AND c.PERSONAL_ID LIKE '%")
+			.append(personalIDs)
+			.append("%') ");
+			
+			Session session = (Session) getEntityManager().getDelegate();
+			SQLQuery sqlQuery = session.createSQLQuery(querySQL.toString());
+						
+			List<Integer> results = sqlQuery.list();
+			if (!ListUtil.isEmpty(results)) {
+				query.append(" and submissions.").append(XFormSubmission.formSubmitterProperty).append(" in (");
+				
+				for (Iterator<Integer> i = results.iterator(); i.hasNext();){
+					query.append(i.next());
+					if (i.hasNext()) {
+						query.append(CoreConstants.COMMA);
+					}
+				}
+						
+				query.append(")");
+			}
+		}
+		
+		if (doSelectLastest) {
+			query.append(" and submissions.")
+			.append(XFormSubmission.dateSubmittedProperty)
+			.append(" = (SELECT max(s.")
+			.append(XFormSubmission.dateSubmittedProperty).append(") FROM ")
+			.append(XFormSubmission.class.getName()).append(" s where submissions.")
+			.append(XFormSubmission.xformProperty).append(" = s.")
+			.append(XFormSubmission.xformProperty).append(")");
 		}
 
 		List<XFormSubmission> submissions = null;
 		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, onlyFinal);
 
 		if (ownerId == null) {
-			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty);
+			submissions = getResultListByInlineQuery(query.toString(), XFormSubmission.class, finalSubmissionProperty);
 		}
 		else {
-			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty,
+			submissions = getResultListByInlineQuery(query.toString(), XFormSubmission.class, finalSubmissionProperty,
 					new Param(XFormSubmission.formSubmitterProperty, ownerId));
 		}
 
@@ -132,36 +220,26 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId) {
 		return getSubmissions(Boolean.FALSE, userId);
 	}
+	
+	@Override
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID) {
+		if (StringUtil.isEmpty(personalID)) {
+			return null;
+		}
+		
+		Long value = null;
+		try {
+			value = Long.valueOf(personalID);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+		
+		return getSubmissions(Boolean.FALSE, null, value, Boolean.FALSE);
+	}
 
 	@Override
 	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId) {
-
-		String query = "select submissions from " + XFormSubmission.class.getName() + " submissions where submissions." +
-		XFormSubmission.isFinalSubmissionProperty + " = :" + XFormSubmission.isFinalSubmissionProperty;
-		query += " and (submissions." + XFormSubmission.isValidSubmissionProperty + " = true or submissions." + XFormSubmission.isValidSubmissionProperty +
-			" is null)";
-
-
-		if (userId != null) {
-			query += " and submissions." + XFormSubmission.formSubmitterProperty + " = :" + XFormSubmission.formSubmitterProperty;
-		}
-		query += " and submissions." + XFormSubmission.dateSubmittedProperty + " = (SELECT max(s." +
-				XFormSubmission.dateSubmittedProperty + ") FROM " + XFormSubmission.class.getName() +
-				" s where submissions." + XFormSubmission.xformProperty + " = s." + XFormSubmission.xformProperty + ")";
-
-		List<XFormSubmission> submissions = null;
-		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, Boolean.FALSE);
-
-		if (userId == null) {
-			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty);
-		}
-		else {
-			submissions = getResultListByInlineQuery(query, XFormSubmission.class, finalSubmissionProperty,
-					new Param(XFormSubmission.formSubmitterProperty, userId));
-		}
-
-		return submissions;
-
+		return getSubmissions(Boolean.FALSE, userId, null, Boolean.TRUE);
 	}
 
 	@Override
