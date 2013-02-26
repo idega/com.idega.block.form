@@ -175,7 +175,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 
 	private void addResources(IWContext iwc) {
-		String styleSheet = new StringBuilder().append(CoreConstants.WEBDAV_SERVLET_URI).append(IWBundleStarter.SLIDE_STYLES_PATH)
+		String styleSheet = new StringBuilder().append(CoreConstants.WEBDAV_SERVLET_URI).append(IWBundleStarter.REPOSITORY_STYLES_PATH)
 			.append(IWBundleStarter.CHIBA_CSS).toString();
 		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 
@@ -564,7 +564,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 
 	@Autowired
-	@XFormPersistenceType("slide")
+	@XFormPersistenceType(CoreConstants.REPOSITORY)
 	public void setPersistenceManager(PersistenceManager persistenceManager) {
 		this.persistenceManager = persistenceManager;
 	}

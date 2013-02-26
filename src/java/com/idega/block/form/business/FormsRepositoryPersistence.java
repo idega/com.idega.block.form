@@ -48,13 +48,13 @@ import com.idega.xformsmanager.component.FormDocument;
  * @author <a href="mailto:civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.44 $ Last modified: $Date: 2009/06/08 08:34:45 $ by $Author: valdas $
  */
-@XFormPersistenceType("slide")
+@XFormPersistenceType(CoreConstants.REPOSITORY)
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Repository("xformsPersistenceManager")
 @Transactional(readOnly = true)
-public class FormsSlidePersistence extends DefaultSpringBean implements PersistenceManager {
+public class FormsRepositoryPersistence extends DefaultSpringBean implements PersistenceManager {
 
-	private static final String slideStorageType = "slide";
+	private static final String repositoryStorageType = CoreConstants.REPOSITORY;
 	private static final String standaloneFormType = "standalone";
 	private static final String submissionFileName = "submission.xml";
 
@@ -247,7 +247,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 			xform.setDateCreated(new Date());
 			xform.setFormState(XFormState.FLUX);
 			xform.setFormStorageIdentifier(formPath);
-			xform.setFormStorageType(slideStorageType);
+			xform.setFormStorageType(repositoryStorageType);
 			xform.setFormType(formType);
 			xform.setVersion(version);
 
@@ -382,7 +382,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 				newFirmForm.setDisplayName(xform.getDisplayName());
 				newFirmForm.setFormParent(xform);
 				newFirmForm.setFormState(XFormState.FIRM);
-				newFirmForm.setFormStorageType(slideStorageType);
+				newFirmForm.setFormStorageType(repositoryStorageType);
 				newFirmForm.setFormStorageIdentifier(formPath);
 				newFirmForm.setFormType(formType);
 				newFirmForm.setVersion(xform.getVersion());
@@ -470,7 +470,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 	@Override
 	public List<Form> getStandaloneForms() {
 		String formType = standaloneFormType;
-		String formStorageType = slideStorageType;
+		String formStorageType = repositoryStorageType;
 
 		List<Form> xforms = getXformsDAO().getAllXFormsByTypeAndStorageType(formType, formStorageType, XFormState.FLUX);
 		return xforms;
@@ -478,7 +478,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 
 	public List<Submission> getStandaloneFormSubmissions(long formId) {
 		String formType = standaloneFormType;
-		String formStorageType = slideStorageType;
+		String formStorageType = repositoryStorageType;
 
 		List<Submission> subs = getXformsDAO().getSubmissionsByTypeAndStorageType(formType, formStorageType, formId);
 		return subs;
@@ -627,7 +627,7 @@ public class FormsSlidePersistence extends DefaultSpringBean implements Persiste
 		XFormSubmission xformSubmission = new XFormSubmission();
 		xformSubmission.setDateSubmitted(new Date());
 		xformSubmission.setSubmissionStorageIdentifier(path);
-		xformSubmission.setSubmissionStorageType(slideStorageType);
+		xformSubmission.setSubmissionStorageType(repositoryStorageType);
 		xformSubmission.setIsFinalSubmission(finalSubmission);
 		xformSubmission.setSubmissionUUID(submissionUUID);
 		xformSubmission.setXform(xform);

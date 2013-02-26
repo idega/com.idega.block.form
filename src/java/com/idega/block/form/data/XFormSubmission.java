@@ -146,12 +146,12 @@ public class XFormSubmission implements Serializable, Submission {
 		subSB.append(submissionFileName);
 		submissionPath = subSB.toString();
 
-		Document submissionDoc = loadXMLResourceFromSlide(submissionPath);
+		Document submissionDoc = loadXMLResourceFromRepository(submissionPath);
 
 		return submissionDoc;
 	}
 
-	private Document loadXMLResourceFromSlide(String resourcePath) {
+	private Document loadXMLResourceFromRepository(String resourcePath) {
 		Document xform = null;
 		InputStream stream = null;
 		DocumentBuilder docBuilder = null;

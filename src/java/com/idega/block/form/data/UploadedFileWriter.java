@@ -16,6 +16,7 @@ import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.presentation.IWContext;
 import com.idega.repository.bean.RepositoryItem;
+import com.idega.util.CoreConstants;
 import com.idega.util.FileUtil;
 import com.idega.util.expression.ELUtil;
 import com.idega.xformsmanager.business.PersistenceManager;
@@ -42,7 +43,9 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 
 	private static final Logger logger = Logger.getLogger(UploadedFileWriter.class.getName());
 
-	@Autowired @XFormPersistenceType("slide") private transient PersistenceManager persistenceManager;
+	@Autowired
+	@XFormPersistenceType(CoreConstants.REPOSITORY)
+	private transient PersistenceManager persistenceManager;
 
 	public UploadedFileWriter(){}
 
@@ -86,18 +89,18 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 		return persistenceManager;
 	}
 
-	private InputStream getUploadedFileInputStream(URI fileSlideUri) {
+	private InputStream getUploadedFileInputStream(URI fileUri) {
 		try {
-			return getRepositoryService().getInputStream(fileSlideUri.getPath());
+			return getRepositoryService().getInputStream(fileUri.getPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	private int getUploadedFileContentLength(URI fileSlideUri) {
+	private int getUploadedFileContentLength(URI fileUri) {
 		try {
-			RepositoryItem file = getRepositoryService().getRepositoryItemAsRootUser(fileSlideUri.getPath());
+			RepositoryItem file = getRepositoryService().getRepositoryItemAsRootUser(fileUri.getPath());
 			return Long.valueOf(file.getLength()).intValue();
 		} catch (Exception e) {
 			e.printStackTrace();
