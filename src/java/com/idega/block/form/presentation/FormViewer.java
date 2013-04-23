@@ -202,13 +202,12 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			scriptsUris.add(CoreConstants.DWR_UTIL_SCRIPT);
 
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xformsConfig.js"));
-			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojo.js"));
+			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.4/dojo.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/xforms-util.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/FluxInterface.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/PresentationContext.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/htmltext.js"));
 			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/fckeditor/fckeditor.js"));
-			scriptsUris.add(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/dojoSetup.js"));
 
 			scriptsUris.add(web2.getBundleUriToHumanizedMessagesScript());
 			scriptsUris.add(jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TEXT_AREA_AUTO_GROW));
@@ -244,7 +243,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 		String initScript = null;
 		try {
 			initScript = new StringBuilder("XFormsConfig.setConfiguration({")
-				.append("baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.3/', "))
+				.append("baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.4/', "))
 				.append("locale: '").append(locale).append("', ")
 				.append("displayFullForm: '").append(doDisplayFullForm(iwc)).append("', ")
 				.append("maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength())
