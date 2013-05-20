@@ -245,7 +245,7 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			initScript = new StringBuilder("XFormsConfig.setConfiguration({")
 				.append("baseScriptUri: '").append(chibaBundle.getVirtualPathWithFileNameString("javascript/dojo-0.4.4/', "))
 				.append("locale: '").append(locale).append("', ")
-				.append("displayFullForm: '").append(doDisplayFullForm(iwc)).append("', ")
+				.append("displayFullForm: '").append(doDisplayFullForm(iwc.getIWMainApplication())).append("', ")
 				.append("maxStringValueLength: ").append(XFormsUtil.getBPMStringVariableMaxLength())
 				.append("}); ")
 				.append("XFormsConfig.locale = '").append(locale).append("'; ")
@@ -630,7 +630,14 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	 * <code>false</code> if in traditional way.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	protected boolean doDisplayFullForm(IWContext iwc) {
+	private boolean doDisplayFullForm(IWMainApplication iwma) {
+		if (iwma == null) {
+			iwma = IWMainApplication.getDefaultIWMainApplication();
+		}
+		if (!iwma.getSettings().getBoolean(DISPLAY_FULL_FORM, Boolean.FALSE)) {
+			return Boolean.FALSE;
+		}
+
 		return isSubmitted();
 	}
 
