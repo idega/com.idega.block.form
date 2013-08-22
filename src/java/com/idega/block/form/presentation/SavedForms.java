@@ -230,7 +230,9 @@ public class SavedForms extends IWBaseComponent {
 					data.setLocalizedTitle(localizedTitle.getString(locale));
 
 					boolean add = true;
-					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
+					String allowedTypes = getAllowedTypes();
+					String englishLocalization = localizedTitle == null ? null : localizedTitle.getString(Locale.ENGLISH);
+					if (allowedTypes != null && englishLocalization != null && allowedTypes.indexOf(englishLocalization) == -1) {
 						add = false;
 					}
 
