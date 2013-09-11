@@ -87,7 +87,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 
 		String formPath = xform.getFormStorageIdentifier();
-		Document xformsDoc = loadXMLResourceFromSlide(formPath);
+		Document xformsDoc = loadXMLResourceFromRepository(formPath);
 
 		PersistedFormDocument formDoc = new PersistedFormDocument();
 		formDoc.setFormId(formId);
@@ -117,7 +117,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 			XForm xform = xformSubmission.getXform();
 
 			String formPath = xform.getFormStorageIdentifier();
-			Document xformsDoc = loadXMLResourceFromSlide(formPath);
+			Document xformsDoc = loadXMLResourceFromRepository(formPath);
 
 			Document submissionDoc = xformSubmission.getSubmissionDocument();
 
@@ -147,7 +147,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		return formDoc;
 	}
 
-	protected Document loadXMLResourceFromSlide(String resourcePath) {
+	protected Document loadXMLResourceFromRepository(String resourcePath) {
 		InputStream stream = null;
 		try {
 			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
@@ -163,7 +163,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		}
 	}
 
-	protected void saveExistingXFormsDocumentToSlide(Document xformsDoc, String path) {
+	protected void saveExistingXFormsDocumentToRepository(Document xformsDoc, String path) {
 		ByteArrayOutputStream out = null;
 		InputStream in = null;
 		try {
@@ -179,14 +179,14 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		} catch (IllegalArgumentException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new RuntimeException("Error saving XForm to Slide: " + path, e);
+			throw new RuntimeException("Error saving XForm to repository: " + path, e);
 		} finally {
 			IOUtil.close(out);
 			IOUtil.close(in);
 		}
 	}
 
-	protected String saveXFormsDocumentToSlide(Document xformsDoc, String formIdentifier, String formType, String formBasePath) {
+	protected String saveXFormsDocumentToRepository(Document xformsDoc, String formIdentifier, String formType, String formBasePath) {
 		ByteArrayOutputStream out = null;
 		InputStream in = null;
 		try {
@@ -206,7 +206,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 			}
 			throw new RuntimeException("Error uploading XForm '" + formIdentifier + "' to repository: " + pathToFileFolder + fileName);
 		} catch (Exception e) {
-			throw new RuntimeException("Error saving XForm '" + formIdentifier + "' to Slide", e);
+			throw new RuntimeException("Error saving XForm '" + formIdentifier + "' to repository", e);
 		} finally {
 			IOUtil.close(out);
 			IOUtil.close(in);
@@ -230,7 +230,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		PersistedFormDocument formDocument = new PersistedFormDocument();
 
 		if (formId == null) {
-			String formSlideId = generateFormId(defaultFormName);
+			String formRepositoryId = generateFormId(defaultFormName);
 			String formType = document.getFormType() == null ? standaloneFormType : document.getFormType();
 
 			Document xformsDocument = document.getXformsDocument();
@@ -238,7 +238,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 			if (storeBasePath != null)
 				storeBasePath = CoreConstants.PATH_FILES_ROOT + storeBasePath;
 
-			String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, storeBasePath);
+			String formPath = saveXFormsDocumentToRepository(xformsDocument, formRepositoryId, formType, storeBasePath);
 
 			Integer version = 1;
 
@@ -264,18 +264,18 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 			if (xform.getFormState() != XFormState.FIRM) {
 				xform.setVersion(xform.getVersion() + 1);
 			} else {
-				String formSlideId = generateFormId(defaultFormName);
+				String formRepositoryId = generateFormId(defaultFormName);
 				String formType = document.getFormType() == null ? standaloneFormType  : document.getFormType();
 
 				Document xformsDocument = document.getXformsDocument();
 
 				// saving in a new file
-				String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, null);
+				String formPath = saveXFormsDocumentToRepository(xformsDocument, formRepositoryId, formType, null);
 				xform.setFormStorageIdentifier(formPath);
 			}
 			String formPath = xform.getFormStorageIdentifier();
 			Document xformsDocument = document.getXformsDocument();
-			saveExistingXFormsDocumentToSlide(xformsDocument, formPath);
+			saveExistingXFormsDocumentToRepository(xformsDocument, formPath);
 
 			xform.setDisplayName(defaultFormName);
 			getXformsDAO().merge(xform);
@@ -324,18 +324,18 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 				if (xform.getFormState() != XFormState.FIRM) {
 					xform.setVersion(xform.getVersion() + 1);
 				} else {
-					String formSlideId = generateFormId(defaultFormName);
+					String formRepositoryId = generateFormId(defaultFormName);
 					String formType = document.getFormType() == null ? standaloneFormType : document.getFormType();
 
 					Document xformsDocument = document.getXformsDocument();
 
 					// saving in a new file
-					String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, null);
+					String formPath = saveXFormsDocumentToRepository(xformsDocument, formRepositoryId, formType, null);
 					xform.setFormStorageIdentifier(formPath);
 				}
 				String formPath = xform.getFormStorageIdentifier();
 				Document xformsDocument = document.getXformsDocument();
-				saveExistingXFormsDocumentToSlide(xformsDocument, formPath);
+				saveExistingXFormsDocumentToRepository(xformsDocument, formPath);
 
 				xform.setDisplayName(defaultFormName);
 				getXformsDAO().merge(xform);
@@ -356,26 +356,26 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		if (xform.getFormState() == XFormState.FIRM) {
 			getLogger().log(Level.WARNING, "TakeForm on firm form. Is this the expected behavior?");
 
-			xformsDocument = loadXMLResourceFromSlide(xform.getFormStorageIdentifier());
+			xformsDocument = loadXMLResourceFromRepository(xform.getFormStorageIdentifier());
 		} else if (xform.getFormState() == XFormState.FLUX) {
 			// making firm
 
 			XForm existingFirmXForm = getXformsDAO().getXFormByParentVersion(xform, xform.getVersion(), XFormState.FIRM);
 
 			if (existingFirmXForm != null) {
-				xformsDocument = loadXMLResourceFromSlide(existingFirmXForm.getFormStorageIdentifier());
+				xformsDocument = loadXMLResourceFromRepository(existingFirmXForm.getFormStorageIdentifier());
 				xform = existingFirmXForm;
 			} else {
 				// here we take flux state form, get it's contents, and store it as new firm form
 				String formStorageIdentifier = xform.getFormStorageIdentifier();
-				xformsDocument = loadXMLResourceFromSlide(formStorageIdentifier);
-				String formSlideId = generateFormId(xform.getDisplayName());
+				xformsDocument = loadXMLResourceFromRepository(formStorageIdentifier);
+				String formRepositoryId = generateFormId(xform.getDisplayName());
 				String formType = xform.getFormType();
 
 				// storing into the same folder as the parent form
 				String formBasePath = formStorageIdentifier.substring(0, formStorageIdentifier.lastIndexOf(CoreConstants.SLASH) + 1);
 
-				String formPath = saveXFormsDocumentToSlide(xformsDocument, formSlideId, formType, formBasePath);
+				String formPath = saveXFormsDocumentToRepository(xformsDocument, formRepositoryId, formType, formBasePath);
 
 				XForm newFirmForm = new XForm();
 				newFirmForm.setDateCreated(xform.getDateCreated());
@@ -392,7 +392,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 				xform = newFirmForm;
 			}
 		} else
-			throw new IllegalStateException("XForm state not supported by slide persistence manager. State: " + xform.getFormState());
+			throw new IllegalStateException("XForm state not supported by repository persistence manager. State: " + xform.getFormState());
 
 		formDocument.setFormId(xform.getFormId());
 		formDocument.setFormType(xform.getFormType());
