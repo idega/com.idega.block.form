@@ -63,6 +63,7 @@ import com.idega.presentation.PDFRenderedComponent;
 import com.idega.presentation.text.Heading1;
 import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.OutdatedBrowserInformation;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.PresentationUtil;
@@ -230,10 +231,23 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 
 			//	CSS
+			String extraCSS = iwc.getIWMainApplication().getSettings().getProperty("xform_extra_css");
+			String[] cssFiles = null;
+			if (!StringUtil.isEmpty(extraCSS)) {
+				cssFiles = extraCSS.split(CoreConstants.COMMA);
+			}
+
 			PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
 					web2.getBundleUriToHumanizedMessagesStyleSheet(),
 					web2.getBundleURIToFancyBoxStyleFile()
 			));
+			if (!ArrayUtil.isEmpty(cssFiles)) {
+				for (String cssFile: cssFiles) {
+					if (!StringUtil.isEmpty(cssFile)) {
+						PresentationUtil.addStyleSheetToHeader(iwc, cssFile);
+					}
+				}
+			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
