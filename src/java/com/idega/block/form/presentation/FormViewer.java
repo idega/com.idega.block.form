@@ -225,20 +225,30 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			//	Firefox Lite for IE
 			if (settings.getBoolean("load_firebug_ie", Boolean.FALSE) && iwc.isIE())
 				scriptsUris.add("https://getfirebug.com/firebug-lite.js");
-
+			
+			String javascript = iwc.getIWMainApplication().getSettings().getProperty("xforms_js",CoreConstants.EMPTY);
+			String[] jsFiles = javascript.split(CoreConstants.COMMA);
+			for (String jsFile : jsFiles) {
+				scriptsUris.add(jsFile);
+			}
+			
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 
-			//	CSS
-			String css = iwc.getIWMainApplication().getSettings().getProperty("xforms_css",defaultStyleSheet);
-			String[] cssFiles = null;
-			cssFiles = css.split(CoreConstants.COMMA);
-
-			PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
-					web2.getBundleUriToHumanizedMessagesStyleSheet(),
-					web2.getBundleURIToFancyBoxStyleFile()
-			));
-			for (String cssFile: cssFiles) {
-				PresentationUtil.addStyleSheetToHeader(iwc, cssFile);
+			if(isPdfViewer()){
+				PresentationUtil.addStyleSheetToHeader(iwc, defaultStyleSheet);
+			}else{
+//				CSS
+				String css = iwc.getIWMainApplication().getSettings().getProperty("xforms_css",defaultStyleSheet);
+				String[] cssFiles = null;
+				cssFiles = css.split(CoreConstants.COMMA);
+	
+				PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
+						web2.getBundleUriToHumanizedMessagesStyleSheet(),
+						web2.getBundleURIToFancyBoxStyleFile()
+				));
+				for (String cssFile: cssFiles) {
+					PresentationUtil.addStyleSheetToHeader(iwc, cssFile);
+				}
 			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
