@@ -19,7 +19,11 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import com.idega.util.ArrayUtil;
+import com.idega.util.CoreConstants;
+import com.idega.util.StringUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.XFormState;
 
@@ -144,6 +148,26 @@ public class XForm implements Serializable, Form {
 	@Override
 	public String getFormStorageIdentifier() {
 		return formStorageIdentifier;
+	}
+	
+	/**
+	 * 
+	 * <p>Splits path to form and takes process name from it.</p>
+	 * @return process name or <code>null</code> if does not exit.
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	@Transient
+	public String getJBPMProcessDefinitionName() {
+		if (StringUtil.isEmpty(getFormStorageIdentifier())) {
+			return null;
+		}
+		
+		String[] array = getFormStorageIdentifier().split(CoreConstants.SLASH);
+		if (ArrayUtil.isEmpty(array) || array.length < 4) {
+			return null;
+		}
+		
+		return array[3];
 	}
 
 	public void setFormStorageIdentifier(String formStorageIdentifier) {

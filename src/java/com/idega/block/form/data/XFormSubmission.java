@@ -3,6 +3,7 @@ package com.idega.block.form.data;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,9 +17,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.parsers.DocumentBuilder;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -26,7 +29,9 @@ import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
+import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
+import com.idega.util.StringUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.Submission;
 
@@ -117,7 +122,7 @@ public class XFormSubmission implements Serializable, Submission {
 	public void setDateSubmitted(Date dateSubmitted) {
 		this.dateSubmitted = dateSubmitted;
 	}
-
+	
 	@Override
 	public XForm getXform() {
 		return xform;
@@ -194,6 +199,39 @@ public class XFormSubmission implements Serializable, Submission {
 		return IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), IWSlideService.class);
 	}
 
+	/**
+	 * 
+	 * <p>Searches for variable value from saved document.</p>
+	 * @param variableName to find value for, not <code>null</code>;
+	 * @return BPM variable value, if found, null otherwise.
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	@Transient
+	public String getVariableValue(String variableName) {
+		if (StringUtil.isEmpty(variableName)) {
+			return null;
+		}
+		
+		org.w3c.dom.Document submissionDocument = getSubmissionDocument();
+		if (submissionDocument == null) {
+			return null;
+		}
+		
+		List<Node> nodes = XmlUtil.getChildNodes(
+				submissionDocument.getDocumentElement(),
+				null, null, "mapping", variableName);
+		if (ListUtil.isEmpty(nodes)) {
+			return null;
+		}
+
+		Node node = nodes.get(0);
+		if (node == null) {
+			return null;
+		}
+		
+		return node.getTextContent();
+	}
+	
 	@Override
 	public String getSubmissionUUID() {
 		return submissionUUID;

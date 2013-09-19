@@ -31,6 +31,7 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
+import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
@@ -52,7 +53,9 @@ import com.idega.presentation.ui.GenericInput;
 import com.idega.presentation.ui.SelectOption;
 import com.idega.presentation.ui.TextInput;
 import com.idega.user.business.UserBusiness;
+import com.idega.user.data.Group;
 import com.idega.user.data.User;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
@@ -61,7 +64,6 @@ import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 import com.idega.util.expression.ELUtil;
-import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.Document;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
@@ -89,6 +91,32 @@ public class SavedForms extends IWBaseComponent {
 	private ICPage responsePage;
 
 	private String allowedTypes, variablesWithValues;
+	
+	private String processDefinitionNames = null;
+
+	private boolean showOnlySubscribed = Boolean.FALSE;
+	
+	public boolean isShowOnlySubscribed() {
+		return showOnlySubscribed;
+	}
+
+	public void setShowOnlySubscribed(boolean showOnlySubscribed) {
+		this.showOnlySubscribed = showOnlySubscribed;
+	}
+
+	/**
+	 * 
+	 * <p>Property for filtering saved forms by process definition</p>
+	 * @return process definitions names, separated by comma;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public String getProcessDefinitionNames() {
+		return processDefinitionNames;
+	}
+
+	public void setProcessDefinitionNames(String processDefinitionNames) {
+		this.processDefinitionNames = processDefinitionNames;
+	}
 
 	/**
 	 * @return the variablesWithValues
@@ -140,16 +168,16 @@ public class SavedForms extends IWBaseComponent {
 		return data.containsAll(getSplittedVariablesWithValues(getVariablesWithValues()));
 	}
 
-	protected String getPersonalIDValueFromVariables() {
+	protected String getValueFromVariables(String variableName) {
 		if (StringUtil.isEmpty(getVariablesWithValues())) {
 			return null;
 		}
 
-		if (!getVariablesWithValues().contains(PERSONAL_ID_VARIABLE)) {
+		if (!getVariablesWithValues().contains(variableName)) {
 			return null;
 		}
 
-		int index = getVariablesWithValues().indexOf(PERSONAL_ID_VARIABLE);
+		int index = getVariablesWithValues().indexOf(variableName);
 		if (index < 0 || index > getVariablesWithValues().length()) {
 			return null;
 		}
@@ -178,7 +206,7 @@ public class SavedForms extends IWBaseComponent {
 
 		return variable[1];
 	}
-
+	
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
@@ -206,7 +234,7 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 
-		List<XFormSubmission> submissions = getAllSubmissions(context, getPersonalIDValueFromVariables());
+		List<XFormSubmission> submissions = filterByProcessDefinitionsProperty(getAllSubmissions(context, getValueFromVariables(PERSONAL_ID_VARIABLE)));
 		if (ListUtil.isEmpty(submissions)) {
 			return;
 		}
@@ -216,6 +244,10 @@ public class SavedForms extends IWBaseComponent {
 		List<String> addedSubmissions = new ArrayList<String>();
 		List<SubmissionDataBean> submissionsData = new ArrayList<SubmissionDataBean>();
 		for (XFormSubmission submission: submissions) {
+			if (!canView(iwc, submission)) {
+				continue;
+			}
+
 			try {
 				Long formId = submission.getXform().getFormId();
 				String submissionUUID = submission.getSubmissionUUID();
@@ -303,6 +335,7 @@ public class SavedForms extends IWBaseComponent {
 		TableBodyRowGroup body = table.createBodyRowGroup();
 		body.setStyleClass("savedFormsViewerBodyRows");
 		for (SubmissionDataBean data: submissionsData) {
+			
 			TableRow bodyRow = body.createRow();
 			bodyRow.setStyleClass(index % 2 == 0 ? "even" : "odd");
 
@@ -389,6 +422,89 @@ public class SavedForms extends IWBaseComponent {
 		PresentationUtil.addJavaScriptActionToBody(iwc, initAction);
 	}
 
+	private UserBusiness userBusiness;
+
+	protected UserBusiness getUserBusiness() throws IBOLookupException {
+		if (userBusiness == null) {
+			userBusiness = IBOLookup.getServiceInstance(
+					CoreUtil.getIWContext(), 
+					UserBusiness.class);
+		}
+		
+		return userBusiness;
+	}
+
+	/**
+	 * 
+	 * <p>Method tell, if saved form is accessible to connected user.</p>
+	 * @param iwc
+	 * @return true is submission can be viewed by {@link User}, 
+	 * <code>false</code> otherwise.
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	protected boolean canView(IWContext iwc, XFormSubmission submission) {
+		if (!isShowOnlySubscribed()) {
+			return Boolean.TRUE;
+		}
+		
+		if (iwc == null || !iwc.isLoggedOn() || submission == null) {
+			return Boolean.FALSE;
+		}
+
+		User loggedUser = iwc.getCurrentUser();
+		if (loggedUser == null) {
+			return Boolean.FALSE;
+		}
+
+		// If owner
+		Integer submitterId = submission.getFormSubmitter();
+		if (submitterId != null && submitterId.equals(Integer.valueOf(loggedUser.getId()))) {
+			return Boolean.TRUE;
+		}
+
+		// Checking by project nature
+		String projectNatureId = submission.getVariableValue("string_projectNature");
+		if (StringUtil.isEmpty(projectNatureId)) {
+			return Boolean.FALSE;
+		}
+
+		StringBuilder sb = new StringBuilder("SELECT group_id ");
+		sb.append("FROM egov_funding_service_center ")
+		.append("WHERE projectNature_ID = '").append(projectNatureId).append("';");
+
+		String[] groupIDs = null;
+		try {
+			groupIDs = SimpleQuerier.executeStringQuery(sb.toString());
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Failed to execute query, cause of: ", e);
+		}
+
+		if (ArrayUtil.isEmpty(groupIDs)) {
+			return Boolean.FALSE;
+		}
+
+		Collection<Group> groups = null;
+		try {
+			groups = getUserBusiness().getUserGroups(loggedUser);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Failed to find groups for user " + loggedUser, e);
+		}
+
+		if (ListUtil.isEmpty(groups)) {
+			return Boolean.FALSE;
+		}
+
+		for (String groupID : groupIDs) {
+			for (Group group: groups) {
+				if (groupID.equals(group.getPrimaryKey().toString())) {
+					return Boolean.TRUE;
+				}
+			}
+		}
+
+		return Boolean.FALSE;
+	}	
+
 	/**
 	 *
 	 * <p>Checks for {@link Node} with {@link Attribute}
@@ -404,30 +520,17 @@ public class SavedForms extends IWBaseComponent {
 			return null;
 		}
 
-		org.w3c.dom.Document submissionDocument = submission.getSubmissionDocument();
-		if (submissionDocument == null) {
-			return getLocalizedTitle(submission.getXform());
-		}
-
-		List<Node> nodes = XmlUtil.getChildNodes(
-				submissionDocument.getDocumentElement(),
-				null, null, "mapping", "string_caseDescription");
-
-		if (ListUtil.isEmpty(nodes)) {
-			return getLocalizedTitle(submission.getXform());
-		}
-
 		if (locale == null) {
 			locale = CoreUtil.getCurrentLocale();
 		}
 
-		Node node = nodes.get(0);
-		if (node == null || StringUtil.isEmpty(node.getTextContent())) {
+		String value = submission.getVariableValue("string_caseDescription");
+		if (StringUtil.isEmpty(value)) {
 			return getLocalizedTitle(submission.getXform());
 		}
 
 		LocalizedStringBean lsb = new LocalizedStringBean();
-		lsb.setString(locale, node.getTextContent());
+		lsb.setString(locale, value);
 		return lsb;
 	}
 
@@ -531,6 +634,41 @@ public class SavedForms extends IWBaseComponent {
 		return null;
 	}
 
+	/**
+	 * 
+	 * <p>Filters received submissions by process definition id, given in
+	 * {@link SavedForms#getProcessDefinitionNames()} property.</p>
+	 * @param submissions to filter, not <code>null</code>;
+	 * @return filtered submissions or {@link Collections#emptyList()}
+	 * on failure.
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	protected List<XFormSubmission> filterByProcessDefinitionsProperty(List<XFormSubmission> submissions) {
+		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
+			return submissions;
+		}
+		
+		if (ListUtil.isEmpty(submissions)) {
+			return Collections.emptyList();
+		}
+
+		List<XFormSubmission> filteredSubmissions = new ArrayList<XFormSubmission>(submissions.size());
+		for (XFormSubmission submission : submissions) {
+			XForm xForm = submission.getXform();
+			if (xForm == null) {
+				continue;
+			}
+			
+			if (!getProcessDefinitionNames().contains(xForm.getJBPMProcessDefinitionName())) {
+				continue;
+			}
+			
+			filteredSubmissions.add(submission);
+		}
+		
+		return filteredSubmissions;
+	}
+	
 	protected List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
 		if (StringUtil.isEmpty(personalID)) {
 			return getAllSubmissions(context);

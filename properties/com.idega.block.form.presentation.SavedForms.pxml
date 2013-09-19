@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pxml>
-  <map>
-    <key>
+  <map><key>
       <name>component_name</name>
       <type>java.lang.String</type>
       <value>SavedForms</value>
@@ -13,10 +12,54 @@
     </key>
     <key>
       <name>iw_component_methods</name>
-      <value>
-        <map>
-          <key>
+      <value><map><key>
             <name>:method:1:implied:void:setAllowedTypes:java.lang.String</name>
+            <value><map><key>
+                  <name>iw_method_params</name>
+                  <value><map><key>
+                        <name>0</name>
+                        <value><map><key>
+                              <name>iw_method_param_handler</name>
+                              <type>java.lang.String</type>
+                              <value />
+                            </key>
+                            <key>
+                              <name>iw_method_param_prim_key</name>
+                              <type>java.lang.Boolean</type>
+                              <value>false</value>
+                            </key>
+                            <key>
+                              <name>iw_method_param_desc</name>
+                              <type>java.lang.String</type>
+                              <value>Allowed types</value>
+                          	</key></map></value>
+                        <type>map</type>
+                      </key>
+                    </map>
+                  </value>
+                  <type>map</type>
+                </key>
+                <key>
+                  <name>iw_method_option_multiv</name>
+                  <type>java.lang.Boolean</type>
+                  <value>false</value>
+                </key>
+                <key>
+                  <name>iw_method_description</name>
+                  <type>java.lang.String</type>
+                  <value>Allowed types</value>
+                </key>
+                <key>
+                  <name>iw_method_identifier</name>
+                  <type>java.lang.String</type>
+                  <value>:method:1:implied:void:setAllowedTypes:java.lang.String:</value>
+                </key>
+              </map>
+            </value>
+            <type>map</type>
+          </key>
+          <key>
+            <name>:method:1:implied:void:setProcessDefinitionNames:java.lang.String</name>
             <value>
               <map>
                 <key>
@@ -40,7 +83,7 @@
                             <key>
                               <name>iw_method_param_desc</name>
                               <type>java.lang.String</type>
-                              <value>Allowed types</value>
+                              <value>Process definition names</value>
                             </key>
                           </map>
                         </value>
@@ -58,12 +101,12 @@
                 <key>
                   <name>iw_method_description</name>
                   <type>java.lang.String</type>
-                  <value>Allowed types</value>
+                  <value>Process definition names</value>
                 </key>
                 <key>
                   <name>iw_method_identifier</name>
                   <type>java.lang.String</type>
-                  <value>:method:1:implied:void:setAllowedTypes:java.lang.String:</value>
+                  <value>:method:1:implied:void:setProcessDefinitionNames:java.lang.String:</value>
                 </key>
               </map>
             </value>
@@ -118,6 +161,60 @@
                   <name>iw_method_identifier</name>
                   <type>java.lang.String</type>
                   <value>:method:1:implied:void:setResponsePage:com.idega.core.builder.data.ICPage:</value>
+                </key>
+              </map>
+            </value>
+            <type>map</type>
+          </key>
+          <key>
+            <name>:method:1:implied:void:setShowOnlySubscribed:boolean:</name>
+            <value>
+              <map>
+                <key>
+                  <name>iw_method_params</name>
+                  <value>
+                    <map>
+                      <key>
+                        <name>0</name>
+                        <value>
+                          <map>
+                            <key>
+                              <name>iw_method_param_handler</name>
+                              <type>java.lang.String</type>
+                              <value />
+                            </key>
+                            <key>
+                              <name>iw_method_param_prim_key</name>
+                              <type>java.lang.Boolean</type>
+                              <value>false</value>
+                            </key>
+                            <key>
+                              <name>iw_method_param_desc</name>
+                              <type>java.lang.String</type>
+                              <value>Show only subscribed</value>
+                            </key>
+                          </map>
+                        </value>
+                        <type>map</type>
+                      </key>
+                    </map>
+                  </value>
+                  <type>map</type>
+                </key>
+                <key>
+                  <name>iw_method_option_multiv</name>
+                  <type>java.lang.Boolean</type>
+                  <value>false</value>
+                </key>
+                <key>
+                  <name>iw_method_description</name>
+                  <type>java.lang.String</type>
+                  <value>Show only subscribed</value>
+                </key>
+                <key>
+                  <name>iw_method_identifier</name>
+                  <type>java.lang.String</type>
+                  <value>:method:1:implied:void:setShowOnlySubscribed:boolean:</value>
                 </key>
               </map>
             </value>
