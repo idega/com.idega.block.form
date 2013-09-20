@@ -18,6 +18,7 @@ import org.w3c.tidy.Attribute;
 
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.SubmissionDataBean;
+import com.idega.block.form.business.SavedFormsVisiblity;
 import com.idega.block.form.business.SubmissionDataComparator;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
@@ -31,7 +32,6 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
-import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
@@ -53,9 +53,7 @@ import com.idega.presentation.ui.GenericInput;
 import com.idega.presentation.ui.SelectOption;
 import com.idega.presentation.ui.TextInput;
 import com.idega.user.business.UserBusiness;
-import com.idega.user.data.Group;
 import com.idega.user.data.User;
-import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
@@ -95,6 +93,17 @@ public class SavedForms extends IWBaseComponent {
 	private String processDefinitionNames = null;
 
 	private boolean showOnlySubscribed = Boolean.FALSE;
+	
+	@Autowired
+	private SavedFormsVisiblity savedFormsVisiblity;
+	
+	protected SavedFormsVisiblity getSavedFormsVisiblity() {
+		if (this.savedFormsVisiblity == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		
+		return this.savedFormsVisiblity;
+	}
 	
 	public boolean isShowOnlySubscribed() {
 		return showOnlySubscribed;
@@ -205,6 +214,26 @@ public class SavedForms extends IWBaseComponent {
 		}
 
 		return variable[1];
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @see SavedFormsVisiblity#canView(IWContext, XFormSubmission)
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public boolean canView(IWContext iwc, XFormSubmission submission) {
+		if (!isShowOnlySubscribed()) {
+			return Boolean.TRUE;
+		}
+		
+		SavedFormsVisiblity visibility = getSavedFormsVisiblity();
+		if (visibility == null) {
+			return Boolean.TRUE;
+		}
+		
+		return visibility.canView(iwc, submission);
 	}
 	
 	@Override
@@ -421,89 +450,6 @@ public class SavedForms extends IWBaseComponent {
 		}
 		PresentationUtil.addJavaScriptActionToBody(iwc, initAction);
 	}
-
-	private UserBusiness userBusiness;
-
-	protected UserBusiness getUserBusiness() throws IBOLookupException {
-		if (userBusiness == null) {
-			userBusiness = IBOLookup.getServiceInstance(
-					CoreUtil.getIWContext(), 
-					UserBusiness.class);
-		}
-		
-		return userBusiness;
-	}
-
-	/**
-	 * 
-	 * <p>Method tell, if saved form is accessible to connected user.</p>
-	 * @param iwc
-	 * @return true is submission can be viewed by {@link User}, 
-	 * <code>false</code> otherwise.
-	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
-	 */
-	protected boolean canView(IWContext iwc, XFormSubmission submission) {
-		if (!isShowOnlySubscribed()) {
-			return Boolean.TRUE;
-		}
-		
-		if (iwc == null || !iwc.isLoggedOn() || submission == null) {
-			return Boolean.FALSE;
-		}
-
-		User loggedUser = iwc.getCurrentUser();
-		if (loggedUser == null) {
-			return Boolean.FALSE;
-		}
-
-		// If owner
-		Integer submitterId = submission.getFormSubmitter();
-		if (submitterId != null && submitterId.equals(Integer.valueOf(loggedUser.getId()))) {
-			return Boolean.TRUE;
-		}
-
-		// Checking by project nature
-		String projectNatureId = submission.getVariableValue("string_projectNature");
-		if (StringUtil.isEmpty(projectNatureId)) {
-			return Boolean.FALSE;
-		}
-
-		StringBuilder sb = new StringBuilder("SELECT group_id ");
-		sb.append("FROM egov_funding_service_center ")
-		.append("WHERE projectNature_ID = '").append(projectNatureId).append("';");
-
-		String[] groupIDs = null;
-		try {
-			groupIDs = SimpleQuerier.executeStringQuery(sb.toString());
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Failed to execute query, cause of: ", e);
-		}
-
-		if (ArrayUtil.isEmpty(groupIDs)) {
-			return Boolean.FALSE;
-		}
-
-		Collection<Group> groups = null;
-		try {
-			groups = getUserBusiness().getUserGroups(loggedUser);
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Failed to find groups for user " + loggedUser, e);
-		}
-
-		if (ListUtil.isEmpty(groups)) {
-			return Boolean.FALSE;
-		}
-
-		for (String groupID : groupIDs) {
-			for (Group group: groups) {
-				if (groupID.equals(group.getPrimaryKey().toString())) {
-					return Boolean.TRUE;
-				}
-			}
-		}
-
-		return Boolean.FALSE;
-	}	
 
 	/**
 	 *

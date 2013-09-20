@@ -21,6 +21,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.idega.block.process.data.Case;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
@@ -168,6 +169,25 @@ public class XForm implements Serializable, Form {
 		}
 		
 		return array[3];
+	}
+
+	/**
+	 * 
+	 * @return {@link Case#getCaseIdentifier()} or <code>null</code> on failure;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	@Transient
+	public String getCaseIdentifier() {
+		if (StringUtil.isEmpty(getFormStorageIdentifier())) {
+			return null;
+		}
+		
+		String[] array = getFormStorageIdentifier().split(CoreConstants.SLASH);
+		if (ArrayUtil.isEmpty(array) || array.length < 5) {
+			return null;
+		}
+		
+		return array[4];
 	}
 
 	public void setFormStorageIdentifier(String formStorageIdentifier) {
