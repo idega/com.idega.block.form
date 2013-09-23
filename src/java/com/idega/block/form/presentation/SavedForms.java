@@ -7,18 +7,20 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Node;
 import org.w3c.tidy.Attribute;
 
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.SubmissionDataBean;
-import com.idega.block.form.business.SavedFormsVisiblity;
+import com.idega.block.form.business.FormAssetsResolver;
 import com.idega.block.form.business.SubmissionDataComparator;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
@@ -61,6 +63,7 @@ import com.idega.util.ListUtil;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
+import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
 import com.idega.xformsmanager.business.Document;
 import com.idega.xformsmanager.business.DocumentManager;
@@ -69,7 +72,7 @@ import com.idega.xformsmanager.component.beans.LocalizedStringBean;
 
 public class SavedForms extends IWBaseComponent {
 
-	public static final String PERSONAL_ID_VARIABLE = "string_ownerKennitala";
+	public static final String PERSONAL_ID_VARIABLE = SubmissionDataBean.VARIABLE_OWNER_PERSONAL_ID;
 
 	@Autowired
 	private XFormsDAO xformsDAO;
@@ -89,22 +92,11 @@ public class SavedForms extends IWBaseComponent {
 	private ICPage responsePage;
 
 	private String allowedTypes, variablesWithValues;
-	
+
 	private String processDefinitionNames = null;
 
 	private boolean showOnlySubscribed = Boolean.FALSE;
-	
-	@Autowired
-	private SavedFormsVisiblity savedFormsVisiblity;
-	
-	protected SavedFormsVisiblity getSavedFormsVisiblity() {
-		if (this.savedFormsVisiblity == null) {
-			ELUtil.getInstance().autowire(this);
-		}
-		
-		return this.savedFormsVisiblity;
-	}
-	
+
 	public boolean isShowOnlySubscribed() {
 		return showOnlySubscribed;
 	}
@@ -114,7 +106,7 @@ public class SavedForms extends IWBaseComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * <p>Property for filtering saved forms by process definition</p>
 	 * @return process definitions names, separated by comma;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
@@ -215,27 +207,37 @@ public class SavedForms extends IWBaseComponent {
 
 		return variable[1];
 	}
-	
-	
-	
+
 	/**
-	 * 
-	 * @see SavedFormsVisiblity#canView(IWContext, XFormSubmission)
+	 *
+	 * @see FormAssetsResolver#canView(IWContext, XFormSubmission)
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public boolean canView(IWContext iwc, XFormSubmission submission) {
 		if (!isShowOnlySubscribed()) {
 			return Boolean.TRUE;
 		}
-		
-		SavedFormsVisiblity visibility = getSavedFormsVisiblity();
-		if (visibility == null) {
+
+		Map<?, ?> beans = null;
+		try {
+			beans = WebApplicationContextUtils.getWebApplicationContext(iwc.getServletContext()).getBeansOfType(FormAssetsResolver.class);
+		} catch (Exception e) {}
+		if (MapUtil.isEmpty(beans)) {
 			return Boolean.TRUE;
 		}
-		
-		return visibility.canView(iwc, submission);
+
+		for (Object bean: beans.values()) {
+			if (bean instanceof FormAssetsResolver) {
+				boolean canView = ((FormAssetsResolver) bean).canView(iwc, submission);
+				if (!canView) {
+					return Boolean.FALSE;
+				}
+			}
+		}
+
+		return Boolean.TRUE;
 	}
-	
+
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
@@ -364,7 +366,7 @@ public class SavedForms extends IWBaseComponent {
 		TableBodyRowGroup body = table.createBodyRowGroup();
 		body.setStyleClass("savedFormsViewerBodyRows");
 		for (SubmissionDataBean data: submissionsData) {
-			
+
 			TableRow bodyRow = body.createRow();
 			bodyRow.setStyleClass(index % 2 == 0 ? "even" : "odd");
 
@@ -581,7 +583,7 @@ public class SavedForms extends IWBaseComponent {
 	}
 
 	/**
-	 * 
+	 *
 	 * <p>Filters received submissions by process definition id, given in
 	 * {@link SavedForms#getProcessDefinitionNames()} property.</p>
 	 * @param submissions to filter, not <code>null</code>;
@@ -593,7 +595,7 @@ public class SavedForms extends IWBaseComponent {
 		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
 			return submissions;
 		}
-		
+
 		if (ListUtil.isEmpty(submissions)) {
 			return Collections.emptyList();
 		}
@@ -604,17 +606,17 @@ public class SavedForms extends IWBaseComponent {
 			if (xForm == null) {
 				continue;
 			}
-			
+
 			if (!getProcessDefinitionNames().contains(xForm.getJBPMProcessDefinitionName())) {
 				continue;
 			}
-			
+
 			filteredSubmissions.add(submission);
 		}
-		
+
 		return filteredSubmissions;
 	}
-	
+
 	protected List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
 		if (StringUtil.isEmpty(personalID)) {
 			return getAllSubmissions(context);

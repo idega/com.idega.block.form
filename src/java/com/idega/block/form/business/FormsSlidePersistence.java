@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,8 +19,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Document;
 
+import com.idega.block.form.bean.SubmissionDataBean;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
@@ -31,9 +34,12 @@ import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
+import com.idega.user.business.UserBusiness;
+import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
+import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
@@ -667,9 +673,64 @@ public class FormsSlidePersistence implements PersistenceManager {
 		xformSubmission.setXform(xform);
 		xformSubmission.setFormSubmitter(formSubmitter);
 
+		doEnsureSubmitterIsKnown(xformSubmission);
+
 		getXformsDAO().persist(xformSubmission);
 
 		return submissionUUID;
+	}
+
+	private User getSubmissionOwner(XFormSubmission submission) {
+		Map<?, ?> beans = null;
+		try {
+			beans = WebApplicationContextUtils.getWebApplicationContext(IWMainApplication.getDefaultIWMainApplication().getServletContext())
+					.getBeansOfType(FormAssetsResolver.class);
+		} catch (Exception e) {}
+		if (MapUtil.isEmpty(beans)) {
+			String personalId = submission.getVariableValue(SubmissionDataBean.VARIABLE_OWNER_PERSONAL_ID);
+			if (StringUtil.isEmpty(personalId))
+				return null;
+
+			try {
+				UserBusiness userBusiness = IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), UserBusiness.class);
+				return userBusiness.getUser(personalId);
+			} catch (Exception e) {
+				getLogger().warning("Unable to resolve user by personal ID ('" + personalId + "') for submission " + submission);
+			}
+
+			return null;
+		}
+
+		for (Object bean: beans.values()) {
+			if (bean instanceof FormAssetsResolver) {
+				User owner = ((FormAssetsResolver) bean).getOwner(submission);
+				if (owner != null) {
+					return owner;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private void doEnsureSubmitterIsKnown(XFormSubmission submission) {
+		if (submission.getFormSubmitter() != null) {
+			return;
+		}
+
+		User submitter = getSubmissionOwner(submission);
+		if (submitter == null) {
+			return;
+		}
+
+		Integer submitterId = null;
+		try {
+			submitterId = Integer.valueOf(submitter.getId());
+			submission.setFormSubmitter(submitterId);
+			getLogger().info("Set submitter ID ('" + submitterId + "') for submission " + submission);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error setting submitter ID (user ID: '" + submitterId + "') for submission " + submission, e);
+		}
 	}
 
 	private String storeSubmissionData(String formId, String identifier, InputStream is) throws IOException {

@@ -122,7 +122,7 @@ public class XFormSubmission implements Serializable, Submission {
 	public void setDateSubmitted(Date dateSubmitted) {
 		this.dateSubmitted = dateSubmitted;
 	}
-	
+
 	@Override
 	public XForm getXform() {
 		return xform;
@@ -200,7 +200,7 @@ public class XFormSubmission implements Serializable, Submission {
 	}
 
 	/**
-	 * 
+	 *
 	 * <p>Searches for variable value from saved document.</p>
 	 * @param variableName to find value for, not <code>null</code>;
 	 * @return BPM variable value, if found, null otherwise.
@@ -211,12 +211,12 @@ public class XFormSubmission implements Serializable, Submission {
 		if (StringUtil.isEmpty(variableName)) {
 			return null;
 		}
-		
+
 		org.w3c.dom.Document submissionDocument = getSubmissionDocument();
 		if (submissionDocument == null) {
 			return null;
 		}
-		
+
 		List<Node> nodes = XmlUtil.getChildNodes(
 				submissionDocument.getDocumentElement(),
 				null, null, "mapping", variableName);
@@ -228,10 +228,10 @@ public class XFormSubmission implements Serializable, Submission {
 		if (node == null) {
 			return null;
 		}
-		
+
 		return node.getTextContent();
 	}
-	
+
 	@Override
 	public String getSubmissionUUID() {
 		return submissionUUID;
@@ -257,4 +257,9 @@ public class XFormSubmission implements Serializable, Submission {
 		this.formSubmitter = formSubmitter;
 	}
 
+	@Override
+	public String toString() {
+		return "ID: " + getSubmissionId() + ", UUID: " + getSubmissionUUID() + ", submitted: " + getDateSubmitted() + " by (user ID): "
+				+ getFormSubmitter();
+	}
 }
