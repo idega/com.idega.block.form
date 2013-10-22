@@ -214,7 +214,7 @@ public class SavedForms extends IWBaseComponent {
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
 	public boolean canView(IWContext iwc, XFormSubmission submission) {
-		if (!isShowOnlySubscribed()) {
+		if (!isShowOnlySubscribed() || iwc.isSuperAdmin()) {
 			return Boolean.TRUE;
 		}
 
@@ -575,7 +575,7 @@ public class SavedForms extends IWBaseComponent {
 
 	private UserBusiness getUserBusiness(IWApplicationContext iwac) {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(iwac, UserBusiness.class);
+			return IBOLookup.getServiceInstance(iwac, UserBusiness.class);
 		} catch (IBOLookupException e) {
 			Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting " + UserBusiness.class, e);
 		}
