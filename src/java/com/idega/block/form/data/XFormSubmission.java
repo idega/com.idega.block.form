@@ -3,7 +3,10 @@ package com.idega.block.form.data;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,18 +23,22 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.xml.parsers.DocumentBuilder;
 
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import com.idega.block.form.business.XFormPersistenceService;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.slide.business.IWSlideService;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.ListUtil;
 import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
+import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.Submission;
 
@@ -43,11 +50,15 @@ import com.idega.xformsmanager.business.Submission;
  */
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
-@NamedQueries( {})
+@NamedQueries({})
 public class XFormSubmission implements Serializable, Submission {
 
 	private static final long serialVersionUID = -7231560026323818449L;
 	private static final String submissionFileName = "submission.xml";
+
+	public XFormSubmission() {
+		super();
+	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -85,6 +96,17 @@ public class XFormSubmission implements Serializable, Submission {
 	        CascadeType.REFRESH, CascadeType.REMOVE })
 	@JoinColumn(name = "XFORM_FK", nullable = false)
 	private XForm xform;
+
+	@Column(name = "identifier")
+	private Long identifier;
+
+	public Long getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(Long identifier) {
+		this.identifier = identifier;
+	}
 
 	@Override
 	public Long getSubmissionId() {
@@ -141,21 +163,25 @@ public class XFormSubmission implements Serializable, Submission {
 		this.isFinalSubmission = isFinalSubmission;
 	}
 
+	@Transient
+	private Document document;
+
 	@Override
 	public Document getSubmissionDocument() {
+		if (document == null) {
+			String submissionPath = getSubmissionStorageIdentifier();
+			StringBuilder subSB = new StringBuilder(submissionPath);
 
-		String submissionPath = getSubmissionStorageIdentifier();
-		StringBuilder subSB = new StringBuilder(submissionPath);
+			if (!submissionPath.endsWith(CoreConstants.SLASH))
+				subSB.append(CoreConstants.SLASH);
 
-		if (!submissionPath.endsWith(CoreConstants.SLASH))
-			subSB.append(CoreConstants.SLASH);
+			subSB.append(submissionFileName);
+			submissionPath = subSB.toString();
 
-		subSB.append(submissionFileName);
-		submissionPath = subSB.toString();
+			document = loadXMLResourceFromSlide(submissionPath);
+		}
 
-		Document submissionDoc = loadXMLResourceFromSlide(submissionPath);
-
-		return submissionDoc;
+		return document;
 	}
 
 	private Document loadXMLResourceFromSlide(String resourcePath) {
@@ -212,24 +238,94 @@ public class XFormSubmission implements Serializable, Submission {
 			return null;
 		}
 
-		org.w3c.dom.Document submissionDocument = getSubmissionDocument();
+		Map<String, String> variables = getVariables();
+		if (MapUtil.isEmpty(variables)) {
+			return null;
+		}
+
+		return variables.get(variableName);
+	}
+
+	@Transient
+	private Map<String, String> variables;
+
+	@Transient
+	public Map<String, String> getVariables() {
+		if (variables == null) {
+			variables = new HashMap<String, String>();
+
+			if (getIdentifier() == null || getIdentifier() < 0) {
+				//	Loading variables from repository
+				variables = getVariablesFromRepository();
+			} else {
+				//	Getting variables from DB
+				try {
+					variables = getVariablesFromDatabase();
+				} catch (Exception e) {
+					//	In case of error, loading from repository
+					variables = getVariablesFromRepository();
+				}
+			}
+		}
+
+		return variables;
+	}
+
+	@Transient
+	private Map<String, String> getVariablesFromRepository() {
+		if (variables == null) {
+			variables = new HashMap<String, String>();
+		}
+
+		Document submissionDocument = getSubmissionDocument();
 		if (submissionDocument == null) {
-			return null;
+			return variables;
 		}
 
-		List<Node> nodes = XmlUtil.getChildNodes(
-				submissionDocument.getDocumentElement(),
-				null, null, "mapping", variableName);
+		List<Node> nodes = XmlUtil.getChildNodes(submissionDocument.getDocumentElement(), null, null, "mapping", null);
 		if (ListUtil.isEmpty(nodes)) {
-			return null;
+			return variables;
 		}
 
-		Node node = nodes.get(0);
-		if (node == null) {
-			return null;
+		for (Iterator<Node> i = nodes.iterator(); i.hasNext();) {
+			Node node = i.next();
+
+			org.w3c.dom.Element element = null;
+			if (node instanceof org.w3c.dom.Element) {
+				element = (org.w3c.dom.Element) node;
+			} else {
+				continue;
+			}
+
+			String name = element.getAttribute("mapping");
+			String value = node.getTextContent();
+			if (!StringUtil.isEmpty(name) && !StringUtil.isEmpty(value)) {
+				variables.put(name.trim(), value.trim());
+			}
 		}
 
-		return node.getTextContent();
+		return variables;
+	}
+
+	@Transient
+	private Map<String, String> getVariablesFromDatabase() throws Exception {
+		IWMainApplication iwma = IWMainApplication.getDefaultIWMainApplication();
+		@SuppressWarnings("unchecked")
+		Map<String, Object> beans = WebApplicationContextUtils.getWebApplicationContext(iwma.getServletContext())
+				.getBeansOfType(XFormPersistenceService.class);
+		if (MapUtil.isEmpty(beans)) {
+			throw new RuntimeException("Unable to find any implementation(s) for " + XFormPersistenceService.class.getName());
+		}
+
+		for (Object object: beans.values()) {
+			XFormPersistenceService service = CoreUtil.getUnProxied(object);
+			Map<String, String> variables = service.getVariables(getIdentifier());
+			if (!MapUtil.isEmpty(variables)) {
+				return variables;
+			}
+		}
+
+		throw new RuntimeException("No variables were found by " + beans.values());
 	}
 
 	@Override

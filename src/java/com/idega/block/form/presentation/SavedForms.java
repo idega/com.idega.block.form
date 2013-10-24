@@ -282,10 +282,19 @@ public class SavedForms extends IWBaseComponent {
 				String submissionUUID = submission.getSubmissionUUID();
 
 				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.contains(submissionUUID)) {
-					SubmissionDataBean data = new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
-							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId()));
+					SubmissionDataBean data = new SubmissionDataBean(
+							formId,
+							submissionUUID,
+							submission.getDateSubmitted(),
+							getUser(iwc, getUserId() == null ?
+									isShowAll() ?
+											submission.getFormSubmitter() :
+											null :
+									getUserId()
+							)
+					);
 
-					data.addVariables(submission);
+					data.doLoadVariables(submission);
 
 					LocalizedStringBean localizedTitle = getLocalizedTitle(submission, locale);
 					data.setLocalizedTitle(localizedTitle.getString(locale));

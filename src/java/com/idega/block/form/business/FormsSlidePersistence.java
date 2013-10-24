@@ -26,6 +26,7 @@ import com.idega.block.form.bean.SubmissionDataBean;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
+import com.idega.block.form.event.FormSavedEvent;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.core.file.util.MimeTypeUtil;
@@ -40,6 +41,7 @@ import com.idega.util.CoreConstants;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
+import com.idega.util.expression.ELUtil;
 import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
@@ -640,44 +642,47 @@ public class FormsSlidePersistence implements PersistenceManager {
 
 	@Override
 	@Transactional(readOnly = false)
-	public String saveSubmittedData(Long formId, InputStream is,
-	        String representationIdentifier, boolean finalSubmission,
-	        Integer formSubmitter) throws IOException {
-
+	public String saveSubmittedData(
+			Long formId,
+			InputStream is,
+	        String representationIdentifier,
+	        boolean finalSubmission,
+	        Integer formSubmitter
+	) throws IOException {
 		if (formId == null || is == null)
-			throw new IllegalArgumentException("Not enough arguments. FormId="
-			        + formId + ", is=" + is);
+			throw new IllegalArgumentException("Not enough arguments. FormId=" + formId + ", stream=" + is);
 
 		if (StringUtil.isEmpty(representationIdentifier)) {
-			representationIdentifier = String.valueOf(System
-			        .currentTimeMillis());
+			representationIdentifier = String.valueOf(System.currentTimeMillis());
 		}
 
-		String path = storeSubmissionData(formId.toString(),
-		    representationIdentifier, is);
+		String path = storeSubmissionData(formId.toString(), representationIdentifier, is);
 
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 
 		if (xform == null)
-			throw new RuntimeException("No xform found for formId provided="
-			        + formId);
+			throw new RuntimeException("No xform found for formId provided=" + formId);
 
 		String submissionUUID = UUIDGenerator.getInstance().generateUUID();
 
 		XFormSubmission xformSubmission = new XFormSubmission();
-		xformSubmission.setDateSubmitted(new Date());
-		xformSubmission.setSubmissionStorageIdentifier(path);
-		xformSubmission.setSubmissionStorageType(slideStorageType);
-		xformSubmission.setIsFinalSubmission(finalSubmission);
-		xformSubmission.setSubmissionUUID(submissionUUID);
-		xformSubmission.setXform(xform);
-		xformSubmission.setFormSubmitter(formSubmitter);
+		try {
+			xformSubmission.setDateSubmitted(new Date());
+			xformSubmission.setSubmissionStorageIdentifier(path);
+			xformSubmission.setSubmissionStorageType(slideStorageType);
+			xformSubmission.setIsFinalSubmission(finalSubmission);
+			xformSubmission.setSubmissionUUID(submissionUUID);
+			xformSubmission.setXform(xform);
+			xformSubmission.setFormSubmitter(formSubmitter);
 
-		doEnsureSubmitterIsKnown(xformSubmission);
+			doEnsureSubmitterIsKnown(xformSubmission);
 
-		getXformsDAO().persist(xformSubmission);
+			getXformsDAO().persist(xformSubmission);
 
-		return submissionUUID;
+			return submissionUUID;
+		} finally {
+			ELUtil.getInstance().publishEvent(new FormSavedEvent(this, xformSubmission.getSubmissionId()));
+		}
 	}
 
 	private User getSubmissionOwner(XFormSubmission submission) {
