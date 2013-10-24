@@ -82,6 +82,8 @@
  */
 package com.idega.block.form.business;
 
+import java.util.List;
+
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.presentation.IWContext;
 import com.idega.user.data.User;
@@ -96,15 +98,11 @@ import com.idega.user.data.User;
  */
 public interface FormAssetsResolver {
 
-	/**
-	 *
-	 * <p>Method tell, if saved form is accessible to connected user.</p>
-	 * @param iwc
-	 * @return true is submission can be viewed by {@link User},
-	 * <code>false</code> otherwise.
-	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
-	 */
-	public boolean canView(IWContext iwc, XFormSubmission submission);
+	public List<XFormSubmission> getFilteredOutForms(
+			IWContext iwc,
+			List<XFormSubmission> submissions,
+			List<String> procDefNames
+	);
 
 	public User getOwner(XFormSubmission submission);
 

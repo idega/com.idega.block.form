@@ -1,5 +1,6 @@
 package com.idega.block.form.data.dao;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public interface XFormsDAO extends GenericDao {
 
 	public abstract List<XFormSubmission> getAllNotFinalSubmissions();
 
-	public abstract List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId);
+	public abstract List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId, Collection<String> procDefNames);
 
 	/**
 	 * Get all versions of forms which has a specified parent.
@@ -48,31 +49,31 @@ public interface XFormsDAO extends GenericDao {
 	 * @param userId
 	 * @return
 	 */
-	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId);
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId, Collection<String> procDefNames);
 
 	public List<XForm> getXFormsByNameAndStorageIndetifierAndType(String name, String storageIdentifier, String type);
 
 	/**
-	 * 
-	 * @param personalID - {@link User#getPersonalID()} or 
+	 *
+	 * @param personalID - {@link User#getPersonalID()} or
 	 * {@link User#getPersonalID()} of Company#getCEO, not <code>null</code>;
-	 * @return {@link List} of {@link XFormSubmission}s, where 
+	 * @return {@link List} of {@link XFormSubmission}s, where
 	 * {@value XFormSubmission#isFinalSubmissionProperty} is <code>false</code>
-	 * and not only lastest by date {@link XFormSubmission}s are selected. 
+	 * and not only lastest by date {@link XFormSubmission}s are selected.
 	 * {@link Collections#emptyList()} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID);
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID, Collection<String> procDefNames);
 
 	/**
-	 * 
-	 * @param personalID - {@link User#getPersonalID()} or 
+	 *
+	 * @param personalID - {@link User#getPersonalID()} or
 	 * {@link User#getPersonalID()} of Company#getCEO, not <code>null</code>;
-	 * @return {@link List} of {@link XFormSubmission}s, where 
+	 * @return {@link List} of {@link XFormSubmission}s, where
 	 * {@value XFormSubmission#isFinalSubmissionProperty} is <code>false</code>
-	 * and only lastest by date {@link XFormSubmission}s are selected. 
+	 * and only lastest by date {@link XFormSubmission}s are selected.
 	 * {@link Collections#emptyList()} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID);
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames);
 }
