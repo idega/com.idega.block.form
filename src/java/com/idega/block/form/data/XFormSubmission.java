@@ -97,15 +97,16 @@ public class XFormSubmission implements Serializable, Submission {
 	@JoinColumn(name = "XFORM_FK", nullable = false)
 	private XForm xform;
 
-	@Column(name = "identifier")
-	private Long identifier;
+	@Column(name = "provider")
+	private Long provider;
 
-	public Long getIdentifier() {
-		return identifier;
+
+	public Long getProvider() {
+		return provider;
 	}
 
-	public void setIdentifier(Long identifier) {
-		this.identifier = identifier;
+	public void setProvider(Long provider) {
+		this.provider = provider;
 	}
 
 	@Override
@@ -254,7 +255,7 @@ public class XFormSubmission implements Serializable, Submission {
 		if (variables == null) {
 			variables = new HashMap<String, String>();
 
-			if (getIdentifier() == null || getIdentifier() < 0) {
+			if (getProvider() == null || getProvider() < 0) {
 				//	Loading variables from repository
 				variables = getVariablesFromRepository();
 			} else {
@@ -319,7 +320,7 @@ public class XFormSubmission implements Serializable, Submission {
 
 		for (Object object: beans.values()) {
 			XFormPersistenceService service = CoreUtil.getUnProxied(object);
-			Map<String, String> variables = service.getVariables(getIdentifier());
+			Map<String, String> variables = service.getVariables(getProvider());
 			if (!MapUtil.isEmpty(variables)) {
 				return variables;
 			}
