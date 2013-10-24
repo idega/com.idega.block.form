@@ -105,6 +105,14 @@ public class SavedForms extends IWBaseComponent {
 		this.showOnlySubscribed = showOnlySubscribed;
 	}
 
+	public List<String> getProcDefNames() {
+		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
+			return null;
+		}
+
+		return Arrays.asList(getProcessDefinitionNames().split(CoreConstants.COMMA));
+	}
+
 	/**
 	 *
 	 * <p>Property for filtering saved forms by process definition</p>
@@ -114,7 +122,6 @@ public class SavedForms extends IWBaseComponent {
 	public String getProcessDefinitionNames() {
 		return processDefinitionNames;
 	}
-
 	public void setProcessDefinitionNames(String processDefinitionNames) {
 		this.processDefinitionNames = processDefinitionNames;
 	}
@@ -208,14 +215,9 @@ public class SavedForms extends IWBaseComponent {
 		return variable[1];
 	}
 
-	/**
-	 *
-	 * @see FormAssetsResolver#canView(IWContext, XFormSubmission)
-	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
-	 */
-	public boolean canView(IWContext iwc, XFormSubmission submission) {
-		if (!isShowOnlySubscribed() || iwc.isSuperAdmin()) {
-			return Boolean.TRUE;
+	public List<XFormSubmission> getFilteredOutForms(IWContext iwc, List<XFormSubmission> submissions) {
+		if (ListUtil.isEmpty(submissions) || !isShowOnlySubscribed() || iwc.isSuperAdmin()) {
+			return submissions;
 		}
 
 		Map<?, ?> beans = null;
@@ -223,19 +225,17 @@ public class SavedForms extends IWBaseComponent {
 			beans = WebApplicationContextUtils.getWebApplicationContext(iwc.getServletContext()).getBeansOfType(FormAssetsResolver.class);
 		} catch (Exception e) {}
 		if (MapUtil.isEmpty(beans)) {
-			return Boolean.TRUE;
+			return submissions;
 		}
 
+		List<String> procDefNames = getProcDefNames();
 		for (Object bean: beans.values()) {
 			if (bean instanceof FormAssetsResolver) {
-				boolean canView = ((FormAssetsResolver) bean).canView(iwc, submission);
-				if (!canView) {
-					return Boolean.FALSE;
-				}
+				submissions = ((FormAssetsResolver) bean).getFilteredOutForms(iwc, submissions, procDefNames);
 			}
 		}
 
-		return Boolean.TRUE;
+		return submissions;
 	}
 
 	@Override
@@ -265,7 +265,9 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 
-		List<XFormSubmission> submissions = filterByProcessDefinitionsProperty(getAllSubmissions(context, getValueFromVariables(PERSONAL_ID_VARIABLE)));
+		String ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
+		List<XFormSubmission> submissions = getAllSubmissions(context, ownerPersonalId);
+		submissions = getFilteredOutForms(iwc, submissions);
 		if (ListUtil.isEmpty(submissions)) {
 			return;
 		}
@@ -275,10 +277,6 @@ public class SavedForms extends IWBaseComponent {
 		List<String> addedSubmissions = new ArrayList<String>();
 		List<SubmissionDataBean> submissionsData = new ArrayList<SubmissionDataBean>();
 		for (XFormSubmission submission: submissions) {
-			if (!canView(iwc, submission)) {
-				continue;
-			}
-
 			try {
 				Long formId = submission.getXform().getFormId();
 				String submissionUUID = submission.getSubmissionUUID();
@@ -582,42 +580,7 @@ public class SavedForms extends IWBaseComponent {
 		return null;
 	}
 
-	/**
-	 *
-	 * <p>Filters received submissions by process definition id, given in
-	 * {@link SavedForms#getProcessDefinitionNames()} property.</p>
-	 * @param submissions to filter, not <code>null</code>;
-	 * @return filtered submissions or {@link Collections#emptyList()}
-	 * on failure.
-	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
-	 */
-	protected List<XFormSubmission> filterByProcessDefinitionsProperty(List<XFormSubmission> submissions) {
-		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
-			return submissions;
-		}
-
-		if (ListUtil.isEmpty(submissions)) {
-			return Collections.emptyList();
-		}
-
-		List<XFormSubmission> filteredSubmissions = new ArrayList<XFormSubmission>(submissions.size());
-		for (XFormSubmission submission : submissions) {
-			XForm xForm = submission.getXform();
-			if (xForm == null) {
-				continue;
-			}
-
-			if (!getProcessDefinitionNames().contains(xForm.getJBPMProcessDefinitionName())) {
-				continue;
-			}
-
-			filteredSubmissions.add(submission);
-		}
-
-		return filteredSubmissions;
-	}
-
-	protected List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
+	private List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
 		if (StringUtil.isEmpty(personalID)) {
 			return getAllSubmissions(context);
 		}
@@ -627,19 +590,14 @@ public class SavedForms extends IWBaseComponent {
 			return null;
 		}
 
-		if (!(iwc.hasRole("bpm_development_fund_handler") ||
-				iwc.hasRole("bpm_development_fund_manager") ||
-				iwc.hasRole("bpm_development_fund_caseHandler") ||
-				iwc.hasRole("bpm_development_fund_invited")) && !isShowAll()) {
-
+		if (!isShowAll()) {
 			return null;
 		}
 
-		if(this.showLatestForms){
-			return getXformsDAO().getAllLatestSubmissionsByUser(personalID);
+		if (this.showLatestForms) {
+			return getXformsDAO().getAllLatestSubmissionsByUser(personalID, getProcDefNames());
 		}
-
-		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID);
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID, getProcDefNames());
 	}
 
 	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {
@@ -651,10 +609,10 @@ public class SavedForms extends IWBaseComponent {
 			}
 		}
 
-		if(this.showLatestForms){
-			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId);
+		if (this.showLatestForms) {
+			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId, getProcDefNames());
 		}
-		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId);
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId, getProcDefNames());
 	}
 
 	@Override
