@@ -179,9 +179,8 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 	}
 
 	private void addResources(IWContext iwc) {
-		String styleSheet = new StringBuilder().append(CoreConstants.WEBDAV_SERVLET_URI).append(IWBundleStarter.REPOSITORY_STYLES_PATH)
+		String defaultStyleSheet = new StringBuilder().append(CoreConstants.WEBDAV_SERVLET_URI).append(IWBundleStarter.REPOSITORY_STYLES_PATH)
 			.append(IWBundleStarter.CHIBA_CSS).toString();
-		PresentationUtil.addStyleSheetToHeader(iwc, styleSheet);
 
 		List<String> scriptsUris = new ArrayList<String>();
 
@@ -227,13 +226,30 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 			if (settings.getBoolean("load_firebug_ie", Boolean.FALSE) && iwc.isIE())
 				scriptsUris.add("https://getfirebug.com/firebug-lite.js");
 
+			String javascript = iwc.getIWMainApplication().getSettings().getProperty("xforms_js",CoreConstants.EMPTY);
+			String[] jsFiles = javascript.split(CoreConstants.COMMA);
+			for (String jsFile : jsFiles) {
+				scriptsUris.add(jsFile);
+			}
+
 			PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, scriptsUris);
 
-			//	CSS
-			PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
-					web2.getBundleUriToHumanizedMessagesStyleSheet(),
-					web2.getBundleURIToFancyBoxStyleFile()
-			));
+			if(isPdfViewer()){
+				PresentationUtil.addStyleSheetToHeader(iwc, defaultStyleSheet);
+			}else{
+//				CSS
+				String css = iwc.getIWMainApplication().getSettings().getProperty("xforms_css",defaultStyleSheet);
+				String[] cssFiles = null;
+				cssFiles = css.split(CoreConstants.COMMA);
+
+				PresentationUtil.addStyleSheetsToHeader(iwc, Arrays.asList(
+						web2.getBundleUriToHumanizedMessagesStyleSheet(),
+						web2.getBundleURIToFancyBoxStyleFile()
+				));
+				for (String cssFile: cssFiles) {
+					PresentationUtil.addStyleSheetToHeader(iwc, cssFile);
+				}
+			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

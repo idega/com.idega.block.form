@@ -7,17 +7,20 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Node;
 import org.w3c.tidy.Attribute;
 
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.SubmissionDataBean;
+import com.idega.block.form.business.FormAssetsResolver;
 import com.idega.block.form.business.SubmissionDataComparator;
 import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
@@ -60,8 +63,8 @@ import com.idega.util.ListUtil;
 import com.idega.util.PresentationUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
+import com.idega.util.datastructures.map.MapUtil;
 import com.idega.util.expression.ELUtil;
-import com.idega.util.xml.XmlUtil;
 import com.idega.xformsmanager.business.Document;
 import com.idega.xformsmanager.business.DocumentManager;
 import com.idega.xformsmanager.business.DocumentManagerFactory;
@@ -69,7 +72,7 @@ import com.idega.xformsmanager.component.beans.LocalizedStringBean;
 
 public class SavedForms extends IWBaseComponent {
 
-	public static final String PERSONAL_ID_VARIABLE = "string_ownerKennitala";
+	public static final String PERSONAL_ID_VARIABLE = SubmissionDataBean.VARIABLE_OWNER_PERSONAL_ID;
 
 	@Autowired
 	private XFormsDAO xformsDAO;
@@ -89,6 +92,39 @@ public class SavedForms extends IWBaseComponent {
 	private ICPage responsePage;
 
 	private String allowedTypes, variablesWithValues;
+
+	private String processDefinitionNames = null;
+
+	private boolean showOnlySubscribed = Boolean.FALSE;
+
+	public boolean isShowOnlySubscribed() {
+		return showOnlySubscribed;
+	}
+
+	public void setShowOnlySubscribed(boolean showOnlySubscribed) {
+		this.showOnlySubscribed = showOnlySubscribed;
+	}
+
+	public List<String> getProcDefNames() {
+		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
+			return null;
+		}
+
+		return Arrays.asList(getProcessDefinitionNames().split(CoreConstants.COMMA));
+	}
+
+	/**
+	 *
+	 * <p>Property for filtering saved forms by process definition</p>
+	 * @return process definitions names, separated by comma;
+	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
+	 */
+	public String getProcessDefinitionNames() {
+		return processDefinitionNames;
+	}
+	public void setProcessDefinitionNames(String processDefinitionNames) {
+		this.processDefinitionNames = processDefinitionNames;
+	}
 
 	/**
 	 * @return the variablesWithValues
@@ -140,16 +176,16 @@ public class SavedForms extends IWBaseComponent {
 		return data.containsAll(getSplittedVariablesWithValues(getVariablesWithValues()));
 	}
 
-	protected String getPersonalIDValueFromVariables() {
+	protected String getValueFromVariables(String variableName) {
 		if (StringUtil.isEmpty(getVariablesWithValues())) {
 			return null;
 		}
 
-		if (!getVariablesWithValues().contains(PERSONAL_ID_VARIABLE)) {
+		if (!getVariablesWithValues().contains(variableName)) {
 			return null;
 		}
 
-		int index = getVariablesWithValues().indexOf(PERSONAL_ID_VARIABLE);
+		int index = getVariablesWithValues().indexOf(variableName);
 		if (index < 0 || index > getVariablesWithValues().length()) {
 			return null;
 		}
@@ -179,6 +215,29 @@ public class SavedForms extends IWBaseComponent {
 		return variable[1];
 	}
 
+	public List<XFormSubmission> getFilteredOutForms(IWContext iwc, List<XFormSubmission> submissions) {
+		if (ListUtil.isEmpty(submissions) || !isShowOnlySubscribed() || iwc.isSuperAdmin()) {
+			return submissions;
+		}
+
+		Map<?, ?> beans = null;
+		try {
+			beans = WebApplicationContextUtils.getWebApplicationContext(iwc.getServletContext()).getBeansOfType(FormAssetsResolver.class);
+		} catch (Exception e) {}
+		if (MapUtil.isEmpty(beans)) {
+			return submissions;
+		}
+
+		List<String> procDefNames = getProcDefNames();
+		for (Object bean: beans.values()) {
+			if (bean instanceof FormAssetsResolver) {
+				submissions = ((FormAssetsResolver) bean).getFilteredOutForms(iwc, submissions, procDefNames);
+			}
+		}
+
+		return submissions;
+	}
+
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
@@ -206,7 +265,9 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 
-		List<XFormSubmission> submissions = getAllSubmissions(context, getPersonalIDValueFromVariables());
+		String ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
+		List<XFormSubmission> submissions = getAllSubmissions(context, ownerPersonalId);
+		submissions = getFilteredOutForms(iwc, submissions);
 		if (ListUtil.isEmpty(submissions)) {
 			return;
 		}
@@ -221,16 +282,27 @@ public class SavedForms extends IWBaseComponent {
 				String submissionUUID = submission.getSubmissionUUID();
 
 				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.contains(submissionUUID)) {
-					SubmissionDataBean data = new SubmissionDataBean(formId, submissionUUID, submission.getDateSubmitted(),
-							getUser(iwc, getUserId() == null ? isShowAll() ? submission.getFormSubmitter() : null : getUserId()));
+					SubmissionDataBean data = new SubmissionDataBean(
+							formId,
+							submissionUUID,
+							submission.getDateSubmitted(),
+							getUser(iwc, getUserId() == null ?
+									isShowAll() ?
+											submission.getFormSubmitter() :
+											null :
+									getUserId()
+							)
+					);
 
-					data.addVariables(submission);
+					data.doLoadVariables(submission);
 
 					LocalizedStringBean localizedTitle = getLocalizedTitle(submission, locale);
 					data.setLocalizedTitle(localizedTitle.getString(locale));
 
 					boolean add = true;
-					if (getAllowedTypes() != null && getAllowedTypes().indexOf(localizedTitle.getString(Locale.ENGLISH)) == -1) {
+					String allowedTypes = getAllowedTypes();
+					String englishLocalization = localizedTitle == null ? null : localizedTitle.getString(Locale.ENGLISH);
+					if (allowedTypes != null && englishLocalization != null && allowedTypes.indexOf(englishLocalization) == -1) {
 						add = false;
 					}
 
@@ -301,6 +373,7 @@ public class SavedForms extends IWBaseComponent {
 		TableBodyRowGroup body = table.createBodyRowGroup();
 		body.setStyleClass("savedFormsViewerBodyRows");
 		for (SubmissionDataBean data: submissionsData) {
+
 			TableRow bodyRow = body.createRow();
 			bodyRow.setStyleClass(index % 2 == 0 ? "even" : "odd");
 
@@ -402,30 +475,17 @@ public class SavedForms extends IWBaseComponent {
 			return null;
 		}
 
-		org.w3c.dom.Document submissionDocument = submission.getSubmissionDocument();
-		if (submissionDocument == null) {
-			return getLocalizedTitle(submission.getXform());
-		}
-
-		List<Node> nodes = XmlUtil.getChildNodes(
-				submissionDocument.getDocumentElement(),
-				null, null, "mapping", "string_caseDescription");
-
-		if (ListUtil.isEmpty(nodes)) {
-			return getLocalizedTitle(submission.getXform());
-		}
-
 		if (locale == null) {
 			locale = CoreUtil.getCurrentLocale();
 		}
 
-		Node node = nodes.get(0);
-		if (node == null || StringUtil.isEmpty(node.getTextContent())) {
+		String value = submission.getVariableValue("string_caseDescription");
+		if (StringUtil.isEmpty(value)) {
 			return getLocalizedTitle(submission.getXform());
 		}
 
 		LocalizedStringBean lsb = new LocalizedStringBean();
-		lsb.setString(locale, node.getTextContent());
+		lsb.setString(locale, value);
 		return lsb;
 	}
 
@@ -522,14 +582,14 @@ public class SavedForms extends IWBaseComponent {
 
 	private UserBusiness getUserBusiness(IWApplicationContext iwac) {
 		try {
-			return (UserBusiness) IBOLookup.getServiceInstance(iwac, UserBusiness.class);
+			return IBOLookup.getServiceInstance(iwac, UserBusiness.class);
 		} catch (IBOLookupException e) {
 			Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting " + UserBusiness.class, e);
 		}
 		return null;
 	}
 
-	protected List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
+	private List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
 		if (StringUtil.isEmpty(personalID)) {
 			return getAllSubmissions(context);
 		}
@@ -539,19 +599,14 @@ public class SavedForms extends IWBaseComponent {
 			return null;
 		}
 
-		if (!(iwc.hasRole("bpm_development_fund_handler") ||
-				iwc.hasRole("bpm_development_fund_manager") ||
-				iwc.hasRole("bpm_development_fund_caseHandler") ||
-				iwc.hasRole("bpm_development_fund_invited")) && !isShowAll()) {
-
+		if (!isShowAll()) {
 			return null;
 		}
 
-		if(this.showLatestForms){
-			return getXformsDAO().getAllLatestSubmissionsByUser(personalID);
+		if (this.showLatestForms) {
+			return getXformsDAO().getAllLatestSubmissionsByUser(personalID, getProcDefNames());
 		}
-
-		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID);
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID, getProcDefNames());
 	}
 
 	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {
@@ -563,10 +618,10 @@ public class SavedForms extends IWBaseComponent {
 			}
 		}
 
-		if(this.showLatestForms){
-			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId);
+		if (this.showLatestForms) {
+			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId, getProcDefNames());
 		}
-		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId);
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId, getProcDefNames());
 	}
 
 	@Override
