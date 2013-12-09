@@ -33,6 +33,7 @@ import org.chiba.web.session.impl.DefaultXFormsSessionManagerImpl;
 import org.chiba.xml.events.ChibaEventNames;
 import org.chiba.xml.events.XFormsEventNames;
 import org.chiba.xml.events.XMLEvent;
+import org.chiba.xml.events.impl.XercesXMLEvent;
 import org.chiba.xml.xforms.XFormsConstants;
 import org.chiba.xml.xforms.config.XFormsConfigException;
 import org.chiba.xml.xforms.exception.XFormsException;
@@ -335,11 +336,16 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 						id = ((Element) event.getTarget()).getAttribute("id");
 					}
 
-					if (XFormsEventNames.SUBMIT_DONE.equals(event.getType())) {
-						ELUtil.getInstance().publishEvent(new SubmissionEvent(eventAdapter, event));
-					}
+					String eventType = event.getType();
+					LOGGER.info("Got event, type=" + eventType + ", id=" + id);
 
-					LOGGER.info("Got event, type=" + event.getType() + ", id=" + id);
+					if (XFormsEventNames.SUBMIT_DONE.equals(eventType)) {
+						ELUtil.getInstance().publishEvent(new SubmissionEvent(eventAdapter, event));
+					} else if (XFormsEventNames.SUBMIT_ERROR.equals(eventType) && event instanceof XercesXMLEvent) {
+						XercesXMLEvent errorEvent = (XercesXMLEvent) event;
+						LOGGER.info("Information of submission error event: context: " + errorEvent.getContextInfo() + ", properties: " +
+								errorEvent.getPropertyNames() + ", target: " + errorEvent.getTarget());
+					}
 				}
 			};
 
