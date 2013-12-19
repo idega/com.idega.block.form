@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -21,45 +22,45 @@ import com.idega.util.expression.ELUtil;
  * @version $Revision: 1.1 $ Last modified: $Date: 2009/05/05 14:12:09 $ by $Author: civilis $
  */
 @Service
-@Scope("singleton")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class FormSavePhasePluginFactory {
-	
-	private Multimap<String, String> pluginsIdentifiers = new HashMultimap<String, String>();
-	
+
+	private Multimap<String, String> pluginsIdentifiers = HashMultimap.create();
+
 	@Autowired
 	public void setFormSavePhasePlugins(List<FormSavePhasePlugin> plugins) {
-		
+
 		pluginsIdentifiers.clear();
-		
+
 		for (FormSavePhasePlugin plugin : plugins) {
-			
+
 			pluginsIdentifiers.put(plugin.getSubmissionScheme(), plugin
 			        .getBeanIdentifier());
 		}
 	}
-	
+
 	public Collection<FormSavePhasePlugin> getPlugins(String scheme) {
-		
+
 		Collection<String> pluginsIdentifiers = this.pluginsIdentifiers
 		        .get(scheme);
-		
+
 		List<FormSavePhasePlugin> plugins;
-		
+
 		if (!ListUtil.isEmpty(pluginsIdentifiers)) {
-			
+
 			plugins = new ArrayList<FormSavePhasePlugin>(pluginsIdentifiers
 			        .size());
-			
+
 			for (String identifier : pluginsIdentifiers) {
-				
+
 				FormSavePhasePlugin plugin = ELUtil.getInstance().getBean(
 				    identifier);
 				String pluginScheme = plugin.getSubmissionScheme();
-				
+
 				if (scheme.equals(pluginScheme)) {
-					
+
 					plugins.add(plugin);
-					
+
 				} else {
 					Logger.getLogger(getClass().getName()).log(
 					    Level.WARNING,
@@ -71,7 +72,7 @@ public class FormSavePhasePluginFactory {
 		} else {
 			plugins = Collections.emptyList();
 		}
-		
+
 		return plugins;
 	}
 }
