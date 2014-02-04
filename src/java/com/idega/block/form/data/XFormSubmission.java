@@ -100,6 +100,18 @@ public class XFormSubmission implements Serializable, Submission {
 	@Column(name = "provider")
 	private Long provider;
 
+	public static final String isDeletedProperty = "deleted";
+	public static final String COLUMN_ID_DELETED = "isDeleted";
+	@Column(name = COLUMN_ID_DELETED, nullable = true)
+	private Boolean deleted;
+
+	public Boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(Boolean deleted) {
+		this.deleted = deleted;
+	}
 
 	public Long getProvider() {
 		return provider;

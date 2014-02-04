@@ -144,30 +144,43 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 			boolean doSelectLastest,
 			Collection<String> procDefNames
 	) {
-		StringBuilder query = new StringBuilder("select s from ").append(XFormSubmission.class.getName()).append(" s ");
+		/* Main query */
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT s FROM ").append(XFormSubmission.class.getName()).append(" s ");
 
+		/* In case, when process definition names are given */
 		if (!ListUtil.isEmpty(procDefNames)) {
-			query.append(" inner join s.xform f ");
-		}
+			query.append("JOIN s.xform f ON (");
 
-		query.append(" where ");
-
-		if (!ListUtil.isEmpty(procDefNames)) {
-			query.append("(");
-			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
-				query.append("f." + XForm.formStorageIdentifierProperty + " like '%" + procDefNamesIter.next() + "%'");
+			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); 
+					procDefNamesIter.hasNext();) {
+				query.append("f." + XForm.formStorageIdentifierProperty + " ")
+				.append("LIKE '%" + procDefNamesIter.next() + "%' ");
 				if (procDefNamesIter.hasNext()) {
-					query.append(" or ");
+					query.append("OR ");
 				}
 			}
 
-			query.append(") and ");
+			query.append(") ");
 		}
 
-		query.append(" s.").append(XFormSubmission.isFinalSubmissionProperty).append(" = :").append(XFormSubmission.isFinalSubmissionProperty);
+		query.append("WHERE ");
+		
+		/* Not showing removed one's */
+		query.append("(s.").append(XFormSubmission.isDeletedProperty)
+		.append(" = :").append(XFormSubmission.isDeletedProperty)
+		.append(" OR ").append("s.").append(XFormSubmission.isDeletedProperty)
+		.append(" IS NULL) ");
 
+		/* Filtering only final submissions */
+		query.append("AND ")
+		.append("s.").append(XFormSubmission.isFinalSubmissionProperty)
+		.append(" = :").append(XFormSubmission.isFinalSubmissionProperty)
+		.append(CoreConstants.SPACE);
+
+		/* If not only valid ones */
 		if (!onlyFinal) {
-			query.append(" and (s.")
+			query.append("AND (s.")
 				.append(XFormSubmission.isValidSubmissionProperty)
 				.append(" = true or s.")
 				.append(XFormSubmission.isValidSubmissionProperty)
@@ -208,27 +221,29 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		if (doSelectLastest) {
 			query.append(" and s.")
 				.append(XFormSubmission.dateSubmittedProperty)
-				.append(" = (SELECT max(s.")
-				.append(XFormSubmission.dateSubmittedProperty).append(") FROM ")
-				.append(XFormSubmission.class.getName()).append(" s where s.")
-				.append(XFormSubmission.xformProperty).append(" = s.")
-				.append(XFormSubmission.xformProperty).append(")");
+				.append(" = (SELECT max(s.").append(XFormSubmission.dateSubmittedProperty).append(") ")
+				.append("FROM ").append(XFormSubmission.class.getName()).append(" s ")
+				.append("WHERE s.").append(XFormSubmission.xformProperty).append(" = s.")
+				.append(XFormSubmission.xformProperty).append(") ");
 		}
 
 		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, onlyFinal);
+		Param deletedProperty = new Param(XFormSubmission.isDeletedProperty, Boolean.FALSE);
 
 		List<XFormSubmission> submissions = null;
 		if (ownerId == null) {
 			submissions = getResultListByInlineQuery(
 					query.toString(),
 					XFormSubmission.class,
-					finalSubmissionProperty
+					finalSubmissionProperty,
+					deletedProperty
 			);
 		} else {
 			submissions = getResultListByInlineQuery(
 					query.toString(),
 					XFormSubmission.class,
 					finalSubmissionProperty,
+					deletedProperty,
 					new Param(XFormSubmission.formSubmitterProperty, ownerId)
 			);
 		}
