@@ -125,6 +125,15 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		return getSubmissions(Boolean.FALSE, null, value, Boolean.TRUE, procDefNames);
 	}
 
+	@Override
+	public List<XFormSubmission> getAllLatestSubmissions(Integer userId, Collection<String> procDefNames) {
+		if (userId == null) {
+			return null;
+		}
+
+		return getSubmissions(Boolean.FALSE, userId, null, Boolean.TRUE, procDefNames);
+	}
+
 	/**
 	 *
 	 * <p>Searches for {@link XFormSubmission}s by:</p>
@@ -152,7 +161,7 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		if (!ListUtil.isEmpty(procDefNames)) {
 			query.append("JOIN s.xform f ON (");
 
-			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); 
+			for (Iterator<String> procDefNamesIter = procDefNames.iterator();
 					procDefNamesIter.hasNext();) {
 				query.append("f." + XForm.formStorageIdentifierProperty + " ")
 				.append("LIKE '%" + procDefNamesIter.next() + "%' ");
@@ -165,7 +174,7 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		}
 
 		query.append("WHERE ");
-		
+
 		/* Not showing removed one's */
 		query.append("(s.").append(XFormSubmission.isDeletedProperty)
 		.append(" = :").append(XFormSubmission.isDeletedProperty)

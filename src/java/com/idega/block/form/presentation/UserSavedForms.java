@@ -4,6 +4,7 @@ public class UserSavedForms extends SavedForms {
 
 	public UserSavedForms() {
 		setShowAll(Boolean.FALSE);
+		setShowOnlyCurrentUsersForms(Boolean.TRUE);
 	}
-	
+
 }

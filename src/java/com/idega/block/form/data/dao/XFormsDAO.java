@@ -76,4 +76,7 @@ public interface XFormsDAO extends GenericDao {
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
 	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames);
+
+	public List<XFormSubmission> getAllLatestSubmissions(Integer userId, Collection<String> procDefNames);
+
 }

@@ -83,10 +83,11 @@ public class SavedForms extends IWBaseComponent {
 	@Autowired
 	private JQuery jQuery;
 
-	private boolean showAll = Boolean.TRUE;
-	private boolean newestOnTop = Boolean.TRUE;
-	private boolean showTableHeader = Boolean.TRUE;
-	private boolean showLatestForms = Boolean.FALSE;
+	private boolean	showAll = Boolean.TRUE,
+					newestOnTop = Boolean.TRUE,
+					showTableHeader = Boolean.TRUE,
+					showLatestForms = Boolean.FALSE,
+					showOnlyCurrentUsersForms = Boolean.FALSE;
 
 	private Integer userId;
 	private ICPage responsePage;
@@ -265,8 +266,17 @@ public class SavedForms extends IWBaseComponent {
 			return;
 		}
 
-		String ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
-		List<XFormSubmission> submissions = getAllSubmissions(context, ownerPersonalId);
+		Integer currentUserId = null;
+		String ownerPersonalId = null;
+		if (isShowOnlyCurrentUsersForms()) {
+			currentUserId = Integer.valueOf(iwc.getCurrentUser().getId());
+		} else {
+			ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
+		}
+		List<XFormSubmission> submissions = getSubmissions(context, ownerPersonalId, currentUserId);
+		getLogger().info("Found submissions: " + (submissions == null ? "0" : submissions.size()) + " for proc. definitions: " + getProcDefNames() +
+				", user ID : " + currentUserId + ", personal ID: " + ownerPersonalId + ", show only current user's forms: " + isShowOnlyCurrentUsersForms() +
+				", show all forms: " + isShowAll());
 		submissions = getFilteredOutForms(iwc, submissions);
 		if (ListUtil.isEmpty(submissions)) {
 			return;
@@ -589,9 +599,14 @@ public class SavedForms extends IWBaseComponent {
 		return null;
 	}
 
-	private List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
+	private List<XFormSubmission> getSubmissions(FacesContext context, String personalID, Integer userId) {
+		if (userId != null) {
+			getLogger().info("Will load saved forms for user with ID: " + userId);
+			return getXformsDAO().getAllLatestSubmissions(userId, getProcDefNames());
+		}
+
 		if (StringUtil.isEmpty(personalID)) {
-			return getAllSubmissions(context);
+			return getSubmissions(context);
 		}
 
 		IWContext iwc = IWContext.getIWContext(context);
@@ -609,13 +624,16 @@ public class SavedForms extends IWBaseComponent {
 		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID, getProcDefNames());
 	}
 
-	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {
+	private List<XFormSubmission> getSubmissions(FacesContext context) {
 		Integer currentUserId = null;
 		if (!isShowAll()) {
 			IWContext iwc = IWContext.getIWContext(context);
 			if (iwc.isLoggedOn()) {
 				currentUserId = iwc.getCurrentUserId();
+				getLogger().info("Will load ALL saved forms for user with ID: " + currentUserId + " for proc. definitions: " + getProcDefNames());
 			}
+		} else {
+			getLogger().info("Will load ALL saved forms for proc. definitions: " + getProcDefNames());
 		}
 
 		if (this.showLatestForms) {
@@ -715,6 +733,14 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setAllowedTypes(String allowedTypes) {
 		this.allowedTypes = allowedTypes;
+	}
+
+	public boolean isShowOnlyCurrentUsersForms() {
+		return showOnlyCurrentUsersForms;
+	}
+
+	public void setShowOnlyCurrentUsersForms(boolean showOnlyCurrentUsersForms) {
+		this.showOnlyCurrentUsersForms = showOnlyCurrentUsersForms;
 	}
 
 }
