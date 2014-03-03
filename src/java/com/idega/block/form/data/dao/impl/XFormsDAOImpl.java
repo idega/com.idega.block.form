@@ -230,9 +230,9 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		if (doSelectLastest) {
 			query.append(" and s.")
 				.append(XFormSubmission.dateSubmittedProperty)
-				.append(" = (SELECT max(s.").append(XFormSubmission.dateSubmittedProperty).append(") ")
-				.append("FROM ").append(XFormSubmission.class.getName()).append(" s ")
-				.append("WHERE s.").append(XFormSubmission.xformProperty).append(" = s.")
+				.append(" = (SELECT max(ss.").append(XFormSubmission.dateSubmittedProperty).append(") ")
+				.append("FROM ").append(XFormSubmission.class.getName()).append(" ss ")
+				.append("WHERE ss.").append(XFormSubmission.xformProperty).append(" = s.")
 				.append(XFormSubmission.xformProperty).append(") ");
 		}
 
