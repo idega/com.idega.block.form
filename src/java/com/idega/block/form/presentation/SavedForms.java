@@ -281,11 +281,11 @@ public class SavedForms extends IWBaseComponent {
 		container.setStyleClass("savedFormsViewer");
 		String uuid = BuilderLogic.getInstance().getInstanceId(this);
 		if (!StringUtil.isEmpty(uuid))
-			container.setId("id_".concat(uuid));
+			form.setId("id_".concat(uuid));
 		form.add(container);
 
 		if (!iwc.isLoggedOn()) {
-			container.getChildren().add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
+			form.add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
 			return;
 		}
 
@@ -342,7 +342,7 @@ public class SavedForms extends IWBaseComponent {
 		container.add(element);
 		element.setStyleClass("formItem shortFormItem");
 		Label label = null;
-		label = new Label(iwrb.getLocalizedString("date_range", "Date range"), dateRange);
+		label = new Label(iwrb.getLocalizedString("date_range", "Date range") + CoreConstants.COLON, dateRange);
 		element.add(label);
 		element.add(dateRange);
 
@@ -363,7 +363,7 @@ public class SavedForms extends IWBaseComponent {
 				", show all forms: " + isShowAll());
 		submissions = getFilteredOutForms(iwc, submissions);
 		if (ListUtil.isEmpty(submissions)) {
-			container.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
+			form.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
 			return;
 		}
 
@@ -432,7 +432,7 @@ public class SavedForms extends IWBaseComponent {
 		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
 
 		Table2 table = new Table2();
-		container.getChildren().add(table);
+		form.add(table);
 		table.setStyleClass("savedFormsViewerTable");
 		TableHeaderRowGroup header = table.createHeaderRowGroup();
 		header.setStyleClass("savedFormsViewerHeaderRow");
@@ -510,7 +510,7 @@ public class SavedForms extends IWBaseComponent {
 
 			//	Pager
 			pagerContainer = new Layer();
-			container.getChildren().add(pagerContainer);
+			form.add(pagerContainer);
 			pagerContainer.setStyleClass("savedFormsViewerPager");
 
 			Image first = bundle.getImage("images/pager_first.png");

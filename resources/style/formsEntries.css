@@ -135,4 +135,12 @@ img.ui-datepicker-trigger {
 }
 input.savedFormsFilterButton {
 	margin-left: 10px;
+	width: 50px !important;
+}
+div.shortFormItem {
+	width: 800px !important;
+}
+div.shortFormItem label {
+	float: left !important;
+    width: 60px !important;
 }
