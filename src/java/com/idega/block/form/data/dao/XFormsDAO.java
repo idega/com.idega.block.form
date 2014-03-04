@@ -1,5 +1,6 @@
 package com.idega.block.form.data.dao;
 
+import java.sql.Date;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,7 @@ public interface XFormsDAO extends GenericDao {
 
 	public abstract List<XFormSubmission> getAllNotFinalSubmissions();
 
-	public abstract List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId, Collection<String> procDefNames);
+	public abstract List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId, Collection<String> procDefNames, Date from, Date to);
 
 	/**
 	 * Get all versions of forms which has a specified parent.
@@ -49,7 +50,7 @@ public interface XFormsDAO extends GenericDao {
 	 * @param userId
 	 * @return
 	 */
-	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId, Collection<String> procDefNames);
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId, Collection<String> procDefNames, Date from, Date to);
 
 	public List<XForm> getXFormsByNameAndStorageIndetifierAndType(String name, String storageIdentifier, String type);
 
@@ -63,7 +64,7 @@ public interface XFormsDAO extends GenericDao {
 	 * {@link Collections#emptyList()} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID, Collection<String> procDefNames);
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID, Collection<String> procDefNames, Date from, Date to);
 
 	/**
 	 *
@@ -75,8 +76,8 @@ public interface XFormsDAO extends GenericDao {
 	 * {@link Collections#emptyList()} on failure.
 	 * @author <a href="mailto:martynas@idega.com">Martynas Stakė</a>
 	 */
-	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames);
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames, Date from, Date to);
 
-	public List<XFormSubmission> getAllLatestSubmissions(Integer userId, Collection<String> procDefNames);
+	public List<XFormSubmission> getAllLatestSubmissions(Integer userId, Collection<String> procDefNames, Date from, Date to);
 
 }

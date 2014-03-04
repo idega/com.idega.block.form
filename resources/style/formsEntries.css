@@ -129,3 +129,10 @@ tr.odd {
 .savedFormsViewerAuthorHeaderRow {
 	width: 200px;
 }
+
+img.ui-datepicker-trigger {
+	margin-left: 5px;
+}
+input.savedFormsFilterButton {
+	margin-left: 10px;
+}
