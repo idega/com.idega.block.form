@@ -144,3 +144,6 @@ div.shortFormItem label {
 	float: left !important;
     width: 60px !important;
 }
+table.savedFormsViewerTable {
+	width: auto;
+}

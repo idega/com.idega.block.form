@@ -39,6 +39,7 @@ import com.idega.core.contact.data.Email;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
+import com.idega.presentation.CSSSpacer;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Image;
@@ -345,6 +346,7 @@ public class SavedForms extends IWBaseComponent {
 		label = new Label(iwrb.getLocalizedString("date_range", "Date range") + CoreConstants.COLON, dateRange);
 		element.add(label);
 		element.add(dateRange);
+		container.add(new CSSSpacer());
 
 		SubmitButton show = new SubmitButton(iwrb.getLocalizedString("show", "Show"));
 		show.setStyleClass("savedFormsFilterButton");
