@@ -370,9 +370,6 @@ public class SavedForms extends IWBaseComponent {
 			ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
 		}
 		List<XFormSubmission> submissions = getSubmissions(context, ownerPersonalId, currentUserId, from, to);
-		getLogger().info("Found submissions: " + (submissions == null ? "0" : submissions.size()) + " for proc. definitions: " + getProcDefNames() +
-				", user ID : " + currentUserId + ", personal ID: " + ownerPersonalId + ", show only current user's forms: " + isShowOnlyCurrentUsersForms() +
-				", show all forms: " + isShowAll());
 		submissions = getFilteredOutForms(iwc, submissions);
 		if (ListUtil.isEmpty(submissions)) {
 			form.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
@@ -697,7 +694,6 @@ public class SavedForms extends IWBaseComponent {
 
 	private List<XFormSubmission> getSubmissions(FacesContext context, String personalID, Integer userId, Date from, Date to) {
 		if (userId != null) {
-			getLogger().info("Will load saved forms for user with ID: " + userId);
 			return getXformsDAO().getAllLatestSubmissions(userId, getProcDefNames(), from, to);
 		}
 
@@ -726,10 +722,7 @@ public class SavedForms extends IWBaseComponent {
 			IWContext iwc = IWContext.getIWContext(context);
 			if (iwc.isLoggedOn()) {
 				currentUserId = iwc.getCurrentUserId();
-				getLogger().info("Will load ALL saved forms for user with ID: " + currentUserId + " for proc. definitions: " + getProcDefNames());
 			}
-		} else {
-			getLogger().info("Will load ALL saved forms for proc. definitions: " + getProcDefNames());
 		}
 
 		if (this.showLatestForms) {
