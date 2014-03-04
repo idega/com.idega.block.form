@@ -340,14 +340,6 @@ public class SavedForms extends IWBaseComponent {
 			to = now.getDate();
 		}
 
-		String rangeLimit = iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
-		if (StringHandler.isNumeric(rangeLimit)) {
-			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
-				form.add(new Heading3(iwrb.getLocalizedString("date_range_limit_is", "Date range limit is") + ": " + rangeLimit + " " + iwrb.getLocalizedString("days", "days")));
-				return;
-			}
-		}
-
 		IWDatePicker dateRange = getDateRange(iwc, dateRangeParameter, from, to);
 		Layer element = new Layer(Layer.DIV);
 		container.add(element);
@@ -361,6 +353,14 @@ public class SavedForms extends IWBaseComponent {
 		SubmitButton show = new SubmitButton(iwrb.getLocalizedString("show", "Show"));
 		show.setStyleClass("savedFormsFilterButton");
 		element.add(show);
+
+		String rangeLimit = iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
+		if (StringHandler.isNumeric(rangeLimit)) {
+			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
+				form.add(new Heading3(iwrb.getLocalizedString("date_range_limit_is", "Date range limit is") + ": " + rangeLimit + " " + iwrb.getLocalizedString("days", "days")));
+				return;
+			}
+		}
 
 		Integer currentUserId = null;
 		String ownerPersonalId = null;
