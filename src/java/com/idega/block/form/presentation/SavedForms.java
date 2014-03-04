@@ -70,6 +70,7 @@ import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.PresentationUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 import com.idega.util.datastructures.map.MapUtil;
@@ -338,6 +339,15 @@ public class SavedForms extends IWBaseComponent {
 			now.setMilliSecond(999);
 			to = now.getDate();
 		}
+
+		String rangeLimit = iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
+		if (StringHandler.isNumeric(rangeLimit)) {
+			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
+				form.add(new Heading3(iwrb.getLocalizedString("date_range_limit_is", "Date range limit is") + ": " + rangeLimit + " " + iwrb.getLocalizedString("days", "days")));
+				return;
+			}
+		}
+
 		IWDatePicker dateRange = getDateRange(iwc, dateRangeParameter, from, to);
 		Layer element = new Layer(Layer.DIV);
 		container.add(element);
