@@ -292,6 +292,7 @@ public class SavedForms extends IWBaseComponent {
 		}
 
 		//	Dates from and to
+		boolean userSavedForms = this instanceof UserSavedForms;
 		String dateRangeParameter = "dateRange";
 		Date from = null, to = null;
 		if (iwc.isParameterSet(dateRangeParameter)) {
@@ -330,6 +331,9 @@ public class SavedForms extends IWBaseComponent {
 		}
 		if (to == null) {
 			IWTimestamp now = IWTimestamp.RightNow();
+			if (userSavedForms) {
+				now.setYear(now.getYear() - 1);
+			}
 			now.setMonth(now.getMonth() + 1);
 			now.setDay(1);
 			now.setDay(now.getDay() - 1);
@@ -354,7 +358,7 @@ public class SavedForms extends IWBaseComponent {
 		show.setStyleClass("savedFormsFilterButton");
 		element.add(show);
 
-		String rangeLimit = iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
+		String rangeLimit = userSavedForms ? null : iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
 		if (StringHandler.isNumeric(rangeLimit)) {
 			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
 				form.add(new Heading3(iwrb.getLocalizedString("date_range_limit_is", "Date range limit is") + ": " + rangeLimit + " " + iwrb.getLocalizedString("days", "days")));
