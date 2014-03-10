@@ -322,6 +322,9 @@ public class SavedForms extends IWBaseComponent {
 		}
 		if (from == null) {
 			IWTimestamp now = IWTimestamp.RightNow();
+			if (userSavedForms) {
+				now.setYear(now.getYear() - 5);
+			}
 			now.setDay(1);
 			now.setHour(0);
 			now.setMinute(0);
@@ -331,9 +334,6 @@ public class SavedForms extends IWBaseComponent {
 		}
 		if (to == null) {
 			IWTimestamp now = IWTimestamp.RightNow();
-			if (userSavedForms) {
-				now.setYear(now.getYear() - 1);
-			}
 			now.setMonth(now.getMonth() + 1);
 			now.setDay(1);
 			now.setDay(now.getDay() - 1);
