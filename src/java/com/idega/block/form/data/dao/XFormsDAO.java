@@ -78,6 +78,6 @@ public interface XFormsDAO extends GenericDao {
 	 */
 	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames, Date from, Date to);
 
-	public List<XFormSubmission> getAllLatestSubmissions(Integer userId, Collection<String> procDefNames, Date from, Date to);
+	public List<XFormSubmission> getSubmissions(Integer userId, Collection<String> procDefNames, Date from, Date to, boolean onlyLatest);
 
 }

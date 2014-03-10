@@ -121,12 +121,12 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 	}
 
 	@Override
-	public List<XFormSubmission> getAllLatestSubmissions(Integer userId, Collection<String> procDefNames, Date from, Date to) {
+	public List<XFormSubmission> getSubmissions(Integer userId, Collection<String> procDefNames, Date from, Date to, boolean onlyLatest) {
 		if (userId == null) {
 			return null;
 		}
 
-		return getSubmissions(Boolean.FALSE, userId, null, Boolean.TRUE, procDefNames, from, to);
+		return getSubmissions(Boolean.FALSE, userId, null, onlyLatest, procDefNames, from, to);
 	}
 
 	/**

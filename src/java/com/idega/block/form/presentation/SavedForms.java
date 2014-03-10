@@ -698,7 +698,7 @@ public class SavedForms extends IWBaseComponent {
 
 	private List<XFormSubmission> getSubmissions(FacesContext context, String personalID, Integer userId, Date from, Date to) {
 		if (userId != null) {
-			return getXformsDAO().getAllLatestSubmissions(userId, getProcDefNames(), from, to);
+			return getXformsDAO().getSubmissions(userId, getProcDefNames(), from, to, isShowLatestForms());
 		}
 
 		if (StringUtil.isEmpty(personalID)) {
