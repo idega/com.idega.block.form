@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.block.form.presentation.FormViewer;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
 import com.idega.idegaweb.IWApplicationContext;
@@ -29,41 +30,41 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 /**
  *
- * 
- * @author <a href="anton@idega.com">Anton Makarov</a>
- * @version Revision: 1.0 
  *
- * Last modified: Oct 31, 2008 by Author: Anton 
+ * @author <a href="anton@idega.com">Anton Makarov</a>
+ * @version Revision: 1.0
+ *
+ * Last modified: Oct 31, 2008 by Author: Anton
  *
  */
 
 public class UploadedFileWriter extends DownloadWriter implements MediaWritable {
-	
-	public static final String SUBMISSION_ID = "submissionId";
+
+	public static final String SUBMISSION_ID = FormViewer.submissionIdParam;
 	public static final String FILE_ID = "fileId";
-	
+
 	private UploadedFile selectedFile;
 	private UploadedFileResolver fileResolver;
-	
+
 	private static final Logger logger = Logger.getLogger(UploadedFileWriter.class.getName());
-	
+
 	@Autowired @XFormPersistenceType("slide") private transient PersistenceManager persistenceManager;
-	
+
 	public UploadedFileWriter(){}
-	
+
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
 		String submissionId = iwc.getParameter(SUBMISSION_ID);
 		String fileId = iwc.getParameter(FILE_ID);
-		
+
 		Submission sub = getPersistenceManager().getSubmission(Long.parseLong(submissionId));
 		List<UploadedFile> files = getFileResolver().resolveUploadedList(sub.getSubmissionDocument());
-		
+
 		selectedFile = getFileFromListById(fileId, files);
-		
+
 		setAsDownload(iwc, selectedFile.getFileName(), getUploadedFileContentLength(selectedFile.getFileURI()));
 	}
-	
+
 	@Override
 	public String getMimeType() {
 		return selectedFile.getMimeType();
@@ -75,22 +76,22 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 			logger.log(Level.SEVERE, "Unable to get Attached file");
 			return;
 		}
-		
+
 		InputStream streamIn = getUploadedFileInputStream(selectedFile.getFileURI());
 		FileUtil.streamToOutputStream(streamIn, streamOut);
-		
+
 		streamOut.flush();
 		streamOut.close();
 		streamIn.close();
 	}
-	
+
 	private PersistenceManager getPersistenceManager() {
 		if(persistenceManager == null) {
 			ELUtil.getInstance().autowire(this);
 		}
 		return persistenceManager;
 	}
-	
+
 	private InputStream getUploadedFileInputStream(URI fileSlideUri) {
 		try {
 			return getIWSlideService().getInputStream(fileSlideUri.getPath());
@@ -99,7 +100,7 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 			return null;
 		}
 	}
-	
+
 	private int getUploadedFileContentLength(URI fileSlideUri) {
 		try {
 			File file = getIWSlideService().getFile(fileSlideUri.getPath());
@@ -109,7 +110,7 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 			return 0;
 		}
 	}
-	
+
 	private UploadedFile getFileFromListById(String fileId, List<UploadedFile> files) {
 		if(files != null) {
 			for(UploadedFile file : files) {
@@ -120,17 +121,17 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 		}
 		return null;
 	}
-	
-	
+
+
 	private IWSlideService getIWSlideService() throws IBOLookupException {
 		try {
-			return (IWSlideService) IBOLookup.getServiceInstance(getIWApplicationContext(), IWSlideService.class);
+			return IBOLookup.getServiceInstance(getIWApplicationContext(), IWSlideService.class);
 		} catch (IBOLookupException e) {
 			logger.log(Level.SEVERE, "Error getting IWSlideService");
 			throw e;
 		}
 	}
-	
+
 	private IWApplicationContext getIWApplicationContext() {
 		IWApplicationContext iwac = IWMainApplication
 				.getDefaultIWApplicationContext();

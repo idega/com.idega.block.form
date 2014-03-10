@@ -19,6 +19,7 @@ import com.idega.block.form.data.UploadedFile;
 import com.idega.block.form.data.UploadedFileResolver;
 import com.idega.block.form.data.UploadedFileWriter;
 import com.idega.block.form.entries.presentation.UIFormsEntriesViewer;
+import com.idega.block.form.presentation.FormViewer;
 import com.idega.block.pdf.business.PDFWriterProvider;
 import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
@@ -30,12 +31,12 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 import com.idega.xformsmanager.util.FormManagerUtil;
 
 /**
- * 
+ *
  * @author <a href="civilis@idega.com">Vytautas Čivilis</a>
  * @version $Revision: 1.8 $
- * 
+ *
  *          Last modified: $Date: 2008/11/13 07:16:58 $ by $Author: valdas $
- * 
+ *
  */
 @Scope("request")
 @Service("formsEntries")
@@ -45,10 +46,10 @@ public class FormsEntriesState implements Serializable {
 	private String facetDisplayed;
 	private String submissionFacetDisplayed;
 	private String submissionId;
-	private static final String submissionIdParam = "submissionId";
+	private static final String submissionIdParam = FormViewer.submissionIdParam;
 	private static final String formIdParam = "formId";
 	private Long formId;
-	
+
 	@Autowired private UploadedFileResolver fileResolver;
 	@Autowired
 	@XFormPersistenceType("slide")
@@ -58,7 +59,7 @@ public class FormsEntriesState implements Serializable {
 	public List<FormSubmissionEntry> getFormsEntries() {
 
 		List<Submission> submissions;
-		
+
 		if(getFormId() == null)
 			submissions = getPersistenceManager()
 			.getAllStandaloneFormsSubmissions();
@@ -81,12 +82,12 @@ public class FormsEntriesState implements Serializable {
 
 		return UIFormsEntriesViewer.entriesFacet.equals(getFacetDisplayed());
 	}
-	
+
 	public boolean isSubmissionView() {
 
 		return UIFormsEntriesViewer.formSubmissionFacet.equals(getSubmissionFacetDisplayed());
 	}
-	
+
 	public boolean isSourceView() {
 
 		return UIFormsEntriesViewer.formSubmissionSourceFacet.equals(getSubmissionFacetDisplayed());
@@ -97,7 +98,7 @@ public class FormsEntriesState implements Serializable {
 		return UIFormsEntriesViewer.formSubmissionFacet
 				.equals(getFacetDisplayed());
 	}
-	
+
 	public Class<?> getDocumentDownloader() {
 		if (pdfWriter == null) {
 			Logger.getLogger(FormsEntriesState.class.getName()).log(Level.SEVERE, "Error getting Spring bean for: " + pdfWriter.getClass() +
@@ -110,7 +111,7 @@ public class FormsEntriesState implements Serializable {
 
 	String getFacetDisplayed() {
 
-		String submissionIdStr = (String) FacesContext.getCurrentInstance()
+		String submissionIdStr = FacesContext.getCurrentInstance()
 				.getExternalContext().getRequestParameterMap().get(
 						submissionIdParam);
 
@@ -131,11 +132,11 @@ public class FormsEntriesState implements Serializable {
 	public void showEntries() {
 		setFacetDisplayed(UIFormsEntriesViewer.entriesFacet);
 	}
-	
+
 	public void viewSource() {
 		setSubmissionFacetDisplayed(UIFormsEntriesViewer.formSubmissionSourceFacet);
 	}
-	
+
 	public void viewSubmission() {
 		setSubmissionFacetDisplayed(UIFormsEntriesViewer.formSubmissionFacet);
 	}
@@ -159,92 +160,92 @@ public class FormsEntriesState implements Serializable {
 	public void setSubmissionFacetDisplayed(String submissionFacetDisplayed) {
 		this.submissionFacetDisplayed = submissionFacetDisplayed;
 	}
-	
+
 	public String getSubmissionSource() {
-		
+
 		Long submissionId = new Long(getSubmissionId());
-		
+
 		Submission submission = getPersistenceManager().getSubmission(submissionId);
-		
+
 		Document submissionDocument = submission.getSubmissionDocument();
-		
+
 		String serialized;
-		
+
 		try {
 			serialized = FormManagerUtil.serializeDocument(submissionDocument);
-			
+
 		} catch (IOException e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while serializing submission document. submission id = "+submission.getSubmissionId(), e);
 			serialized = CoreConstants.EMPTY;
 		}
-		
+
 		return serialized;
 	}
 
 	public String getSubmissionId() {
 
-		String submissionIdStr = (String) FacesContext.getCurrentInstance()
+		String submissionIdStr = FacesContext.getCurrentInstance()
 		.getExternalContext().getRequestParameterMap().get(
 				submissionIdParam);
-		
+
 		if(!StringUtil.isEmpty(submissionIdStr)) {
 			setSubmissionId(submissionIdStr);
 		}
-		
+
 		return submissionId;
 	}
 
 	public void setSubmissionId(String submissionId) {
 		this.submissionId = submissionId;
 	}
-	
+
 	public List<SelectItem> getForms() {
-		
+
 		List<Form> forms = getPersistenceManager().getStandaloneForms();
-		
+
 		ArrayList<SelectItem> formsItems = new ArrayList<SelectItem>(forms.size());
-		
+
 		formsItems.add(new SelectItem(CoreConstants.EMPTY, "All forms"));
-		
+
 		for (Form form : forms) {
-	
+
 			formsItems.add(new SelectItem(form.getFormId(), form.getDisplayName()));
 		}
-		
+
 		return formsItems;
 	}
-	
+
 	public Long getFormId() {
-		
+
 		if(formId == null) {
-		
-			String formIdStr = (String) FacesContext.getCurrentInstance()
+
+			String formIdStr = FacesContext.getCurrentInstance()
 			.getExternalContext().getRequestParameterMap().get(
 					formIdParam);
-			
+
 			if(!StringUtil.isEmpty(formIdStr))
 				setFormId(new Long(formIdStr));
 		}
-		
+
 		return formId;
 	}
 
 	public void setFormId(Long formId) {
 		this.formId = formId;
 	}
-	
+
 	public List<UploadedFile> getAttachments() {
 		Long submissionId = new Long(getSubmissionId());
 		Submission sub = getPersistenceManager().getSubmission(submissionId);
 		List<UploadedFile> files = getFileResolver().resolveUploadedList(sub.getSubmissionDocument());
 
-		return files;			
+		return files;
 	}
-	
+
 	public Class<?> getDownloadWriter() {
 		return UploadedFileWriter.class;
 	}
-	
+
 	private UploadedFileResolver getFileResolver() {
 		return fileResolver;
 	}

@@ -54,7 +54,7 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
  * @version $Revision: 1.11 $ Last modified: $Date: 2009/05/05 14:11:44 $ by $Author: civilis $
  */
 public class SaveFormAction extends AbstractBoundAction {
-	
+
 	private Long formId;
 	private String instanceId;
 	private Instance instance;
@@ -62,14 +62,14 @@ public class SaveFormAction extends AbstractBoundAction {
 	private String submissionIdExp;
 	private String action;
 	private String submissionElementId;
-	
+
 	private String emailExp;
 	private String linkExp;
-	
+
 	private String submissionUUID;
-	
+
 	private boolean overWrite;
-	
+
 	@Autowired
 	@XFormPersistenceType("slide")
 	private PersistenceManager persistenceManager;
@@ -81,93 +81,93 @@ public class SaveFormAction extends AbstractBoundAction {
 	private TmpFilesModifyStrategy tmpFilesModifyStrategy;
 	@Autowired
 	private FormSavePhasePluginFactory formSavePhasePluginFactory;
-	
+
 	private static final String actionSave = "save",
 								actionSubmissionComplete = "submissionComplete",
 								actionSendLink = "sendLink",
 								actionSaveByOverwritingStopOrContinue = "saveOverwriteFormStopOrContinue";
-	
+
 	public SaveFormAction(Element element, Model model) {
 		super(element, model);
 	}
-	
+
 	@Override
 	public void init() throws XFormsException {
 		super.init();
-		
+
 		final String action = getXFormsAttribute("action");
 		setOverWrite(actionSaveByOverwritingStopOrContinue.equals(action));
-		
+
 		if (actionSave.equals(action) || actionSaveByOverwritingStopOrContinue.equals(action)) {
 			final String instanceId = getXFormsAttribute("instanceId");
 			final String linkExp = getXFormsAttribute("linkLocation");
 			final String submissionRepresentationExp = getXFormsAttribute("submissionIdentifier");
-			final String submissionIdExp = getXFormsAttribute("submissionId");
+			final String submissionIdExp = getXFormsAttribute(FormViewer.submissionIdParam);
 			String submissionElementId = getXFormsAttribute("submission");
 			final String formIdExp = getXFormsAttribute("formId");
 			String formIdStr = null;
 			if (!StringUtil.isEmpty(formIdExp))
 				formIdStr = XFormsUtil.getValueFromExpression(formIdExp, this);
-			
+
 			if (StringUtil.isEmpty(formIdStr))
 				throw new XFormsException("No form id resolved from the expression provided=" + formIdExp);
-			
+
 			if (StringUtil.isEmpty(submissionIdExp))
 				throw new XFormsException("No submissionIdExp location provided, we need to save saved submission id somewhere");
-			
+
 			if (StringUtil.isEmpty(submissionElementId))
 				submissionElementId = "submit_data_submission";
-			
+
 			setLinkExp(linkExp);
-			
+
 			setSubmissionRepresentationExp(submissionRepresentationExp);
-			
+
 			setSubmissionIdExp(submissionIdExp);
-			
+
 			setFormId(new Long(formIdStr));
 			setInstanceId(StringUtil.isEmpty(instanceId) ? null : instanceId);
 			setSubmissionElementId(submissionElementId);
 		} else if (actionSubmissionComplete.equals(action)) {
 			final String instanceId = getXFormsAttribute("instanceId");
-			final String submissionIdExp = getXFormsAttribute("submissionId");
-			
+			final String submissionIdExp = getXFormsAttribute(FormViewer.submissionIdParam);
+
 			if (StringUtil.isEmpty(submissionIdExp))
 				throw new XFormsException("No submissionIdExp location provided, we need to resolve saved submission id somewhere");
-			
+
 			setSubmissionIdExp(submissionIdExp);
 			setInstanceId(StringUtil.isEmpty(instanceId) ? null : instanceId);
 		} else if (actionSendLink.equals(action)) {
 			final String emailExp = getXFormsAttribute("email");
 			final String linkExp = getXFormsAttribute("link");
-			
+
 			if (StringUtil.isEmpty(emailExp) || StringUtil.isEmpty(linkExp))
 				throw new XFormsException("Either expression is not provided. emailExp=" + emailExp + ", linkExp=" + linkExp);
-			
+
 			setEmailExp(emailExp);
 			setLinkExp(linkExp);
 		} else {
 			throw new XFormsException("No action specified");
 		}
-		
+
 		setAction(action);
 	}
-	
+
 	protected void save() throws XFormsException {
-		
+
 		storeSubmission();
 		afterSave();
-		
+
 		doRebuild(true);
 		doRecalculate(true);
 		doRevalidate(true);
 		doRefresh(true);
 	}
-	
+
 	private void saveByOverwritting() throws XFormsException {
 		boolean success = true;
 		try {
 			saveSubmission();
-			
+
 			doRebuild(true);
 			doRecalculate(true);
 			doRevalidate(true);
@@ -177,7 +177,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			success = false;
 		}
 		success = !StringUtil.isEmpty(getSubmissionUUID());
-		
+
 		Instance instance = getInstance();
 		Node message = getElement().getParentNode().getNextSibling().getNextSibling();
 		if (!(message instanceof Element)  || !message.getNodeName().endsWith(":message"))
@@ -186,23 +186,23 @@ public class SaveFormAction extends AbstractBoundAction {
 		String path = "instance('control-instance')/saveForm";
 		instance.setNodeValue(path, String.valueOf(success));
 	}
-	
+
 	protected void afterSave() {
-		
+
 		executeAfterSavePluginBasedOnSubmission();
 	}
-	
+
 	protected void executeAfterSavePluginBasedOnSubmission() {
-		
+
 		try {
 			XFormSubmission submission = getXFormSubmission();
 			String scheme = submission.getScheme();
 			Collection<FormSavePhasePlugin> plugins = getFormSavePhasePluginFactory().getPlugins(scheme);
-			
+
 			Element instanceElement = getInstance().getElement();
-			
+
 			for (FormSavePhasePlugin plugin : plugins) {
-				
+
 				FormSavePhasePluginParams params = new FormSavePhasePluginParams();
 				params.submissionInstance = new XFormSubmissionInstance(instanceElement);
 				params.submissionUUID = getSubmissionUUID();
@@ -212,11 +212,11 @@ public class SaveFormAction extends AbstractBoundAction {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving and executing after save plugin", e);
 		}
 	}
-	
+
 	@Override
 	public void perform() throws XFormsException {
 		super.perform();
-		
+
 		if (actionSave.equals(action)) {
 			save();
 		} else if (actionSubmissionComplete.equals(action)) {
@@ -227,7 +227,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			saveByOverwritting();
 		}
 	}
-	
+
 	protected void sendLink() throws XFormsException {
 		String email = null;
 		String link = null;
@@ -238,7 +238,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while resolving email or link from expressions: emailExp=" + getEmailExp() + ", linkExp=" +
 					getLinkExp());
 		}
-		
+
 		if (StringUtil.isEmpty(email) || StringUtil.isEmpty(link)) {
 			String message = "No link or email were resolved from expressions: emailExp=" + getEmailExp() + ", linkExp=" + getLinkExp() + ". Email=" + email + ", link=" + link +
 				". Skipping sending email.";
@@ -248,40 +248,40 @@ public class SaveFormAction extends AbstractBoundAction {
 			sendSavedFormLink(email, link);
 		}
 	}
-	
+
 	protected void submissionComplete() {
-		
+
 		removeSubmittedData();
 	}
-	
+
 	protected void removeSubmittedData() {
-		
+
 		String submissionUUID = getSubmissionUUID();
 		getPersistenceManager().invalidateSubmittedDataByExistingSubmission(
 		    submissionUUID);
 	}
-	
+
 	protected void storeSubmission() {
-		
+
 		saveSubmission();
 		setSavedFormLink();
 	}
-	
+
 	private void setSavedFormLink() {
-		
+
 		Instance instance = getInstance();
-		
+
 		final String submissionUUID = getSubmissionUUID();
 		URIUtil uriUtil = getSavedFormPageURI();
 		uriUtil.setParameter(FormViewer.submissionIdParam, submissionUUID);
 		String url = uriUtil.getUri();
-		
+
 		ModelItem mi = instance.getModelItem(getLinkExp());
 		mi.setValue(url);
 	}
-	
+
 	private URIUtil getSavedFormPageURI() {
-		
+
 		final IWContext iwc = IWContext.getCurrentInstance();
 		BuilderService bs = getBuilderService(iwc);
 		String url = bs.getFullPageUrlByPageType(iwc,
@@ -289,86 +289,86 @@ public class SaveFormAction extends AbstractBoundAction {
 		final URIUtil uriUtil = new URIUtil(url);
 		return uriUtil;
 	}
-	
+
 	private String getSubmissionRepresentationValue() {
-		
+
 		Instance instance = getInstance();
 		ModelItem submissionRepresentationMI = !StringUtil
 		        .isEmpty(getSubmissionRepresentationExp()) ? instance
 		        .getModelItem(getSubmissionRepresentationExp()) : null;
-		
+
 		String submissionIdentifier = null;
-		
+
 		if (submissionRepresentationMI != null) {
-			
+
 			submissionIdentifier = submissionRepresentationMI.getValue();
 		}
-		
+
 		if (StringUtil.isEmpty(submissionIdentifier)) {
-			
+
 			submissionIdentifier = String.valueOf(System.currentTimeMillis());
 		}
-		
+
 		return submissionIdentifier;
 	}
-	
+
 	protected void saveSubmission() {
 		// TODO: check, if form is in firm state, if not - take it
 		// TODO: refactor this method (split)
-		
+
 		InputStream stream = null;
 		try {
 			Long formId = getFormId();
 			Instance instance = getInstance();
 			String submissionRepresentation = getSubmissionRepresentationValue();
-			
+
 			// checking if submission already contains submissionId - therefore we're reusing
 			// existing submissionId
-			
+
 			ModelItem submissionIdMI = instance.getModelItem(getSubmissionIdExp());
 			String submissionUUID = getSubmissionUUID();
-			
+
 			if (StringUtil.isEmpty(submissionUUID))
 				submissionUUID = null;
-			
+
 			Element instanceEl = ((Document) instance.getPointer(".").getNode()).getDocumentElement();
-			
+
 			// storing uploaded files to persistent location
 			getTmpFileResolver().replaceAllFiles(instanceEl, getTmpFilesModifyStrategy());
-			
+
 			stream = getISFromXML(instanceEl);
-			
+
 			if (submissionUUID != null) {
 				boolean old = false;
 				if (submissionUUID.length() != 36) {
 					old = true;
 				}
-				
+
 				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, getFormSubmitterId());
-				
+
 				if (old) {
 					submissionIdMI.setValue(submissionUUID);
-					
+
 					instanceEl = ((Document) instance.getPointer(".").getNode()).getDocumentElement();
-					
+
 					stream = getISFromXML(instanceEl);
-					
+
 					// restore with new modified submission data
 					submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, getFormSubmitterId());
 				}
 			} else {
 				submissionUUID = getPersistenceManager().saveSubmittedData(formId, stream, submissionRepresentation, false, getFormSubmitterId());
-				
+
 				submissionIdMI.setValue(submissionUUID);
-				
+
 				instanceEl = ((Document) instance.getPointer(".").getNode()).getDocumentElement();
-				
+
 				stream = getISFromXML(instanceEl);
-				
+
 				// restore with new modified submission data
 				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, getFormSubmitterId());
 			}
-			
+
 			setSubmissionUUID(submissionUUID);
 		} catch (Exception e) {
 			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while saving submission", e);
@@ -377,7 +377,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			IOUtil.close(stream);
 		}
 	}
-	
+
 	private Integer getFormSubmitterId() {
 		IWContext iwc = CoreUtil.getIWContext();
 		if (iwc != null && iwc.isLoggedOn()) {
@@ -385,26 +385,26 @@ public class SaveFormAction extends AbstractBoundAction {
 		}
 		return null;
 	}
-	
+
 	protected String getSubmissionUUID() {
-		
+
 		if (submissionUUID == null) {
-			
+
 			ModelItem submissionIdMI = getInstance().getModelItem(
 			    getSubmissionIdExp());
 			submissionUUID = submissionIdMI.getValue();
 		}
-		
+
 		return submissionUUID;
 	}
-	
+
 	protected void sendSavedFormLink(String email, String url) {
-		
+
 		if (!StringUtil.isEmpty(email) && !StringUtil.isEmpty(url)) {
-			
+
 			IWContext iwc = IWContext.getCurrentInstance();
 			IWResourceBundle iwrb = getResourceBundle(iwc);
-			
+
 			String from = iwc.getApplicationSettings().getProperty(
 			    CoreConstants.PROP_SYSTEM_MAIL_FROM_ADDRESS, CoreConstants.EMAIL_DEFAULT_FROM);
 			String host = iwc.getApplicationSettings().getProperty(
@@ -414,7 +414,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			String text = iwrb.getLocalizedAndFormattedString(
 			    "save_form.linkToForm.text", "Link to your saved form: {0}",
 			    new Object[] { url });
-			
+
 			try {
 				SendMail.send(from, email, null, null, host, subject, text);
 			} catch (javax.mail.MessagingException me) {
@@ -427,159 +427,159 @@ public class SaveFormAction extends AbstractBoundAction {
 			        + email + ", link=" + url);
 		}
 	}
-	
+
 	Long getFormId() {
 		return formId;
 	}
-	
+
 	void setFormId(Long formId) {
 		this.formId = formId;
 	}
-	
+
 	private InputStream getISFromXML(Node node) throws TransformerException {
-		
+
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		DOMUtil.prettyPrintDOM(node, out);
 		return new ByteArrayInputStream(out.toByteArray());
 	}
-	
+
 	private IWResourceBundle getResourceBundle(IWContext iwc) {
 		IWMainApplication app = iwc.getIWMainApplication();
 		IWBundle bundle = app.getBundle(IWBundleStarter.BUNDLE_IDENTIFIER);
-		
+
 		if (bundle != null) {
 			return bundle.getResourceBundle(iwc);
 		} else {
 			return null;
 		}
 	}
-	
+
 	protected Instance getInstance() {
-		
+
 		if (instance == null) {
-			
+
 			if (getInstanceId() != null) {
 				instance = getModel().getInstance(getInstanceId());
 			} else
 				instance = getModel().getDefaultInstance();
 		}
-		
+
 		return instance;
 	}
-	
+
 	PersistenceManager getPersistenceManager() {
-		
+
 		if (persistenceManager == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return persistenceManager;
 	}
-	
+
 	TmpFileResolver getTmpFileResolver() {
-		
+
 		if (tmpFileResolver == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return tmpFileResolver;
 	}
-	
+
 	TmpFilesModifyStrategy getTmpFilesModifyStrategy() {
-		
+
 		if (tmpFilesModifyStrategy == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return tmpFilesModifyStrategy;
 	}
-	
+
 	@Override
 	public String getInstanceId() {
 		return instanceId;
 	}
-	
+
 	void setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
 	}
-	
+
 	private BuilderService getBuilderService(IWApplicationContext iwc) {
 		try {
 			return BuilderServiceFactory.getBuilderService(iwc);
-			
+
 		} catch (RemoteException e) {
 			throw new IBORuntimeException(e);
 		}
 	}
-	
+
 	String getAction() {
 		return action;
 	}
-	
+
 	void setAction(String action) {
 		this.action = action;
 	}
-	
+
 	String getEmailExp() {
 		return emailExp;
 	}
-	
+
 	String getLinkExp() {
 		return linkExp;
 	}
-	
+
 	void setEmailExp(String emailExp) {
 		this.emailExp = emailExp;
 	}
-	
+
 	void setLinkExp(String linkExp) {
 		this.linkExp = linkExp;
 	}
-	
+
 	String getSubmissionIdExp() {
 		return submissionIdExp;
 	}
-	
+
 	void setSubmissionIdExp(String submissionIdExp) {
 		this.submissionIdExp = submissionIdExp;
 	}
-	
+
 	protected XFormSubmission getXFormSubmission() throws XFormsException {
-		
+
 		String submissionElementId = getSubmissionElementId();
 		Object submissionObject = this.container.lookup(submissionElementId);
-		
+
 		if (submissionObject == null
 		        || !(submissionObject instanceof Submission)) {
 			throw new XFormsBindingException(
 			        "invalid submission id at " + this, this.target,
 			        submissionElementId);
 		}
-		
+
 		return new XFormSubmission((Submission) submissionObject);
 	}
-	
+
 	String getSubmissionElementId() {
 		return submissionElementId;
 	}
-	
+
 	void setSubmissionElementId(String submissionElementId) {
 		this.submissionElementId = submissionElementId;
 	}
-	
+
 	FormSavePhasePluginFactory getFormSavePhasePluginFactory() {
-		
+
 		if (formSavePhasePluginFactory == null)
 			ELUtil.getInstance().autowire(this);
-		
+
 		return formSavePhasePluginFactory;
 	}
-	
+
 	String getSubmissionRepresentationExp() {
 		return submissionRepresentationExp;
 	}
-	
+
 	void setSubmissionRepresentationExp(String submissionRepresentationExp) {
 		this.submissionRepresentationExp = submissionRepresentationExp;
 	}
-	
+
 	void setSubmissionUUID(String submissionUUID) {
 		this.submissionUUID = submissionUUID;
 	}
@@ -591,5 +591,5 @@ public class SaveFormAction extends AbstractBoundAction {
 	protected void setOverWrite(boolean overWrite) {
 		this.overWrite = overWrite;
 	}
-	
+
 }
