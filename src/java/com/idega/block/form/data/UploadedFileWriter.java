@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.idega.block.form.presentation.FormViewer;
 import com.idega.io.DownloadWriter;
 import com.idega.io.MediaWritable;
 import com.idega.presentation.IWContext;
@@ -35,7 +36,7 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 
 public class UploadedFileWriter extends DownloadWriter implements MediaWritable {
 
-	public static final String SUBMISSION_ID = "submissionId";
+	public static final String SUBMISSION_ID = FormViewer.submissionIdParam;
 	public static final String FILE_ID = "fileId";
 
 	private UploadedFile selectedFile;

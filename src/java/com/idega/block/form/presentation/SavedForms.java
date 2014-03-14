@@ -1,10 +1,12 @@
 package com.idega.block.form.presentation;
 
 import java.rmi.RemoteException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +39,7 @@ import com.idega.core.contact.data.Email;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
+import com.idega.presentation.CSSSpacer;
 import com.idega.presentation.IWBaseComponent;
 import com.idega.presentation.IWContext;
 import com.idega.presentation.Image;
@@ -51,16 +54,23 @@ import com.idega.presentation.text.Heading3;
 import com.idega.presentation.text.Link;
 import com.idega.presentation.text.Text;
 import com.idega.presentation.ui.DropdownMenu;
+import com.idega.presentation.ui.Form;
 import com.idega.presentation.ui.GenericInput;
+import com.idega.presentation.ui.IWDatePicker;
+import com.idega.presentation.ui.Label;
 import com.idega.presentation.ui.SelectOption;
+import com.idega.presentation.ui.SubmitButton;
 import com.idega.presentation.ui.TextInput;
+import com.idega.presentation.ui.handlers.IWDatePickerHandler;
 import com.idega.user.business.UserBusiness;
 import com.idega.user.data.User;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IWTimestamp;
 import com.idega.util.ListUtil;
 import com.idega.util.PresentationUtil;
+import com.idega.util.StringHandler;
 import com.idega.util.StringUtil;
 import com.idega.util.URIUtil;
 import com.idega.util.datastructures.map.MapUtil;
@@ -83,17 +93,16 @@ public class SavedForms extends IWBaseComponent {
 	@Autowired
 	private JQuery jQuery;
 
-	private boolean showAll = Boolean.TRUE;
-	private boolean newestOnTop = Boolean.TRUE;
-	private boolean showTableHeader = Boolean.TRUE;
-	private boolean showLatestForms = Boolean.FALSE;
+	private boolean	showAll = Boolean.TRUE,
+					newestOnTop = Boolean.TRUE,
+					showTableHeader = Boolean.TRUE,
+					showLatestForms = Boolean.FALSE,
+					showOnlyCurrentUsersForms = Boolean.FALSE;
 
 	private Integer userId;
 	private ICPage responsePage;
 
-	private String allowedTypes, variablesWithValues;
-
-	private String processDefinitionNames = null;
+	private String allowedTypes, variablesWithValues, processDefinitionNames = null, dateRange;
 
 	private boolean showOnlySubscribed = Boolean.FALSE;
 
@@ -238,6 +247,20 @@ public class SavedForms extends IWBaseComponent {
 		return submissions;
 	}
 
+	private IWDatePicker getDateRange(IWContext iwc, String name, Date from, Date to) {
+		IWDatePicker datePicker = new IWDatePicker(name);
+		datePicker.setVersion("1.8.17");
+
+		if (from != null)
+			datePicker.setDate(from);
+		if (to != null)
+			datePicker.setDateTo(to);
+		datePicker.setDateRange(true);
+		datePicker.setUseCurrentDateIfNotSet(false);
+
+		return datePicker;
+	}
+
 	@Override
 	protected void initializeComponent(FacesContext context) {
 		super.initializeComponent(context);
@@ -253,35 +276,120 @@ public class SavedForms extends IWBaseComponent {
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
 
+		Form form = new Form();
+		add(form);
+
 		Layer container = new Layer();
 		container.setStyleClass("savedFormsViewer");
 		String uuid = BuilderLogic.getInstance().getInstanceId(this);
 		if (!StringUtil.isEmpty(uuid))
-			container.setId("id_".concat(uuid));
-		add(container);
+			form.setId("id_".concat(uuid));
+		form.add(container);
 
 		if (!iwc.isLoggedOn()) {
-			container.getChildren().add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
+			form.add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
 			return;
 		}
 
-		String ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
-		List<XFormSubmission> submissions = getAllSubmissions(context, ownerPersonalId);
+		//	Dates from and to
+		boolean userSavedForms = this instanceof UserSavedForms;
+		String dateRangeParameter = "dateRange";
+		Date from = null, to = null;
+		if (iwc.isParameterSet(dateRangeParameter)) {
+			String dateRangeValue = iwc.getParameter(dateRangeParameter);
+			String[] dates = dateRangeValue.split(CoreConstants.MINUS);
+			if (!ArrayUtil.isEmpty(dates) && dates.length == 2) {
+				Locale locale = iwc.getCurrentLocale();
+				java.util.Date tmp = IWDatePickerHandler.getParsedDate(dates[0].trim(), locale);
+				if (tmp != null) {
+					IWTimestamp iwFrom = new IWTimestamp(tmp);
+					iwFrom.setHour(0);
+					iwFrom.setMinute(0);
+					iwFrom.setSecond(0);
+					iwFrom.setMilliSecond(0);
+					from = iwFrom.getDate();
+				}
+				tmp = IWDatePickerHandler.getParsedDate(dates[1].trim(), locale);
+				if (tmp != null) {
+					IWTimestamp iwTo = new IWTimestamp(tmp);
+					iwTo.setHour(23);
+					iwTo.setMinute(59);
+					iwTo.setSecond(59);
+					iwTo.setMilliSecond(999);
+					to = iwTo.getDate();
+				}
+			}
+		}
+		if (from == null) {
+			IWTimestamp now = IWTimestamp.RightNow();
+			if (userSavedForms) {
+				now.setYear(now.getYear() - 5);
+			}
+			now.setDay(1);
+			now.setHour(0);
+			now.setMinute(0);
+			now.setSecond(0);
+			now.setMilliSecond(0);
+			from = now.getDate();
+		}
+		if (to == null) {
+			IWTimestamp now = IWTimestamp.RightNow();
+			now.setMonth(now.getMonth() + 1);
+			now.setDay(1);
+			now.setDay(now.getDay() - 1);
+			now.setHour(23);
+			now.setMinute(59);
+			now.setSecond(59);
+			now.setMilliSecond(999);
+			to = now.getDate();
+		}
+
+		IWDatePicker dateRange = getDateRange(iwc, dateRangeParameter, from, to);
+		Layer element = new Layer(Layer.DIV);
+		container.add(element);
+		element.setStyleClass("formItem shortFormItem");
+		Label label = null;
+		label = new Label(iwrb.getLocalizedString("date_range", "Date range") + CoreConstants.COLON, dateRange);
+		element.add(label);
+		element.add(dateRange);
+		container.add(new CSSSpacer());
+
+		SubmitButton show = new SubmitButton(iwrb.getLocalizedString("show", "Show"));
+		show.setStyleClass("savedFormsFilterButton");
+		element.add(show);
+
+		String rangeLimit = userSavedForms ? null : iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
+		if (StringHandler.isNumeric(rangeLimit)) {
+			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
+				form.add(new Heading3(iwrb.getLocalizedString("date_range_limit_is", "Date range limit is") + ": " + rangeLimit + " " + iwrb.getLocalizedString("days", "days")));
+				return;
+			}
+		}
+
+		Integer currentUserId = null;
+		String ownerPersonalId = null;
+		if (isShowOnlyCurrentUsersForms()) {
+			currentUserId = Integer.valueOf(iwc.getCurrentUser().getId());
+		} else {
+			ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
+		}
+		List<XFormSubmission> submissions = getSubmissions(context, ownerPersonalId, currentUserId, from, to);
 		submissions = getFilteredOutForms(iwc, submissions);
 		if (ListUtil.isEmpty(submissions)) {
+			form.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
 			return;
 		}
 
 		Locale locale = iwc.getCurrentLocale();
 
-		List<String> addedSubmissions = new ArrayList<String>();
+		Map<String, Boolean> addedSubmissions = new HashMap<String, Boolean>();
 		List<SubmissionDataBean> submissionsData = new ArrayList<SubmissionDataBean>();
 		for (XFormSubmission submission: submissions) {
 			try {
 				Long formId = submission.getXform().getFormId();
 				String submissionUUID = submission.getSubmissionUUID();
 
-				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.contains(submissionUUID)) {
+				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.containsKey(submissionUUID)) {
 					SubmissionDataBean data = new SubmissionDataBean(
 							formId,
 							submissionUUID,
@@ -294,29 +402,28 @@ public class SavedForms extends IWBaseComponent {
 							)
 					);
 
-					data.doLoadVariables(submission);
+					if (!StringUtil.isEmpty(variablesWithValues)) {
+						data.doLoadVariables(submission);
+					}
 
 					LocalizedStringBean localizedTitle = getLocalizedTitle(submission, locale);
 					data.setLocalizedTitle(localizedTitle.getString(locale));
 
-					boolean add = true;
 					String allowedTypes = getAllowedTypes();
 					String englishLocalization = localizedTitle == null ? null : localizedTitle.getString(Locale.ENGLISH);
 					if (allowedTypes != null && englishLocalization != null && allowedTypes.indexOf(englishLocalization) == -1) {
-						add = false;
+						continue;
 					}
 
 					if (!doMatchCriteria(data)) {
-						add = false;
+						continue;
 					}
 
-					if (add) {
-						submissionsData.add(data);
-						addedSubmissions.add(submissionUUID);
-					}
+					submissionsData.add(data);
+					addedSubmissions.put(submissionUUID, Boolean.TRUE);
 				}
 			} catch(Exception e) {
-				Logger.getLogger(SavedForms.class.getName()).log(Level.SEVERE, "Error getting submission by: " + submission.getSubmissionUUID(), e);
+				getLogger().log(Level.WARNING, "Error getting submission by: " + submission.getSubmissionUUID(), e);
 			}
 		}
 
@@ -338,7 +445,7 @@ public class SavedForms extends IWBaseComponent {
 		String url = bs.getFullPageUrlByPageType(iwc, FormViewer.formviewerPageType, true);
 
 		Table2 table = new Table2();
-		container.getChildren().add(table);
+		form.add(table);
 		table.setStyleClass("savedFormsViewerTable");
 		TableHeaderRowGroup header = table.createHeaderRowGroup();
 		header.setStyleClass("savedFormsViewerHeaderRow");
@@ -416,7 +523,7 @@ public class SavedForms extends IWBaseComponent {
 
 			//	Pager
 			pagerContainer = new Layer();
-			container.getChildren().add(pagerContainer);
+			form.add(pagerContainer);
 			pagerContainer.setStyleClass("savedFormsViewerPager");
 
 			Image first = bundle.getImage("images/pager_first.png");
@@ -589,9 +696,13 @@ public class SavedForms extends IWBaseComponent {
 		return null;
 	}
 
-	private List<XFormSubmission> getAllSubmissions(FacesContext context, String personalID) {
+	private List<XFormSubmission> getSubmissions(FacesContext context, String personalID, Integer userId, Date from, Date to) {
+		if (userId != null) {
+			return getXformsDAO().getSubmissions(userId, getProcDefNames(), from, to, isShowLatestForms());
+		}
+
 		if (StringUtil.isEmpty(personalID)) {
-			return getAllSubmissions(context);
+			return getSubmissions(context, from, to);
 		}
 
 		IWContext iwc = IWContext.getIWContext(context);
@@ -604,12 +715,12 @@ public class SavedForms extends IWBaseComponent {
 		}
 
 		if (this.showLatestForms) {
-			return getXformsDAO().getAllLatestSubmissionsByUser(personalID, getProcDefNames());
+			return getXformsDAO().getAllLatestSubmissionsByUser(personalID, getProcDefNames(), from, to);
 		}
-		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID, getProcDefNames());
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(personalID, getProcDefNames(), from, to);
 	}
 
-	protected List<XFormSubmission> getAllSubmissions(FacesContext context) {
+	private List<XFormSubmission> getSubmissions(FacesContext context, Date from, Date to) {
 		Integer currentUserId = null;
 		if (!isShowAll()) {
 			IWContext iwc = IWContext.getIWContext(context);
@@ -619,9 +730,9 @@ public class SavedForms extends IWBaseComponent {
 		}
 
 		if (this.showLatestForms) {
-			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId, getProcDefNames());
+			return getXformsDAO().getAllLatestSubmissionsByUser(currentUserId, getProcDefNames(), from, to);
 		}
-		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId, getProcDefNames());
+		return getXformsDAO().getAllNotFinalSubmissionsByUser(currentUserId, getProcDefNames(), from, to);
 	}
 
 	@Override
@@ -715,6 +826,22 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setAllowedTypes(String allowedTypes) {
 		this.allowedTypes = allowedTypes;
+	}
+
+	public boolean isShowOnlyCurrentUsersForms() {
+		return showOnlyCurrentUsersForms;
+	}
+
+	public void setShowOnlyCurrentUsersForms(boolean showOnlyCurrentUsersForms) {
+		this.showOnlyCurrentUsersForms = showOnlyCurrentUsersForms;
+	}
+
+	public String getDateRange() {
+		return dateRange;
+	}
+
+	public void setDateRange(String dateRange) {
+		this.dateRange = dateRange;
 	}
 
 }

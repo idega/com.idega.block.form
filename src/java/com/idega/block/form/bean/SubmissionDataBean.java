@@ -166,17 +166,22 @@ public class SubmissionDataBean {
 		}
 
 		String lowerCaseVariableValue = bpmVariableValue.toLowerCase();
-		String lowerCaseComparable = getVariableValue(bpmVariableName).toLowerCase();
 
-		if (lowerCaseComparable.contains(lowerCaseVariableValue)
-				&& !StringUtil.isEmpty(lowerCaseVariableValue)) {
-			return Boolean.TRUE;
+		if (bpmVariableName.equals(VARIABLE_CASE_DESCRIPTION)) {
+			String lowerCaseTitle = getLocalizedTitle().toLowerCase();
+			if (lowerCaseTitle != null && lowerCaseVariableValue != null && lowerCaseTitle.contains(lowerCaseVariableValue)) {
+				return Boolean.TRUE;
+			}
+			return Boolean.FALSE;
 		}
 
-		String lowerCaseTitle = getLocalizedTitle().toLowerCase();
-		if (bpmVariableName.equals(VARIABLE_CASE_DESCRIPTION) &&
-				lowerCaseTitle.contains(lowerCaseVariableValue) &&
-				!StringUtil.isEmpty(lowerCaseVariableValue)) {
+		String value = getVariableValue(bpmVariableName);
+		if (StringUtil.isEmpty(value)) {
+			return Boolean.FALSE;
+		}
+
+		String lowerCaseComparable = value.toLowerCase();
+		if (!StringUtil.isEmpty(lowerCaseVariableValue) && lowerCaseComparable.contains(lowerCaseVariableValue)) {
 			return Boolean.TRUE;
 		}
 

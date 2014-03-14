@@ -19,6 +19,7 @@ import com.idega.block.form.data.UploadedFile;
 import com.idega.block.form.data.UploadedFileResolver;
 import com.idega.block.form.data.UploadedFileWriter;
 import com.idega.block.form.entries.presentation.UIFormsEntriesViewer;
+import com.idega.block.form.presentation.FormViewer;
 import com.idega.block.pdf.business.PDFWriterProvider;
 import com.idega.util.CoreConstants;
 import com.idega.util.StringUtil;
@@ -45,7 +46,7 @@ public class FormsEntriesState implements Serializable {
 	private String facetDisplayed;
 	private String submissionFacetDisplayed;
 	private String submissionId;
-	private static final String submissionIdParam = "submissionId";
+	private static final String submissionIdParam = FormViewer.submissionIdParam;
 	private static final String formIdParam = "formId";
 	private Long formId;
 

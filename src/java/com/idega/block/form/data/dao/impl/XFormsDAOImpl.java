@@ -1,5 +1,8 @@
 package com.idega.block.form.data.dao.impl;
 
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -20,6 +23,7 @@ import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.core.persistence.Param;
 import com.idega.core.persistence.impl.GenericDaoImpl;
 import com.idega.user.data.User;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.ListUtil;
 import com.idega.util.StringUtil;
@@ -37,9 +41,7 @@ import com.idega.xformsmanager.business.XFormState;
 public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
 	@Override
-	public List<Form> getAllXFormsByTypeAndStorageType(String formType,
-	        String formStorageType, XFormState state) {
-
+	public List<Form> getAllXFormsByTypeAndStorageType(String formType, String formStorageType, XFormState state) {
 		String q = "from XForm xf where xf." + XForm.formTypeProperty + " = :"
 		        + XForm.formTypeProperty + " and xf."
 		        + XForm.formStorageTypeProperty + " = :"
@@ -105,24 +107,26 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		            XFormSubmission.submissionUUIDProperty, submissionUUID));
 	}
 
-	private List<XFormSubmission> getSubmissions(boolean onlyFinal, Integer ownerId, Collection<String> procDefNames) {
-		return getSubmissions(onlyFinal, ownerId, null, Boolean.FALSE, procDefNames);
+	private List<XFormSubmission> getSubmissions(boolean onlyFinal, Integer ownerId, Collection<String> procDefNames, Date from, Date to) {
+		return getSubmissions(onlyFinal, ownerId, null, Boolean.FALSE, procDefNames, from, to);
 	}
 
 	@Override
-	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames) {
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(String personalID, Collection<String> procDefNames, Date from, Date to) {
 		if (StringUtil.isEmpty(personalID)) {
 			return null;
 		}
 
-		Long value = null;
-		try {
-			value = Long.valueOf(personalID);
-		} catch (NumberFormatException e) {
+		return getSubmissions(Boolean.FALSE, null, personalID, Boolean.TRUE, procDefNames, from, to);
+	}
+
+	@Override
+	public List<XFormSubmission> getSubmissions(Integer userId, Collection<String> procDefNames, Date from, Date to, boolean onlyLatest) {
+		if (userId == null) {
 			return null;
 		}
 
-		return getSubmissions(Boolean.FALSE, null, value, Boolean.TRUE, procDefNames);
+		return getSubmissions(Boolean.FALSE, userId, null, onlyLatest, procDefNames, from, to);
 	}
 
 	/**
@@ -140,58 +144,53 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 	private List<XFormSubmission> getSubmissions(
 			boolean onlyFinal,
 			Integer ownerId,
-			Long personalIDs,
+			String personalIDs,
 			boolean doSelectLastest,
-			Collection<String> procDefNames
+			Collection<String> procDefNames,
+			Date from,
+			Date to
 	) {
+		List<Param> params = new ArrayList<Param>();
+
 		/* Main query */
 		StringBuilder query = new StringBuilder();
-		query.append("SELECT s FROM ").append(XFormSubmission.class.getName()).append(" s ");
+		query.append("from ").append(XFormSubmission.class.getName()).append(" s ");
 
 		/* In case, when process definition names are given */
 		if (!ListUtil.isEmpty(procDefNames)) {
-			query.append("JOIN s.xform f ON (");
+			query.append(" JOIN s.xform f ON (");
 
-			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); 
-					procDefNamesIter.hasNext();) {
-				query.append("f." + XForm.formStorageIdentifierProperty + " ")
-				.append("LIKE '%" + procDefNamesIter.next() + "%' ");
+			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
+				query.append(" f.").append(XForm.formStorageIdentifierProperty).append(" ")
+				.append(" LIKE '%").append(procDefNamesIter.next()).append("%' ");
 				if (procDefNamesIter.hasNext()) {
-					query.append("OR ");
+					query.append(" OR ");
 				}
 			}
 
 			query.append(") ");
 		}
 
-		query.append("WHERE ");
-		
 		/* Not showing removed one's */
-		query.append("(s.").append(XFormSubmission.isDeletedProperty)
+		query.append(" where (s.").append(XFormSubmission.isDeletedProperty)
 		.append(" = :").append(XFormSubmission.isDeletedProperty)
-		.append(" OR ").append("s.").append(XFormSubmission.isDeletedProperty)
+		.append(" OR s.").append(XFormSubmission.isDeletedProperty)
 		.append(" IS NULL) ");
 
 		/* Filtering only final submissions */
-		query.append("AND ")
-		.append("s.").append(XFormSubmission.isFinalSubmissionProperty)
+		query.append(" AND ")
+		.append(" s.").append(XFormSubmission.isFinalSubmissionProperty)
 		.append(" = :").append(XFormSubmission.isFinalSubmissionProperty)
 		.append(CoreConstants.SPACE);
 
-		/* If not only valid ones */
-		if (!onlyFinal) {
-			query.append("AND (s.")
-				.append(XFormSubmission.isValidSubmissionProperty)
-				.append(" = true or s.")
-				.append(XFormSubmission.isValidSubmissionProperty)
-				.append(" is null)");
-		}
-
+		//	Checking owners
+		List<Integer> ownersIds = null;
 		if (ownerId != null) {
 			query.append(" and s.")
 				.append(XFormSubmission.formSubmitterProperty)
 				.append(" = :")
 				.append(XFormSubmission.formSubmitterProperty);
+			ownersIds = Arrays.asList(ownerId);
 		} else if (personalIDs != null) {
 			StringBuilder querySQL = new StringBuilder();
 			querySQL.append("SELECT DISTINCT i.IC_USER_ID FROM ic_user i, ic_company c ")
@@ -215,71 +214,83 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 				}
 
 				query.append(")");
+
+				ownersIds = new ArrayList<Integer>(ids);
 			}
+		}
+
+		//	Checking date range
+		if (from != null) {
+			query.append(" and s.").append(XFormSubmission.dateSubmittedProperty).append(" >= :from");
+			params.add(new Param("from", from));
+		}
+		if (to != null) {
+			query.append(" and s.").append(XFormSubmission.dateSubmittedProperty).append(" <= :to");
+			params.add(new Param("to", to));
+		}
+
+		/* If not only valid ones */
+		if (!onlyFinal) {
+			query.append(" AND (s.")
+				.append(XFormSubmission.isValidSubmissionProperty)
+				.append(" = true or s.")
+				.append(XFormSubmission.isValidSubmissionProperty)
+				.append(" is null)");
 		}
 
 		if (doSelectLastest) {
 			query.append(" and s.")
 				.append(XFormSubmission.dateSubmittedProperty)
-				.append(" = (SELECT max(s.").append(XFormSubmission.dateSubmittedProperty).append(") ")
-				.append("FROM ").append(XFormSubmission.class.getName()).append(" s ")
-				.append("WHERE s.").append(XFormSubmission.xformProperty).append(" = s.")
-				.append(XFormSubmission.xformProperty).append(") ");
+				.append(" = (SELECT max(ss.").append(XFormSubmission.dateSubmittedProperty).append(") ")
+				.append("FROM ").append(XFormSubmission.class.getName()).append(" ss ")
+				.append("WHERE ss.submissionId = s.submissionId ");
+
+			if (!ListUtil.isEmpty(ownersIds)) {
+				query.append(" and ss.").append(XFormSubmission.formSubmitterProperty).append(" in (:ownersIds)");
+				params.add(new Param("ownersIds", ownersIds));
+			}
+
+			query.append(")");
 		}
 
-		Param finalSubmissionProperty = new Param(XFormSubmission.isFinalSubmissionProperty, onlyFinal);
-		Param deletedProperty = new Param(XFormSubmission.isDeletedProperty, Boolean.FALSE);
+		params.add(new Param(XFormSubmission.isFinalSubmissionProperty, onlyFinal));
+		params.add(new Param(XFormSubmission.isDeletedProperty, Boolean.FALSE));
 
-		List<XFormSubmission> submissions = null;
-		if (ownerId == null) {
-			submissions = getResultListByInlineQuery(
-					query.toString(),
-					XFormSubmission.class,
-					finalSubmissionProperty,
-					deletedProperty
-			);
-		} else {
-			submissions = getResultListByInlineQuery(
-					query.toString(),
-					XFormSubmission.class,
-					finalSubmissionProperty,
-					deletedProperty,
-					new Param(XFormSubmission.formSubmitterProperty, ownerId)
-			);
+		if (ownerId != null) {
+			params.add(new Param(XFormSubmission.formSubmitterProperty, ownerId));
 		}
+
+		List<XFormSubmission> submissions = getResultListByInlineQuery(
+				query.toString(),
+				XFormSubmission.class,
+				ArrayUtil.convertListToArray(params)
+		);
 
 		return submissions;
 	}
 
 	@Override
 	public List<XFormSubmission> getAllNotFinalSubmissions() {
-		return getSubmissions(Boolean.FALSE, null, null);
+		return getSubmissions(Boolean.FALSE, null, null, null, null);
 	}
 
 	@Override
-	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId, Collection<String> procDefNames) {
-		return getSubmissions(Boolean.FALSE, userId, procDefNames);
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(Integer userId, Collection<String> procDefNames, Date from, Date to) {
+		return getSubmissions(Boolean.FALSE, userId, procDefNames, from, to);
 	}
 
 	@Override
-	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID, Collection<String> procDefNames) {
+	public List<XFormSubmission> getAllNotFinalSubmissionsByUser(String personalID, Collection<String> procDefNames, Date from, Date to) {
 		if (StringUtil.isEmpty(personalID)) {
 			return null;
 		}
 
-		Long value = null;
-		try {
-			value = Long.valueOf(personalID);
-		} catch (NumberFormatException e) {
-			return null;
-		}
-
-		return getSubmissions(Boolean.FALSE, null, value, Boolean.FALSE, procDefNames);
+		return getSubmissions(Boolean.FALSE, null, personalID, Boolean.FALSE, procDefNames, from, to);
 	}
 
 	@Override
-	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId, Collection<String> procDefNames) {
-		return getSubmissions(Boolean.FALSE, userId, null, Boolean.TRUE, procDefNames);
+	public List<XFormSubmission> getAllLatestSubmissionsByUser(Integer userId, Collection<String> procDefNames, Date from, Date to) {
+		return getSubmissions(Boolean.FALSE, userId, null, Boolean.TRUE, procDefNames, from, to);
 	}
 
 	@Override

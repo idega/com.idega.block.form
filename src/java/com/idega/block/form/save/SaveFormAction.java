@@ -103,7 +103,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			final String instanceId = getXFormsAttribute("instanceId");
 			final String linkExp = getXFormsAttribute("linkLocation");
 			final String submissionRepresentationExp = getXFormsAttribute("submissionIdentifier");
-			final String submissionIdExp = getXFormsAttribute("submissionId");
+			final String submissionIdExp = getXFormsAttribute(FormViewer.submissionIdParam);
 			String submissionElementId = getXFormsAttribute("submission");
 			final String formIdExp = getXFormsAttribute("formId");
 			String formIdStr = null;
@@ -130,7 +130,7 @@ public class SaveFormAction extends AbstractBoundAction {
 			setSubmissionElementId(submissionElementId);
 		} else if (actionSubmissionComplete.equals(action)) {
 			final String instanceId = getXFormsAttribute("instanceId");
-			final String submissionIdExp = getXFormsAttribute("submissionId");
+			final String submissionIdExp = getXFormsAttribute(FormViewer.submissionIdParam);
 
 			if (StringUtil.isEmpty(submissionIdExp))
 				throw new XFormsException("No submissionIdExp location provided, we need to resolve saved submission id somewhere");

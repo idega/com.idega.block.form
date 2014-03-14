@@ -129,3 +129,21 @@ tr.odd {
 .savedFormsViewerAuthorHeaderRow {
 	width: 200px;
 }
+
+img.ui-datepicker-trigger {
+	margin-left: 5px;
+}
+input.savedFormsFilterButton {
+	margin-left: 10px;
+	width: 50px !important;
+}
+div.shortFormItem {
+	width: 800px !important;
+}
+div.shortFormItem label {
+	float: left !important;
+    width: 60px !important;
+}
+table.savedFormsViewerTable {
+	width: auto;
+}

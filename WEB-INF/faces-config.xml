@@ -96,6 +96,16 @@ version="1.2">
       <property-class>boolean</property-class>
     </property>
     <property>
+      <display-name>Process definition names</display-name>
+      <property-name>processDefinitionNames</property-name>
+      <property-class>java.lang.String</property-class>
+    </property>
+    <property>
+      <display-name>Show only subscribed</display-name>
+      <property-name>showOnlySubscribed</property-name>
+      <property-class>boolean</property-class>
+    </property>
+    <property>
     	<display-name>Show the newest forms on top</display-name>
     	<property-name>newestOnTop</property-name>
     	<property-class>boolean</property-class>
@@ -112,6 +122,11 @@ version="1.2">
       <property-extension>
       	<property-resolver>com.idega.user.handler.UserHandler</property-resolver>
       </property-extension>
+    </property>
+    <property>
+      <display-name>Show only latest saved forms</display-name>
+      <property-name>showLatestForms</property-name>
+      <property-class>boolean</property-class>
     </property>
     <component-extension>
       <idegaweb-info>
