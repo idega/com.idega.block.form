@@ -154,12 +154,22 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 
 		/* Main query */
 		StringBuilder query = new StringBuilder();
-		query.append("from ").append(XFormSubmission.class.getName()).append(" s ");
+		query.append("select s from ").append(XFormSubmission.class.getName()).append(" s ");
 
 		/* In case, when process definition names are given */
-		if (!ListUtil.isEmpty(procDefNames)) {
-			query.append(" JOIN s.xform f ON (");
+		boolean procDefProvided = !ListUtil.isEmpty(procDefNames);
+		if (procDefProvided) {
+			query.append(" JOIN s.xform f ");
+		}
 
+		/* Not showing removed one's */
+		query.append(" where (s.").append(XFormSubmission.isDeletedProperty)
+		.append(" = :").append(XFormSubmission.isDeletedProperty)
+		.append(" OR s.").append(XFormSubmission.isDeletedProperty)
+		.append(" IS NULL) ");
+
+		if (procDefProvided) {
+			query.append(" and (");
 			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
 				query.append(" f.").append(XForm.formStorageIdentifierProperty).append(" ")
 				.append(" LIKE '%").append(procDefNamesIter.next()).append("%' ");
@@ -171,15 +181,8 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 			query.append(") ");
 		}
 
-		/* Not showing removed one's */
-		query.append(" where (s.").append(XFormSubmission.isDeletedProperty)
-		.append(" = :").append(XFormSubmission.isDeletedProperty)
-		.append(" OR s.").append(XFormSubmission.isDeletedProperty)
-		.append(" IS NULL) ");
-
 		/* Filtering only final submissions */
-		query.append(" AND ")
-		.append(" s.").append(XFormSubmission.isFinalSubmissionProperty)
+		query.append(" AND s.").append(XFormSubmission.isFinalSubmissionProperty)
 		.append(" = :").append(XFormSubmission.isFinalSubmissionProperty)
 		.append(CoreConstants.SPACE);
 
