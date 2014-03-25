@@ -1,5 +1,6 @@
 package com.idega.block.form.presentation;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -7,9 +8,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,6 +39,7 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
+import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
@@ -97,14 +101,14 @@ public class SavedForms extends IWBaseComponent {
 					newestOnTop = Boolean.TRUE,
 					showTableHeader = Boolean.TRUE,
 					showLatestForms = Boolean.FALSE,
-					showOnlyCurrentUsersForms = Boolean.FALSE;
+					showOnlyCurrentUsersForms = Boolean.FALSE,
+					showOnlyAvailableByAccessRights = Boolean.FALSE,
+					showOnlySubscribed = Boolean.FALSE;
 
 	private Integer userId;
 	private ICPage responsePage;
 
 	private String allowedTypes, variablesWithValues, processDefinitionNames = null, dateRange;
-
-	private boolean showOnlySubscribed = Boolean.FALSE;
 
 	public boolean isShowOnlySubscribed() {
 		return showOnlySubscribed;
@@ -114,12 +118,99 @@ public class SavedForms extends IWBaseComponent {
 		this.showOnlySubscribed = showOnlySubscribed;
 	}
 
+	public boolean isShowOnlyAvailableByAccessRights() {
+		return showOnlyAvailableByAccessRights;
+	}
+
+	public void setShowOnlyAvailableByAccessRights(boolean showOnlyAvailableByAccessRights) {
+		this.showOnlyAvailableByAccessRights = showOnlyAvailableByAccessRights;
+	}
+
+	private List<String> procDefNames = null;
+
 	public List<String> getProcDefNames() {
-		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
-			return null;
+		if (procDefNames != null) {
+			return procDefNames;
 		}
 
-		return Arrays.asList(getProcessDefinitionNames().split(CoreConstants.COMMA));
+		procDefNames = new ArrayList<String>();
+
+		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
+			return procDefNames;
+		}
+
+		List<String> allProcDefNames = Arrays.asList(getProcessDefinitionNames().split(CoreConstants.COMMA));
+		if (ListUtil.isEmpty(allProcDefNames)) {
+			return procDefNames;
+		}
+
+		if (!isShowOnlyAvailableByAccessRights()) {
+			procDefNames = new ArrayList<String>(allProcDefNames);
+			return procDefNames;
+		}
+
+		try {
+			IWContext iwc = CoreUtil.getIWContext();
+			if (iwc == null || !iwc.isLoggedOn()) {
+				return procDefNames;
+			}
+
+			User user = iwc.getCurrentUser();
+			Set<String> roles = iwc.getAccessController().getAllRolesForUser(user);
+			if (ListUtil.isEmpty(roles)) {
+				return procDefNames;
+			}
+
+			StringBuilder query = new StringBuilder("select distinct pd.name_ from jbpm_processdefinition pd, jbpm_processinstance pi, jbpm_variableinstance v where pd.name_ in (");
+			for (Iterator<String> procDefsIter = allProcDefNames.iterator(); procDefsIter.hasNext();) {
+				query.append("'").append(procDefsIter.next()).append("'");
+				if (procDefsIter.hasNext()) {
+					query.append(", ");
+				}
+			}
+			query.append(") and pd.id_ = pi.processdefinition_ and pi.id_ = v.processinstance_ and v.stringvalue_ in (");
+			for (Iterator<String> rolesIter = roles.iterator(); rolesIter.hasNext();) {
+				query.append("'").append(rolesIter.next()).append("'");
+				if (rolesIter.hasNext()) {
+					query.append(", ");
+				}
+			}
+			query.append(")");
+			List<Serializable[]> results = null;
+			boolean measure = CoreUtil.isSQLMeasurementOn();
+			long start = measure ? System.currentTimeMillis() : 0;
+			try {
+				results = SimpleQuerier.executeQuery(query.toString(), 1);
+			} catch (Exception e) {
+				getLogger().log(Level.WARNING, "Error executing query: " + query.toString(), e);
+			} finally {
+				if (measure) {
+					getLogger().info("Query '" + query.toString() + "' was executed in " + (System.currentTimeMillis() - start) + " ms");
+				}
+			}
+			if (ListUtil.isEmpty(results)) {
+				return procDefNames;
+			}
+			for (Serializable[] data: results) {
+				if (ArrayUtil.isEmpty(data)) {
+					continue;
+				}
+
+				for (Serializable name: data) {
+					if (name instanceof String) {
+						String procDefName = (String) name;
+						if (!StringUtil.isEmpty(procDefName)) {
+							procDefNames.add(procDefName);
+						}
+					}
+				}
+			}
+
+			getLogger().info("Resolved proc. definitions (" + procDefNames + ") for " + user + " and it's roles: " + roles + ". Initial set: " + allProcDefNames);
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Error resolving available proc. definitions for current user", e);
+		}
+		return procDefNames;
 	}
 
 	/**
