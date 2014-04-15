@@ -106,4 +106,6 @@ public interface FormAssetsResolver {
 
 	public User getOwner(XFormSubmission submission);
 
+	public List<String> getNamesOfAvailableProcesses(User user, List<String> processes);
+
 }

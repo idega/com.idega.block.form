@@ -1,6 +1,5 @@
 package com.idega.block.form.presentation;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -8,11 +7,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,7 +36,6 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
-import com.idega.data.SimpleQuerier;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
@@ -134,81 +130,34 @@ public class SavedForms extends IWBaseComponent {
 		}
 
 		procDefNames = new ArrayList<String>();
+		List<String> allProcDefNames = null;
 
-		if (StringUtil.isEmpty(getProcessDefinitionNames())) {
-			return procDefNames;
-		}
-
-		List<String> allProcDefNames = Arrays.asList(getProcessDefinitionNames().split(CoreConstants.COMMA));
-		if (ListUtil.isEmpty(allProcDefNames)) {
-			return procDefNames;
+		if (!StringUtil.isEmpty(getProcessDefinitionNames())) {
+			allProcDefNames = Arrays.asList(getProcessDefinitionNames().split(CoreConstants.COMMA));
 		}
 
 		if (!isShowOnlyAvailableByAccessRights()) {
-			procDefNames = new ArrayList<String>(allProcDefNames);
+			procDefNames = allProcDefNames == null ? procDefNames : new ArrayList<String>(allProcDefNames);
 			return procDefNames;
 		}
 
-		try {
-			IWContext iwc = CoreUtil.getIWContext();
-			if (iwc == null || !iwc.isLoggedOn()) {
-				return procDefNames;
-			}
+		IWContext iwc = CoreUtil.getIWContext();
+		if (iwc == null || !iwc.isLoggedOn()) {
+			return procDefNames;
+		}
 
-			User user = iwc.getCurrentUser();
-			Set<String> roles = iwc.getAccessController().getAllRolesForUser(user);
-			if (ListUtil.isEmpty(roles)) {
-				return procDefNames;
-			}
+		@SuppressWarnings("unchecked")
+		Map<String, FormAssetsResolver> resolvers = WebApplicationContextUtils.getRequiredWebApplicationContext(iwc.getServletContext()).getBeansOfType(FormAssetsResolver.class);
+		if (MapUtil.isEmpty(resolvers)) {
+			return procDefNames;
+		}
 
-			StringBuilder query = new StringBuilder("select distinct pd.name_ from jbpm_processdefinition pd, jbpm_processinstance pi, jbpm_variableinstance v where pd.name_ in (");
-			for (Iterator<String> procDefsIter = allProcDefNames.iterator(); procDefsIter.hasNext();) {
-				query.append("'").append(procDefsIter.next()).append("'");
-				if (procDefsIter.hasNext()) {
-					query.append(", ");
-				}
+		User user = iwc.getCurrentUser();
+		for (FormAssetsResolver resolver: resolvers.values()) {
+			List<String> processes = resolver.getNamesOfAvailableProcesses(user, allProcDefNames);
+			if (!ListUtil.isEmpty(processes)) {
+				procDefNames.addAll(processes);
 			}
-			query.append(") and pd.id_ = pi.processdefinition_ and pi.id_ = v.processinstance_ and v.stringvalue_ in (");
-			for (Iterator<String> rolesIter = roles.iterator(); rolesIter.hasNext();) {
-				query.append("'").append(rolesIter.next()).append("'");
-				if (rolesIter.hasNext()) {
-					query.append(", ");
-				}
-			}
-			query.append(")");
-			List<Serializable[]> results = null;
-			boolean measure = CoreUtil.isSQLMeasurementOn();
-			long start = measure ? System.currentTimeMillis() : 0;
-			try {
-				results = SimpleQuerier.executeQuery(query.toString(), 1);
-			} catch (Exception e) {
-				getLogger().log(Level.WARNING, "Error executing query: " + query.toString(), e);
-			} finally {
-				if (measure) {
-					getLogger().info("Query '" + query.toString() + "' was executed in " + (System.currentTimeMillis() - start) + " ms");
-				}
-			}
-			if (ListUtil.isEmpty(results)) {
-				return procDefNames;
-			}
-			for (Serializable[] data: results) {
-				if (ArrayUtil.isEmpty(data)) {
-					continue;
-				}
-
-				for (Serializable name: data) {
-					if (name instanceof String) {
-						String procDefName = (String) name;
-						if (!StringUtil.isEmpty(procDefName)) {
-							procDefNames.add(procDefName);
-						}
-					}
-				}
-			}
-
-			getLogger().info("Resolved proc. definitions (" + procDefNames + ") for " + user + " and it's roles: " + roles + ". Initial set: " + allProcDefNames);
-		} catch (Exception e) {
-			getLogger().log(Level.WARNING, "Error resolving available proc. definitions for current user", e);
 		}
 		return procDefNames;
 	}
@@ -332,6 +281,9 @@ public class SavedForms extends IWBaseComponent {
 		for (Object bean: beans.values()) {
 			if (bean instanceof FormAssetsResolver) {
 				submissions = ((FormAssetsResolver) bean).getFilteredOutForms(iwc, submissions, procDefNames);
+				if (submissions != null) {
+					return submissions;
+				}
 			}
 		}
 
