@@ -146,7 +146,6 @@ public class SavedForms extends IWBaseComponent {
 			return procDefNames;
 		}
 
-		@SuppressWarnings("unchecked")
 		Map<String, FormAssetsResolver> resolvers = WebApplicationContextUtils.getRequiredWebApplicationContext(iwc.getServletContext()).getBeansOfType(FormAssetsResolver.class);
 		if (MapUtil.isEmpty(resolvers)) {
 			return procDefNames;
