@@ -150,9 +150,9 @@ public class XForm implements Serializable, Form {
 	public String getFormStorageIdentifier() {
 		return formStorageIdentifier;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * <p>Splits path to form and takes process name from it.</p>
 	 * @return process name or <code>null</code> if does not exit.
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
@@ -162,17 +162,17 @@ public class XForm implements Serializable, Form {
 		if (StringUtil.isEmpty(getFormStorageIdentifier())) {
 			return null;
 		}
-		
+
 		String[] array = getFormStorageIdentifier().split(CoreConstants.SLASH);
 		if (ArrayUtil.isEmpty(array) || array.length < 4) {
 			return null;
 		}
-		
+
 		return array[3];
 	}
 
 	/**
-	 * 
+	 *
 	 * @return {@link Case#getCaseIdentifier()} or <code>null</code> on failure;
 	 * @author <a href="mailto:martynas@idega.is">Martynas Stakė</a>
 	 */
@@ -181,12 +181,12 @@ public class XForm implements Serializable, Form {
 		if (StringUtil.isEmpty(getFormStorageIdentifier())) {
 			return null;
 		}
-		
+
 		String[] array = getFormStorageIdentifier().split(CoreConstants.SLASH);
 		if (ArrayUtil.isEmpty(array) || array.length < 5) {
 			return null;
 		}
-		
+
 		return array[4];
 	}
 
@@ -236,5 +236,10 @@ public class XForm implements Serializable, Form {
 
 	public void setXformSubmissions(List<XFormSubmission> xformSubmissions) {
 		this.xformSubmissions = xformSubmissions;
+	}
+
+	@Override
+	public String toString() {
+		return "XForm ID: " + getFormId();
 	}
 }

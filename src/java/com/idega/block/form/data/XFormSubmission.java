@@ -19,6 +19,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.xml.parsers.DocumentBuilder;
@@ -363,6 +365,14 @@ public class XFormSubmission implements Serializable, Submission {
 
 	public void setFormSubmitter(Integer formSubmitter) {
 		this.formSubmitter = formSubmitter;
+	}
+
+	@PrePersist
+	@PreUpdate
+	public void doCheckIfSubmitterIsKnown() {
+		if (getFormSubmitter() == null || getFormSubmitter() <= 0) {
+			throw new RuntimeException("Submitter is unknown for XForm (" + getXform() + ") submission: " + toString());
+		}
 	}
 
 	@Override

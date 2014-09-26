@@ -143,11 +143,13 @@ public class SavedForms extends IWBaseComponent {
 
 		IWContext iwc = CoreUtil.getIWContext();
 		if (iwc == null || !iwc.isLoggedOn()) {
+			getLogger().info("Not logged in: proc. def. names: " + procDefNames);
 			return procDefNames;
 		}
 
 		Map<String, FormAssetsResolver> resolvers = WebApplicationContextUtils.getRequiredWebApplicationContext(iwc.getServletContext()).getBeansOfType(FormAssetsResolver.class);
 		if (MapUtil.isEmpty(resolvers)) {
+			getLogger().info("No resolvers: proc. def. names: " + procDefNames);
 			return procDefNames;
 		}
 
@@ -158,6 +160,7 @@ public class SavedForms extends IWBaseComponent {
 				procDefNames.addAll(processes);
 			}
 		}
+
 		return procDefNames;
 	}
 
@@ -279,9 +282,9 @@ public class SavedForms extends IWBaseComponent {
 		List<String> procDefNames = getProcDefNames();
 		for (Object bean: beans.values()) {
 			if (bean instanceof FormAssetsResolver) {
-				submissions = ((FormAssetsResolver) bean).getFilteredOutForms(iwc, submissions, procDefNames);
-				if (submissions != null) {
-					return submissions;
+				List<XFormSubmission> filteredOut = ((FormAssetsResolver) bean).getFilteredOutForms(iwc, submissions, procDefNames);
+				if (filteredOut != null) {
+					return filteredOut;
 				}
 			}
 		}
@@ -412,8 +415,10 @@ public class SavedForms extends IWBaseComponent {
 		String ownerPersonalId = null;
 		if (isShowOnlyCurrentUsersForms()) {
 			currentUserId = Integer.valueOf(iwc.getCurrentUser().getId());
+			getLogger().info("Showing forms only of current user");
 		} else {
 			ownerPersonalId = getValueFromVariables(PERSONAL_ID_VARIABLE);
+			getLogger().info("Forms' owner personal ID: " + ownerPersonalId);
 		}
 		List<XFormSubmission> submissions = getSubmissions(context, ownerPersonalId, currentUserId, from, to);
 		submissions = getFilteredOutForms(iwc, submissions);
@@ -432,16 +437,17 @@ public class SavedForms extends IWBaseComponent {
 				String submissionUUID = submission.getSubmissionUUID();
 
 				if (formId != null && !StringUtil.isEmpty(submissionUUID) && !addedSubmissions.containsKey(submissionUUID)) {
+					User user = getUser(iwc, getUserId() == null ?
+							isShowAll() ?
+									submission.getFormSubmitter() :
+									null :
+							getUserId()
+					);
 					SubmissionDataBean data = new SubmissionDataBean(
 							formId,
 							submissionUUID,
 							submission.getDateSubmitted(),
-							getUser(iwc, getUserId() == null ?
-									isShowAll() ?
-											submission.getFormSubmitter() :
-											null :
-									getUserId()
-							)
+							user
 					);
 
 					if (!StringUtil.isEmpty(variablesWithValues)) {
@@ -454,10 +460,12 @@ public class SavedForms extends IWBaseComponent {
 					String allowedTypes = getAllowedTypes();
 					String englishLocalization = localizedTitle == null ? null : localizedTitle.getString(Locale.ENGLISH);
 					if (allowedTypes != null && englishLocalization != null && allowedTypes.indexOf(englishLocalization) == -1) {
+						getLogger().info("Not adding submission by UUID: " + submissionUUID + ". Allowed types: " + allowedTypes + ", English localization: " + englishLocalization);
 						continue;
 					}
 
 					if (!doMatchCriteria(data)) {
+						getLogger().info("Not adding submission by UUID: " + submissionUUID + ". Did not match criteria: " + data);
 						continue;
 					}
 

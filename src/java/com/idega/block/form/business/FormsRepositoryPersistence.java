@@ -612,7 +612,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 	        String representationIdentifier,
 	        boolean finalSubmission,
 	        Integer formSubmitter
-	) throws IOException {
+	) throws Exception {
 		if (formId == null || is == null)
 			throw new IllegalArgumentException("Not enough arguments. FormId=" + formId + ", stream=" + is);
 
@@ -736,7 +736,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 
 	@Override
 	@Transactional(readOnly = false)
-	public String saveSubmittedDataByExistingSubmission(String submissionUUID, Long formId, InputStream is, String identifier, Integer formSubmitter) throws IOException {
+	public String saveSubmittedDataByExistingSubmission(String submissionUUID, Long formId, InputStream is, String identifier, Integer formSubmitter) throws Exception {
 		if (StringUtil.isEmpty(identifier))
 			identifier = String.valueOf(System.currentTimeMillis());
 

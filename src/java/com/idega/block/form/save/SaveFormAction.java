@@ -317,17 +317,21 @@ public class SaveFormAction extends AbstractBoundAction {
 		// TODO: check, if form is in firm state, if not - take it
 		// TODO: refactor this method (split)
 
+		Long formId = null;
+		String submissionUUID = null, submissionRepresentation = null;
+		Integer formSubmitterId = null;
+
 		InputStream stream = null;
 		try {
-			Long formId = getFormId();
+			formId = getFormId();
 			Instance instance = getInstance();
-			String submissionRepresentation = getSubmissionRepresentationValue();
+			submissionRepresentation = getSubmissionRepresentationValue();
 
 			// checking if submission already contains submissionId - therefore we're reusing
 			// existing submissionId
 
 			ModelItem submissionIdMI = instance.getModelItem(getSubmissionIdExp());
-			String submissionUUID = getSubmissionUUID();
+			submissionUUID = getSubmissionUUID();
 
 			if (StringUtil.isEmpty(submissionUUID))
 				submissionUUID = null;
@@ -345,7 +349,8 @@ public class SaveFormAction extends AbstractBoundAction {
 					old = true;
 				}
 
-				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, getFormSubmitterId());
+				formSubmitterId = getFormSubmitterId();
+				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, formSubmitterId);
 
 				if (old) {
 					submissionIdMI.setValue(submissionUUID);
@@ -355,10 +360,11 @@ public class SaveFormAction extends AbstractBoundAction {
 					stream = getISFromXML(instanceEl);
 
 					// restore with new modified submission data
-					submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, getFormSubmitterId());
+					submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, formSubmitterId);
 				}
 			} else {
-				submissionUUID = getPersistenceManager().saveSubmittedData(formId, stream, submissionRepresentation, false, getFormSubmitterId());
+				formSubmitterId = getFormSubmitterId();
+				submissionUUID = getPersistenceManager().saveSubmittedData(formId, stream, submissionRepresentation, false, formSubmitterId);
 
 				submissionIdMI.setValue(submissionUUID);
 
@@ -367,12 +373,17 @@ public class SaveFormAction extends AbstractBoundAction {
 				stream = getISFromXML(instanceEl);
 
 				// restore with new modified submission data
-				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, getFormSubmitterId());
+				submissionUUID = getPersistenceManager().saveSubmittedDataByExistingSubmission(submissionUUID, formId, stream, submissionRepresentation, formSubmitterId);
 			}
 
 			setSubmissionUUID(submissionUUID);
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Exception while saving submission", e);
+			setSubmissionUUID(CoreConstants.EMPTY);
+
+			String message = "Exception while saving submission. UUID: " + submissionUUID + ", form ID: " + formId + ", submission representation: " + submissionRepresentation + ", submitter ID: " + formSubmitterId;
+			Logger.getLogger(getClass().getName()).log(Level.SEVERE, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
+
 			throw new RuntimeException(e);
 		} finally {
 			IOUtil.close(stream);
