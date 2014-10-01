@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -52,6 +53,7 @@ import com.idega.xformsmanager.business.Submission;
 @Entity
 @Table(name = "XFORMS_SUBMISSIONS")
 @NamedQueries({})
+@Cacheable
 public class XFormSubmission implements Serializable, Submission {
 
 	private static final long serialVersionUID = -7231560026323818449L;

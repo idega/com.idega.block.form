@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -58,6 +59,7 @@ import com.idega.xformsmanager.business.XFormState;
 				+ " = :" + XForm.formStateProperty),
 		@NamedQuery(name = XForm.getByFormId, query = "from XForm xf where xf."
 				+ XForm.formIdProperty + " = :" + XForm.formIdProperty) })
+@Cacheable
 public class XForm implements Serializable, Form {
 
 	private static final long serialVersionUID = 6769707584973868649L;
