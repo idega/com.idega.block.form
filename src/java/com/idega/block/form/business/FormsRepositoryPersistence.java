@@ -763,7 +763,7 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 			xformSubmission.setDateSubmitted(new Date());
 			xformSubmission.setSubmissionStorageIdentifier(path);
 			xformSubmission.setIsFinalSubmission(isFinalSubmission);
-			if (xformSubmission.getFormSubmitter() != null && xformSubmission.getFormSubmitter().intValue() != formSubmitter.intValue() &&
+			if (xformSubmission.getFormSubmitter() != null && formSubmitter != null && xformSubmission.getFormSubmitter().intValue() != formSubmitter.intValue() &&
 					getApplication().getSettings().getBoolean("xform.not_change_owner_on_save", Boolean.TRUE)) {
 				getLogger().info("Not setting new form submitter (user ID: " + formSubmitter + ") for existing saved form (ID: " + formId + ", UUID: " +
 					submissionUUID + ") by user (ID: " + xformSubmission.getFormSubmitter() + ")");
