@@ -206,8 +206,9 @@ public class XFormSubmission implements Serializable, Submission {
 		DocumentBuilder docBuilder = null;
 
 		try {
-			if (!getRepositoryService().getExistence(resourcePath))
+			if (!getRepositoryService().getExistence(resourcePath)) {
 				throw new IllegalArgumentException("Expected webdav resource doesn't exist. Path provided: " + resourcePath);
+			}
 
 			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
 			docBuilder = XmlUtil.getDocumentBuilder();
@@ -224,6 +225,7 @@ public class XFormSubmission implements Serializable, Submission {
 		try {
 			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
 			String content = XmlUtil.getCleanedXml(stream);
+			content = StringHandler.replace(content, "&#11;", CoreConstants.EMPTY);
 			IOUtil.close(stream);
 
 			stream = StringHandler.getStreamFromString(content);
