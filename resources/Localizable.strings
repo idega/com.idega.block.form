@@ -7,3 +7,5 @@ save_form.linkToForm.subject=Link to your saved form
 save_form.linkToForm.text=Link to your saved form\: {0}
 submission_date=Submission date
 loading=Loading...
+select_form_type=Please select form type
+filter_forms_by_type=Filter forms by type

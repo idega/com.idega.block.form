@@ -271,7 +271,11 @@ public class FormViewer extends IWBaseComponent implements PDFRenderedComponent 
 				.append(iwrb.getLocalizedString("confirm_to_leave_unfinished_xform", "Are you sure you want to navigate from unfinished form?"))
 				.append("'; Localization.CONFIRM_TO_LEAVE_WHILE_UPLOAD_IN_PROGRESS = '")
 				.append(iwrb.getLocalizedString("confirm_to_leave_xform_while_upload_in_progress",
-						"Are you sure you want to navigate from this page while upload is in progress?")).append("';")
+						"Are you sure you want to navigate from this page while upload is in progress?")).append("';")	
+				.append("Localization.UPLOAD_FILE = '")
+				.append(iwrb.getLocalizedString("upload_file","Upload file")).append("';")
+				.append("Localization.NO_FILE_SELECTED = '")
+				.append(iwrb.getLocalizedString("no_file_selected","No file selected.")).append("';")		
 				.append("FluxInterfaceHelper.SUBMITTED = ").append(isSubmitted()).append(";").toString();
 		} catch (Exception e) {
 			e.printStackTrace();

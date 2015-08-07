@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 
 import javax.faces.context.FacesContext;
 
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Node;
@@ -58,6 +60,7 @@ import com.idega.presentation.ui.Form;
 import com.idega.presentation.ui.GenericInput;
 import com.idega.presentation.ui.IWDatePicker;
 import com.idega.presentation.ui.Label;
+import com.idega.presentation.ui.SelectDropdown;
 import com.idega.presentation.ui.SelectOption;
 import com.idega.presentation.ui.SubmitButton;
 import com.idega.presentation.ui.TextInput;
@@ -99,13 +102,16 @@ public class SavedForms extends IWBaseComponent {
 					showLatestForms = Boolean.FALSE,
 					showOnlyCurrentUsersForms = Boolean.FALSE,
 					showOnlyAvailableByAccessRights = Boolean.FALSE,
-					showOnlySubscribed = Boolean.FALSE;
+					showOnlySubscribed = Boolean.FALSE,
+					showFormTypeFilter = Boolean.FALSE;
 
 	private Integer userId;
 	private ICPage responsePage;
 
 	private String allowedTypes, variablesWithValues, processDefinitionNames = null, dateRange;
 
+	public final String formTypeParameter = "formtype";
+	
 	public boolean isShowOnlySubscribed() {
 		return showOnlySubscribed;
 	}
@@ -399,10 +405,74 @@ public class SavedForms extends IWBaseComponent {
 		element.add(dateRange);
 		container.add(new CSSSpacer());
 
+		boolean filterError = false;
+		if (showFormTypeFilter) {
+			List<String> processDefNames = null;
+			if (getProcessDefinitionNames() != null) {
+				processDefNames = Arrays.asList(getProcessDefinitionNames()
+						.split(CoreConstants.COMMA));
+			}
+
+			SelectDropdown formTypeSelect = new SelectDropdown(
+					formTypeParameter);
+			formTypeSelect.setStyleClass("formTypeFilter");
+			formTypeSelect.addOption(new SelectOption(iwrb.getLocalizedString("filter_forms_by_type", "Filter forms by type"), ""));
+			if (getProcessDefinitionNames() != null) {
+				List<String> formList = getXformsDAO()
+						.getDistinctXFormNamesByStorageIdentifierProperty(
+								processDefNames);
+				for (String formType : formList) {
+					formTypeSelect.addOption(new SelectOption(formType, StringEscapeUtils.escapeHtml(formType)));
+				}
+			} else {
+				List<String> formList = getXformsDAO().getDistinctXFormNames();
+				for (String formType : formList) {
+					formTypeSelect.addOption(new SelectOption(formType, StringEscapeUtils.escapeHtml(formType)));
+				}
+			}
+
+			if (iwc.isParameterSet(formTypeParameter)) {
+				String formTypeValue = StringEscapeUtils.unescapeHtml(iwc
+						.getParameter(formTypeParameter));
+				if (!StringUtil.isEmpty(formTypeValue)) {
+					if (getProcessDefinitionNames() != null) {
+						List<String> defFilter = getXformsDAO()
+								.getStorageIdentifierPropertyByNameAndSIP(
+										formTypeValue, processDefNames);
+						if (ListUtil.isEmpty(defFilter)){
+							filterError = true;
+							getLogger().warning("Couldn't find form types for provided type, this should not happen!");
+						} else {
+						setProcessDefinitionNames(StringUtils.join(defFilter,
+								","));
+						}
+					} else {
+						List<String> defFilter = getXformsDAO()
+								.getStorageIdentifierPropertyByNameAndSIP(
+										formTypeValue, null);
+						if (ListUtil.isEmpty(defFilter)){
+							filterError = true;
+							getLogger().warning("Couldn't find form types for provided type, this should not happen!");
+						} else {
+						setProcessDefinitionNames(StringUtils.join(defFilter,
+								","));
+						}
+					}
+				}
+			}
+
+			element.add(formTypeSelect);
+		}
+		
 		SubmitButton show = new SubmitButton(iwrb.getLocalizedString("show", "Show"));
 		show.setStyleClass("savedFormsFilterButton");
 		element.add(show);
-
+		
+		if (filterError){
+			form.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
+			return;
+		}
+		
 		String rangeLimit = userSavedForms ? null : iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
 		if (StringHandler.isNumeric(rangeLimit)) {
 			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
@@ -410,7 +480,7 @@ public class SavedForms extends IWBaseComponent {
 				return;
 			}
 		}
-
+		
 		Integer currentUserId = null;
 		String ownerPersonalId = null;
 		if (isShowOnlyCurrentUsersForms()) {
@@ -892,6 +962,14 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setDateRange(String dateRange) {
 		this.dateRange = dateRange;
+	}
+
+	public boolean isShowFormTypeFilter() {
+		return showFormTypeFilter;
+	}
+
+	public void setShowFormTypeFilter(boolean showFormTypeFilter) {
+		this.showFormTypeFilter = showFormTypeFilter;
 	}
 
 }

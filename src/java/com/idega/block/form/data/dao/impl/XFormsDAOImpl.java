@@ -315,4 +315,55 @@ public class XFormsDAOImpl extends GenericDaoImpl implements XFormsDAO {
 		return xforms;
 	}
 
+	@Override
+	public List<String> getDistinctXFormNames(){
+		String q = "select distinct "+ XForm.displayNameProperty +" from XForm xf order by "+XForm.displayNameProperty;
+		return getResultListByInlineQuery(q, String.class);
+	}
+	
+	@Override
+	public List<String> getDistinctXFormNamesByStorageIdentifierProperty(List<String> procDefNames){
+		/* Main query */
+		StringBuilder query = new StringBuilder();
+		query.append("select distinct f."+ XForm.displayNameProperty +" from  XForm f");
+
+		if (!ListUtil.isEmpty(procDefNames)) {
+			query.append(" where (");
+			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
+				query.append(" f.").append(XForm.formStorageIdentifierProperty).append(" ")
+				.append(" LIKE '%").append(procDefNamesIter.next()).append("%' ");
+				if (procDefNamesIter.hasNext()) {
+					query.append(" OR ");
+				}
+			}
+
+			query.append(") ");
+		}
+		return getResultListByInlineQuery(query.toString(), String.class);
+	}
+	
+	@Override
+	public List<String> getStorageIdentifierPropertyByNameAndSIP(String name, List<String> procDefNames){
+		/* Main query */
+		StringBuilder query = new StringBuilder();
+		query.append("select distinct f."+ XForm.formStorageIdentifierProperty +" from  XForm f");
+
+		query.append(" where f."+XForm.displayNameProperty+" = :"+XForm.displayNameProperty);
+
+
+		if (!ListUtil.isEmpty(procDefNames)) {
+			query.append(" and (");
+			for (Iterator<String> procDefNamesIter = procDefNames.iterator(); procDefNamesIter.hasNext();) {
+				query.append(" f.").append(XForm.formStorageIdentifierProperty).append(" ")
+				.append(" LIKE '%").append(procDefNamesIter.next()).append("%' ");
+				if (procDefNamesIter.hasNext()) {
+					query.append(" OR ");
+				}
+			}
+
+			query.append(") ");
+		}
+		return getResultListByInlineQuery(query.toString(), String.class, new Param(XForm.displayNameProperty, name));
+	}
+	
 }
