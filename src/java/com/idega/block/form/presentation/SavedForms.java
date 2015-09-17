@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.faces.component.UIComponent;
+import javax.faces.component.html.HtmlOutputLink;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -31,6 +33,7 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
+import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogic;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
@@ -111,7 +114,7 @@ public class SavedForms extends IWBaseComponent {
 	private String allowedTypes, variablesWithValues, processDefinitionNames = null, dateRange;
 
 	public final String formTypeParameter = "formtype";
-	
+
 	public boolean isShowOnlySubscribed() {
 		return showOnlySubscribed;
 	}
@@ -463,16 +466,16 @@ public class SavedForms extends IWBaseComponent {
 
 			element.add(formTypeSelect);
 		}
-		
+
 		SubmitButton show = new SubmitButton(iwrb.getLocalizedString("show", "Show"));
 		show.setStyleClass("savedFormsFilterButton");
 		element.add(show);
-		
+
 		if (filterError){
 			form.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
 			return;
 		}
-		
+
 		String rangeLimit = userSavedForms ? null : iwc.getIWMainApplication().getSettings().getProperty("forms.date_range_limit", String.valueOf(31));
 		if (StringHandler.isNumeric(rangeLimit)) {
 			if ((to.getTime() - from.getTime()) / 86400000 > Integer.valueOf(rangeLimit)) {
@@ -480,7 +483,7 @@ public class SavedForms extends IWBaseComponent {
 				return;
 			}
 		}
-		
+
 		Integer currentUserId = null;
 		String ownerPersonalId = null;
 		if (isShowOnlyCurrentUsersForms()) {
@@ -593,6 +596,11 @@ public class SavedForms extends IWBaseComponent {
 			authorCell.add(new Text(iwrb.getLocalizedString("saved_forms.submission_author", "Author")));
 			authorCell.setTitle(sortTitle);
 			authorCell.setStyleClass("savedFormsViewerAuthorHeaderRow");
+
+			TableHeaderCell applicantEmailCell = headerRow.createHeaderCell();
+			applicantEmailCell.add(new Text(iwrb.getLocalizedString("saved_forms.applicant_email", "E-mail")));
+			applicantEmailCell.setTitle(sortTitle);
+			applicantEmailCell.setStyleClass("savedFormsViewerApplicantEmailHeaderRow");
 		}
 
 		int index = 0;
@@ -600,7 +608,6 @@ public class SavedForms extends IWBaseComponent {
 		TableBodyRowGroup body = table.createBodyRowGroup();
 		body.setStyleClass("savedFormsViewerBodyRows");
 		for (SubmissionDataBean data: submissionsData) {
-
 			TableRow bodyRow = body.createRow();
 			bodyRow.setStyleClass(index % 2 == 0 ? "even" : "odd");
 
@@ -609,15 +616,15 @@ public class SavedForms extends IWBaseComponent {
 			linkToForm = uriUtil.getUri();
 
 			//	Email link
-			bodyRow.createCell().add(getLinkToSendEmail(iwc, data, bundle, iwrb, linkToForm));
+			Object[] mailData = getLinkToSendEmail(iwc, data, bundle, iwrb, linkToForm);
+			bodyRow.createCell().add((UIComponent) mailData[1]);
 
 			//	Link
 			Link linkToSavedForm = new Link(data.getLocalizedTitle());
 			if (getResponsePage() != null) {
 				linkToSavedForm.setPage(getResponsePage());
 				linkToSavedForm.addParameter(FormViewer.submissionIdParam, data.getSubmissionUUID());
-			}
-			else {
+			} else {
 				linkToSavedForm.setURL(linkToForm);
 			}
 			bodyRow.createCell().add(linkToSavedForm);
@@ -631,6 +638,10 @@ public class SavedForms extends IWBaseComponent {
 				//	Author
 				TableCell2 authorCell = bodyRow.createCell();
 				authorCell.add(new Text(data.getFormAuthor() == null ? CoreConstants.EMPTY : data.getFormAuthor().getName()));
+
+				//	E-mail
+				TableCell2 applicantMailCell = bodyRow.createCell();
+				applicantMailCell.add(new Text(mailData[0] == null ? CoreConstants.EMPTY : mailData[0].toString()));
 			}
 
 			index++;
@@ -742,21 +753,18 @@ public class SavedForms extends IWBaseComponent {
 		return document.getFormTitle();
 	}
 
-	private Link getLinkToSendEmail(IWContext iwc, SubmissionDataBean data, IWBundle bundle, IWResourceBundle iwrb, String linkToForm) {
-		Link sendEmail = new Link(bundle.getImage("images/email.png", iwrb.getLocalizedString("saved_forms.send_email", "Send e-mail")));
+	private Object[] getLinkToSendEmail(IWContext iwc, SubmissionDataBean data, IWBundle bundle, IWResourceBundle iwrb, String linkToForm) {
+		HtmlOutputLink sendEmailJSF = (HtmlOutputLink) iwc.getApplication().createComponent(HtmlOutputLink.COMPONENT_TYPE);
+		AdvancedProperty email = getEmailAddressMailtoFormattedWithSubject(iwc, data.getFormAuthor(), iwrb.getLocalizedString("saved_forms.link_to_a_saved_form", "Link to a saved form"), linkToForm);
+		sendEmailJSF.setValue(email.getValue());
+		sendEmailJSF.getChildren().add(bundle.getImage("images/email.png"));
 
-		sendEmail.setForceToReplaceAfterEncoding(true);
-		if (iwc.isWindows()) {
-			sendEmail.setCharEncoding("ISO-8859-1");	//	TODO
-		}
+		Object[] results = new Object[] {email.getId(), sendEmailJSF};
+		return results;
 
-		sendEmail.setURL(getEmailAddressMailtoFormattedWithSubject(iwc, data.getFormAuthor(),
-				iwrb.getLocalizedString("saved_forms.link_to_a_saved_form", "Link to a saved form"), linkToForm));
-
-		return sendEmail;
 	}
 
-	private String getEmailAddressMailtoFormattedWithSubject(IWApplicationContext iwac, User formAuthor, String subject, String body) {
+	private AdvancedProperty getEmailAddressMailtoFormattedWithSubject(IWApplicationContext iwac, User formAuthor, String subject, String body) {
 		String emailAddress = null;
 
 		if (formAuthor != null) {
@@ -773,10 +781,10 @@ public class SavedForms extends IWBaseComponent {
 		}
 
 		if (StringUtil.isEmpty(emailAddress)) {
-			return body;
+			return new AdvancedProperty(emailAddress, body);
 		}
 
-		return new StringBuilder("mailto:").append(emailAddress).append("?subject=").append(subject).append("&body=").append(body).toString();
+		return new AdvancedProperty(emailAddress, new StringBuilder("mailto:").append(emailAddress).append("?subject=").append(subject).append("&body=").append(body).toString());
 	}
 
 	private String getSubmissionDate(SubmissionDataBean data, Locale locale) {
