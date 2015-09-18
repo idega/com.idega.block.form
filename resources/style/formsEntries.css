@@ -138,7 +138,8 @@ input.savedFormsFilterButton {
 	width: 50px !important;
 }
 div.shortFormItem {
-	width: 650px !important;
+	float: left;
+	width: 225px !important;
 }
 div.shortFormItem label {
 	float: left !important;
@@ -146,4 +147,12 @@ div.shortFormItem label {
 }
 table.savedFormsViewerTable {
 	width: auto;
+}
+div.date-range-filter-button {
+	float: left;
+	text-align: left !important;
+	clear: none !important;
+	margin-top: -5px !important;
+	margin-bottom: 5px !important;
+	margin-left: 0px !important;
 }

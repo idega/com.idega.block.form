@@ -41,6 +41,7 @@ import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.builder.data.ICPage;
 import com.idega.core.contact.data.Email;
+import com.idega.core.messaging.MessagingSettings;
 import com.idega.idegaweb.IWApplicationContext;
 import com.idega.idegaweb.IWBundle;
 import com.idega.idegaweb.IWResourceBundle;
@@ -58,8 +59,10 @@ import com.idega.presentation.TableRow;
 import com.idega.presentation.text.Heading3;
 import com.idega.presentation.text.Link;
 import com.idega.presentation.text.Text;
+import com.idega.presentation.ui.CheckBox;
 import com.idega.presentation.ui.DropdownMenu;
 import com.idega.presentation.ui.Form;
+import com.idega.presentation.ui.GenericButton;
 import com.idega.presentation.ui.GenericInput;
 import com.idega.presentation.ui.IWDatePicker;
 import com.idega.presentation.ui.Label;
@@ -324,11 +327,14 @@ public class SavedForms extends IWBaseComponent {
 		IWResourceBundle iwrb = bundle.getResourceBundle(iwc);
 
 		PresentationUtil.addStyleSheetToHeader(iwc, bundle.getVirtualPathWithFileNameString("style/formsEntries.css"));
+		IWBundle processBundle = iwc.getIWMainApplication().getBundle(com.idega.block.process.IWBundleStarter.IW_BUNDLE_IDENTIFIER);
+		PresentationUtil.addStyleSheetToHeader(iwc, processBundle.getVirtualPathWithFileNameString("style/process.css"));
 
 		ELUtil.getInstance().autowire(this);
 
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
+		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, bundle.getVirtualPathWithFileNameString("javascript/SavedFormsHelper.js"));
 
 		Form form = new Form();
 		add(form);
@@ -406,7 +412,6 @@ public class SavedForms extends IWBaseComponent {
 		label = new Label(iwrb.getLocalizedString("date_range", "Date range") + CoreConstants.COLON, dateRange);
 		element.add(label);
 		element.add(dateRange);
-		container.add(new CSSSpacer());
 
 		boolean filterError = false;
 		if (showFormTypeFilter) {
@@ -416,14 +421,11 @@ public class SavedForms extends IWBaseComponent {
 						.split(CoreConstants.COMMA));
 			}
 
-			SelectDropdown formTypeSelect = new SelectDropdown(
-					formTypeParameter);
+			SelectDropdown formTypeSelect = new SelectDropdown(formTypeParameter);
 			formTypeSelect.setStyleClass("formTypeFilter");
 			formTypeSelect.addOption(new SelectOption(iwrb.getLocalizedString("filter_forms_by_type", "Filter forms by type"), ""));
 			if (getProcessDefinitionNames() != null) {
-				List<String> formList = getXformsDAO()
-						.getDistinctXFormNamesByStorageIdentifierProperty(
-								processDefNames);
+				List<String> formList = getXformsDAO().getDistinctXFormNamesByStorageIdentifierProperty(processDefNames);
 				for (String formType : formList) {
 					formTypeSelect.addOption(new SelectOption(formType, StringEscapeUtils.escapeHtml(formType)));
 				}
@@ -435,30 +437,23 @@ public class SavedForms extends IWBaseComponent {
 			}
 
 			if (iwc.isParameterSet(formTypeParameter)) {
-				String formTypeValue = StringEscapeUtils.unescapeHtml(iwc
-						.getParameter(formTypeParameter));
+				String formTypeValue = StringEscapeUtils.unescapeHtml(iwc.getParameter(formTypeParameter));
 				if (!StringUtil.isEmpty(formTypeValue)) {
 					if (getProcessDefinitionNames() != null) {
-						List<String> defFilter = getXformsDAO()
-								.getStorageIdentifierPropertyByNameAndSIP(
-										formTypeValue, processDefNames);
+						List<String> defFilter = getXformsDAO().getStorageIdentifierPropertyByNameAndSIP(formTypeValue, processDefNames);
 						if (ListUtil.isEmpty(defFilter)){
 							filterError = true;
 							getLogger().warning("Couldn't find form types for provided type, this should not happen!");
 						} else {
-						setProcessDefinitionNames(StringUtils.join(defFilter,
-								","));
+							setProcessDefinitionNames(StringUtils.join(defFilter, CoreConstants.COMMA));
 						}
 					} else {
-						List<String> defFilter = getXformsDAO()
-								.getStorageIdentifierPropertyByNameAndSIP(
-										formTypeValue, null);
+						List<String> defFilter = getXformsDAO().getStorageIdentifierPropertyByNameAndSIP(formTypeValue, null);
 						if (ListUtil.isEmpty(defFilter)){
 							filterError = true;
 							getLogger().warning("Couldn't find form types for provided type, this should not happen!");
 						} else {
-						setProcessDefinitionNames(StringUtils.join(defFilter,
-								","));
+							setProcessDefinitionNames(StringUtils.join(defFilter, CoreConstants.COMMA));
 						}
 					}
 				}
@@ -467,9 +462,13 @@ public class SavedForms extends IWBaseComponent {
 			element.add(formTypeSelect);
 		}
 
+		Layer button = new Layer();
+		button.setStyleClass("buttonLayer date-range-filter-button");
 		SubmitButton show = new SubmitButton(iwrb.getLocalizedString("show", "Show"));
 		show.setStyleClass("savedFormsFilterButton");
-		element.add(show);
+		button.add(show);
+		container.add(button);
+		container.add(new CSSSpacer());
 
 		if (filterError){
 			form.add(new Heading3(iwrb.getLocalizedString("no_forms_found", "There are no forms available")));
@@ -577,6 +576,12 @@ public class SavedForms extends IWBaseComponent {
 		}
 		TableRow headerRow = header.createRow();
 		headerRow.setStyleClass("header");
+
+		if (isShowAll()) {
+			TableHeaderCell checkboxCell = headerRow.createHeaderCell();
+			checkboxCell.add(new Text(CoreConstants.EMPTY));
+		}
+
 		TableHeaderCell emailCell = headerRow.createHeaderCell();
 		emailCell.add(new Text(CoreConstants.EMPTY));
 
@@ -615,8 +620,23 @@ public class SavedForms extends IWBaseComponent {
 			uriUtil.setParameter(FormViewer.submissionIdParam, data.getSubmissionUUID());
 			linkToForm = uriUtil.getUri();
 
-			//	Email link
 			Object[] mailData = getLinkToSendEmail(iwc, data, bundle, iwrb, linkToForm);
+
+			if (isShowAll() ) {
+				TableCell2 sendMessageCell = bodyRow.createCell();
+
+				Object email = mailData[0];
+				if (email == null) {
+					sendMessageCell.add(new Text(CoreConstants.EMPTY));
+				} else {
+					CheckBox checkbox = new CheckBox("author_email", email.toString());
+					checkbox.setMarkupAttribute("data-form-id", data.getFormId().toString());
+					checkbox.setStyleClass("send-author-mail");
+					sendMessageCell.add(checkbox);
+				}
+			}
+
+			//	Email link
 			bodyRow.createCell().add((UIComponent) mailData[1]);
 
 			//	Link
@@ -641,10 +661,31 @@ public class SavedForms extends IWBaseComponent {
 
 				//	E-mail
 				TableCell2 applicantMailCell = bodyRow.createCell();
-				applicantMailCell.add(new Text(mailData[0] == null ? CoreConstants.EMPTY : mailData[0].toString()));
+				UIComponent content = null;
+				if (mailData[0] == null) {
+					content = new Text(CoreConstants.EMPTY);
+				} else {
+					HtmlOutputLink sendMessage = (HtmlOutputLink) iwc.getApplication().createComponent(HtmlOutputLink.COMPONENT_TYPE);
+					sendMessage.setValue("mailto:" + mailData[0].toString());
+					sendMessage.getChildren().add(new Text( mailData[0].toString()));
+					content = sendMessage;
+				}
+				applicantMailCell.add(content);
 			}
 
 			index++;
+		}
+
+		if (isShowAll()) {
+			Layer buttons = new Layer();
+			buttons.setStyleClass("buttonLayer");
+			form.add(buttons);
+
+			GenericButton sendMessage = new GenericButton(iwrb.getLocalizedString("send_message", "Send message"));
+			sendMessage.setInputType("button");
+			sendMessage.setOnClick("SavedFormsHelper.doSendMails('" +
+					iwc.getApplicationSettings().getProperty(MessagingSettings.PROP_MESSAGEBOX_FROM_ADDRESS, "no-reply@idega.com") + "');");
+			buttons.add(sendMessage);
 		}
 
 		boolean addPager = submissionsData.size() > 10;
