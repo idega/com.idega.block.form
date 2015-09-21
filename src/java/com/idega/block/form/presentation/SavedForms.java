@@ -24,6 +24,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.w3c.dom.Node;
 import org.w3c.tidy.Attribute;
 
+import com.idega.block.email.presentation.EmailSender;
 import com.idega.block.form.IWBundleStarter;
 import com.idega.block.form.bean.SubmissionDataBean;
 import com.idega.block.form.business.FormAssetsResolver;
@@ -33,10 +34,13 @@ import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.block.web2.business.JQuery;
 import com.idega.block.web2.business.JQueryPlugin;
+import com.idega.block.web2.business.Web2Business;
 import com.idega.builder.bean.AdvancedProperty;
 import com.idega.builder.business.BuilderLogic;
+import com.idega.builder.business.BuilderLogicWrapper;
 import com.idega.business.IBOLookup;
 import com.idega.business.IBOLookupException;
+import com.idega.content.business.ContentConstants;
 import com.idega.core.builder.business.BuilderService;
 import com.idega.core.builder.business.BuilderServiceFactory;
 import com.idega.core.builder.data.ICPage;
@@ -101,6 +105,12 @@ public class SavedForms extends IWBaseComponent {
 
 	@Autowired
 	private JQuery jQuery;
+
+	@Autowired
+	private BuilderLogicWrapper builderLogicWrapper;
+
+	@Autowired
+	private Web2Business web2;
 
 	private boolean	showAll = Boolean.TRUE,
 					newestOnTop = Boolean.TRUE,
@@ -334,7 +344,11 @@ public class SavedForms extends IWBaseComponent {
 
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryLib());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, jQuery.getBundleURIToJQueryPlugin(JQueryPlugin.TABLE_SORTER));
+		PresentationUtil.addJavaScriptSourcesLinesToHeader(iwc, web2.getBundleURIsToFancyBoxScriptFiles());
 		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, bundle.getVirtualPathWithFileNameString("javascript/SavedFormsHelper.js"));
+		PresentationUtil.addJavaScriptSourceLineToHeader(iwc, iwc.getIWMainApplication().getBundle(ContentConstants.IW_BUNDLE_IDENTIFIER).getVirtualPathWithFileNameString("javascript/FileUploadHelper.js"));
+
+		PresentationUtil.addStyleSheetToHeader(iwc, web2.getBundleURIToFancyBoxStyleFile());
 
 		Form form = new Form();
 		add(form);
@@ -683,8 +697,16 @@ public class SavedForms extends IWBaseComponent {
 
 			GenericButton sendMessage = new GenericButton(iwrb.getLocalizedString("send_message", "Send message"));
 			sendMessage.setInputType("button");
-			sendMessage.setOnClick("SavedFormsHelper.doSendMails('" +
-					iwc.getApplicationSettings().getProperty(MessagingSettings.PROP_MESSAGEBOX_FROM_ADDRESS, "no-reply@idega.com") + "');");
+			String fromEmail = iwc.getApplicationSettings().getProperty(MessagingSettings.PROP_MESSAGEBOX_FROM_ADDRESS, "no-reply@idega.com");
+			sendMessage.setOnClick("SavedFormsHelper.doSendMails('" + from + "', '" +
+					getBuilderLogicWrapper().getBuilderService(iwc).getUriToObject(EmailSender.class, Arrays.asList(
+							new AdvancedProperty(EmailSender.FROM_PARAMETER, fromEmail),
+							new AdvancedProperty(EmailSender.RECIPIENT_TO_PARAMETER, fromEmail),
+							new AdvancedProperty(EmailSender.USE_RICH_TEXT_EDITOR, Boolean.TRUE.toString()),
+							new AdvancedProperty(EmailSender.ALLOW_MULTIPLE_FILES, Boolean.TRUE.toString())
+						)
+					) +
+			"', true, '" + form.getId() + "');");
 			buttons.add(sendMessage);
 		}
 
@@ -1019,6 +1041,13 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setShowFormTypeFilter(boolean showFormTypeFilter) {
 		this.showFormTypeFilter = showFormTypeFilter;
+	}
+
+	private BuilderLogicWrapper getBuilderLogicWrapper() {
+		if (builderLogicWrapper == null) {
+			ELUtil.getInstance().autowire(this);
+		}
+		return builderLogicWrapper;
 	}
 
 }

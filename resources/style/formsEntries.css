@@ -156,3 +156,13 @@ div.date-range-filter-button {
 	margin-bottom: 5px !important;
 	margin-left: 15px !important;
 }
+
+div.emailSenderFormItem {
+	width: 100% !important;
+}
+input.email-form-input-from {
+	width: 78.7% !important;
+}
+div.mce-tinymce {
+	margin-left: 150px;
+}
