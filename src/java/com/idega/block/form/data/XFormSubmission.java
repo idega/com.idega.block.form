@@ -33,6 +33,7 @@ import org.w3c.dom.Node;
 import com.idega.block.form.business.XFormPersistenceService;
 import com.idega.idegaweb.IWMainApplication;
 import com.idega.repository.RepositoryService;
+import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
 import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
@@ -225,12 +226,25 @@ public class XFormSubmission implements Serializable, Submission {
 		try {
 			stream = getRepositoryService().getInputStreamAsRoot(resourcePath);
 			String content = XmlUtil.getCleanedXml(stream);
-			content = StringHandler.replace(content, "&#11;", CoreConstants.EMPTY);
+			String[] invalidSymbols = IWMainApplication.getDefaultIWMainApplication().getSettings().getProperty("xform_invalid_symbols", "&#11;,&#16").split(CoreConstants.COMMA);
+			if (!ArrayUtil.isEmpty(invalidSymbols)) {
+				for (String invalidSymbol: invalidSymbols) {
+					if (StringUtil.isEmpty(invalidSymbol)) {
+						continue;
+					}
+
+					content = StringHandler.replace(content, invalidSymbol, CoreConstants.EMPTY);
+				}
+			}
 			IOUtil.close(stream);
 
 			stream = StringHandler.getStreamFromString(content);
 			xform = docBuilder.parse(stream);
 		} catch (Exception e) {
+			String message = "Error loading resource: " + resourcePath;
+			Logger.getLogger(getClass().getName()).log(Level.WARNING, message, e);
+			CoreUtil.sendExceptionNotification(message, e);
+
 			throw new RuntimeException(e);
 		} finally {
 			IOUtil.close(stream);
