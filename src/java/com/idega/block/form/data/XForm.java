@@ -25,6 +25,7 @@ import javax.persistence.Transient;
 import com.idega.block.process.data.Case;
 import com.idega.util.ArrayUtil;
 import com.idega.util.CoreConstants;
+import com.idega.util.DBUtil;
 import com.idega.util.StringUtil;
 import com.idega.xformsmanager.business.Form;
 import com.idega.xformsmanager.business.XFormState;
@@ -233,6 +234,7 @@ public class XForm implements Serializable, Form {
 
 	@Override
 	public List<XFormSubmission> getXformSubmissions() {
+		xformSubmissions = DBUtil.getInstance().lazyLoad(xformSubmissions);
 		return xformSubmissions;
 	}
 
