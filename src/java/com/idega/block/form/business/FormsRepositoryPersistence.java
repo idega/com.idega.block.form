@@ -27,15 +27,17 @@ import com.idega.block.form.data.XForm;
 import com.idega.block.form.data.XFormSubmission;
 import com.idega.block.form.data.dao.XFormsDAO;
 import com.idega.block.form.event.FormSavedEvent;
-import com.idega.business.IBOLookup;
 import com.idega.core.business.DefaultSpringBean;
 import com.idega.core.file.util.MimeTypeUtil;
 import com.idega.core.idgenerator.business.UUIDGenerator;
 import com.idega.core.persistence.Param;
 import com.idega.idegaweb.IWMainApplication;
+import com.idega.presentation.IWContext;
 import com.idega.user.business.UserBusiness;
+import com.idega.user.dao.UserDAO;
 import com.idega.user.data.User;
 import com.idega.util.CoreConstants;
+import com.idega.util.CoreUtil;
 import com.idega.util.IOUtil;
 import com.idega.util.StringUtil;
 import com.idega.util.datastructures.map.MapUtil;
@@ -646,7 +648,11 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 
 			doEnsureSubmitterIsKnown(xformSubmission);
 
-			getXformsDAO().persist(xformSubmission);
+			if (xformSubmission.getSubmissionId() == null) {
+				getXformsDAO().persist(xformSubmission);
+			} else {
+				getXformsDAO().merge(xformSubmission);
+			}
 
 			return submissionUUID;
 		} finally {
@@ -655,38 +661,75 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 	}
 
 	private User getSubmissionOwner(XFormSubmission submission) {
-		Map<?, ?> beans = null;
+		Map<String, FormAssetsResolver> beans = null;
 		try {
-			beans = WebApplicationContextUtils.getWebApplicationContext(IWMainApplication.getDefaultIWMainApplication().getServletContext())
-					.getBeansOfType(FormAssetsResolver.class);
+			beans = WebApplicationContextUtils.getWebApplicationContext(IWMainApplication.getDefaultIWMainApplication().getServletContext()).getBeansOfType(FormAssetsResolver.class);
 		} catch (Exception e) {}
-		if (MapUtil.isEmpty(beans)) {
-			String personalId = submission.getVariableValue(SubmissionDataBean.VARIABLE_OWNER_PERSONAL_ID);
-			if (StringUtil.isEmpty(personalId))
-				return null;
-
-			try {
-				UserBusiness userBusiness = IBOLookup.getServiceInstance(IWMainApplication.getDefaultIWApplicationContext(), UserBusiness.class);
-				return userBusiness.getUser(personalId);
-			} catch (Exception e) {
-				getLogger().warning("Unable to resolve user by personal ID ('" + personalId + "') for submission " + submission);
-			}
-
-			return null;
-		}
-
-		for (Object bean: beans.values()) {
-			if (bean instanceof FormAssetsResolver) {
-				User owner = ((FormAssetsResolver) bean).getOwner(submission);
+		if (!MapUtil.isEmpty(beans)) {
+			for (FormAssetsResolver bean: beans.values()) {
+				User owner = null;
+				try {
+					owner = bean.getOwner(submission);
+				} catch (Exception e) {}
 				if (owner != null) {
 					return owner;
 				}
 			}
 		}
 
+		String personalId = null;
+		try {
+			personalId = submission.getVariableValue(SubmissionDataBean.VARIABLE_OWNER_PERSONAL_ID);
+			if (!StringUtil.isEmpty(personalId)) {
+				return getUser(personalId);
+			}
+		} catch (Exception e) {
+			getLogger().log(Level.WARNING, "Unable to resolve user by personal ID ('" + personalId + "') for submission " + submission, e);
+			return null;
+		}
+
+		getLogger().warning("Unable to resolve owner for submission " + submission + ". Owner's personal ID: " + personalId);
 		return null;
 	}
 
+	private User getUser(String personalId) {
+		if (StringUtil.isEmpty(personalId)) {
+			return null;
+		}
+
+		User user = null;
+		try {
+			UserBusiness userBusiness = getServiceInstance(UserBusiness.class);
+			user = userBusiness.getUser(personalId);
+		} catch (Exception e) {}
+		if (user != null) {
+			return user;
+		}
+
+		try {
+			UserDAO userDAO = ELUtil.getInstance().getBean(UserDAO.class);
+			com.idega.user.data.bean.User userEntity = userDAO.getUser(personalId);
+			if (userEntity != null) {
+				user = getLegacyUser(userEntity);
+			}
+		} catch (Exception e) {}
+
+		if (user == null) {
+			IWContext iwc = CoreUtil.getIWContext();
+			if (iwc != null && iwc.isLoggedOn()) {
+				user = iwc.getCurrentUser();
+				getLogger().info("Unable to find user by personal ID " + personalId + ", returning currently logged in user: " + user);
+			}
+		}
+
+		if (user == null) {
+			getLogger().warning("Unable to find user by personal ID " + personalId);
+		}
+
+		return user;
+	}
+
+	@Transactional(readOnly = false)
 	private void doEnsureSubmitterIsKnown(XFormSubmission submission) {
 		if (submission.getFormSubmitter() != null) {
 			return;
@@ -701,6 +744,13 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 		try {
 			submitterId = Integer.valueOf(submitter.getId());
 			submission.setFormSubmitter(submitterId);
+
+			if (submission.getSubmissionId() == null) {
+				getXformsDAO().persist(submission);
+			} else {
+				getXformsDAO().merge(submission);
+			}
+
 			getLogger().info("Set submitter ID ('" + submitterId + "') for submission " + submission);
 		} catch (Exception e) {
 			getLogger().log(Level.WARNING, "Error setting submitter ID (user ID: '" + submitterId + "') for submission " + submission, e);
