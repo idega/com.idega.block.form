@@ -615,8 +615,9 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 	        boolean finalSubmission,
 	        Integer formSubmitter
 	) throws Exception {
-		if (formId == null || is == null)
+		if (formId == null || is == null) {
 			throw new IllegalArgumentException("Not enough arguments. FormId=" + formId + ", stream=" + is);
+		}
 
 		if (StringUtil.isEmpty(representationIdentifier)) {
 			representationIdentifier = String.valueOf(System.currentTimeMillis());
@@ -631,11 +632,13 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 
 		XForm xform = getXformsDAO().find(XForm.class, formId);
 
-		if (xform == null)
+		if (xform == null) {
 			throw new RuntimeException("No xform found for formId provided=" + formId);
+		}
 
 		String submissionUUID = UUIDGenerator.getInstance().generateUUID();
 
+		Long id = null;
 		XFormSubmission xformSubmission = new XFormSubmission();
 		try {
 			xformSubmission.setDateSubmitted(new Date());
@@ -654,9 +657,16 @@ public class FormsRepositoryPersistence extends DefaultSpringBean implements Per
 				getXformsDAO().merge(xformSubmission);
 			}
 
+			id = xformSubmission.getSubmissionId();
+			if (id == null) {
+				throw new RuntimeException("Error saving XForm submission at " + path + ". Form's ID: " + formId);
+			}
+
 			return submissionUUID;
 		} finally {
-			ELUtil.getInstance().publishEvent(new FormSavedEvent(this, xformSubmission.getSubmissionId()));
+			if (id != null) {
+				ELUtil.getInstance().publishEvent(new FormSavedEvent(this, id));
+			}
 		}
 	}
 
