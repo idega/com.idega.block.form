@@ -119,7 +119,8 @@ public class SavedForms extends IWBaseComponent {
 					showOnlyCurrentUsersForms = Boolean.FALSE,
 					showOnlyAvailableByAccessRights = Boolean.FALSE,
 					showOnlySubscribed = Boolean.FALSE,
-					showFormTypeFilter = Boolean.FALSE;
+					showFormTypeFilter = Boolean.FALSE,
+					showDateFilter = Boolean.FALSE;
 
 	private Integer userId;
 	private ICPage responsePage;
@@ -142,6 +143,15 @@ public class SavedForms extends IWBaseComponent {
 
 	public void setShowOnlyAvailableByAccessRights(boolean showOnlyAvailableByAccessRights) {
 		this.showOnlyAvailableByAccessRights = showOnlyAvailableByAccessRights;
+	}
+
+
+	public boolean isShowDateFilter() {
+		return showDateFilter;
+	}
+
+	public void setShowDateFilter(boolean showDateFilter) {
+		this.showDateFilter = showDateFilter;
 	}
 
 	private List<String> procDefNames = null;
@@ -358,7 +368,10 @@ public class SavedForms extends IWBaseComponent {
 		String uuid = BuilderLogic.getInstance().getInstanceId(this);
 		if (!StringUtil.isEmpty(uuid))
 			form.setId("id_".concat(uuid));
-		form.add(container);
+		
+		if (showDateFilter) {
+			form.add(container);
+		}
 
 		if (!iwc.isLoggedOn()) {
 			form.add(new Heading3(iwrb.getLocalizedString("please_login_to_see_forms", "Please login to see saved forms")));
