@@ -37,7 +37,6 @@ import com.idega.xformsmanager.business.XFormPersistenceType;
 public class UploadedFileWriter extends DownloadWriter implements MediaWritable {
 
 	public static final String SUBMISSION_ID = FormViewer.submissionIdParam;
-	public static final String FILE_ID = "fileId";
 
 	private UploadedFile selectedFile;
 	private UploadedFileResolver fileResolver;
@@ -52,8 +51,12 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 
 	@Override
 	public void init(HttpServletRequest req, IWContext iwc) {
+		if (iwc == null || !iwc.isLoggedOn()) {
+			return;
+		}
+
 		String submissionId = iwc.getParameter(SUBMISSION_ID);
-		String fileId = iwc.getParameter(FILE_ID);
+		String fileId = iwc.getParameter(DownloadWriter.PRM_FILE_UNIQUE_ID);
 
 		Submission sub = getPersistenceManager().getSubmission(Long.parseLong(submissionId));
 		List<UploadedFile> files = getFileResolver().resolveUploadedList(sub.getSubmissionDocument());
@@ -69,9 +72,19 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 	}
 
 	@Override
-	public void writeTo(OutputStream streamOut) throws IOException {
+	public void writeTo(IWContext iwc, OutputStream streamOut) throws IOException {
 		if (selectedFile == null) {
 			logger.log(Level.SEVERE, "Unable to get Attached file");
+			return;
+		}
+
+		try {
+			if (!hasPermission(iwc, selectedFile.getFileURI().toString())) {
+				selectedFile = null;
+				return;
+			}
+		} catch (Exception e) {
+			selectedFile = null;
 			return;
 		}
 
@@ -129,4 +142,5 @@ public class UploadedFileWriter extends DownloadWriter implements MediaWritable 
 	public void setFileResolver(UploadedFileResolver fileResolver) {
 		this.fileResolver = fileResolver;
 	}
+
 }
